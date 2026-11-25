@@ -79,7 +79,13 @@ export default defineConfig({
     },
   },
   prefetch: { prefetchAll: false, defaultStrategy: 'hover' },
+  // CSS goes inline in each page (≈ 17 KB gz): no render-blocking stylesheet requests on a
+  // slow first visit. Allowed by the CSP's style-src 'unsafe-inline'; scripts stay external.
+  build: { inlineStylesheets: 'always' },
   vite: {
     plugins: [tailwindcss()],
+    // Never inline scripts (or other assets) into the HTML, so the Content-Security-Policy in
+    // vercel.json can stay at script-src 'self' with no 'unsafe-inline'.
+    build: { assetsInlineLimit: 0 },
   },
 });

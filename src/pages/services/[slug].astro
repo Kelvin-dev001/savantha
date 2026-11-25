@@ -58,7 +58,12 @@ let n = 0;
 const num = () => String(++n).padStart(2, '0');
 ---
 
-<BaseLayout title={s.seoTitle} description={s.seoDescription} schema={[serviceLd]}>
+<BaseLayout
+  title={s.seoTitle}
+  description={s.seoDescription}
+  schema={[serviceLd]}
+  whatsapp={{ message: s.whatsappMessage, service: s.slug }}
+>
   <!-- service_view (analytics, only after consent): see src/scripts/analytics/run.ts -->
   <meta slot="head" name="savantho:service-view" content={s.slug} />
   <ServiceHero

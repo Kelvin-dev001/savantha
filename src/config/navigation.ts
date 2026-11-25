@@ -43,6 +43,7 @@ export const ui = {
   footerLegal: 'Legal',
   registration: 'Company registration',
   whatsappLabel: 'WhatsApp',
+  stickyWhatsApp: 'Message Savantho on WhatsApp',
   callLabel: 'Call',
   emailLabel: 'Email',
   rights: 'All rights reserved.',

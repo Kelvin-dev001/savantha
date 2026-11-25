@@ -2,7 +2,7 @@
 
 Every placeholder on the site is listed here. Text placeholders use `[[SQUARE BRACKETS]]`; elements carry `data-placeholder="true"` and show a dashed outline while `PUBLIC_SHOW_PLACEHOLDERS=true`.
 
-Last updated: 2026-11-25 (Phase 7)
+Last updated: 2026-11-25 (Phase 8, final for the redesign)
 
 ## Identity and registration
 
@@ -121,16 +121,29 @@ About copy: `src/content/about/about.yaml`. Contact page and enquiry form: `src/
 | Resend account and verified domain | Vercel env: `RESEND_API_KEY`, `CONTACT_FROM_EMAIL` (see `.env.example`) | A Resend API key, and savantho.net verified in Resend so mail can come from `website@savantho.net` (or another sender Savantho chooses) |
 | Inbox | Vercel env: `CONTACT_TO_EMAIL` | The address enquiries should go to (default info@savantho.net) |
 
-## Search, sharing and analytics (Phase 7)
+## Search, sharing and analytics (Phases 7–8)
+
+Decided: **Google Analytics 4** (Phase 8). Homepage search title **approved** ("Ethical Financial Consultancy, Kenya | Savantho Consultancy").
 
 | Item | Where | What we need |
 |---|---|---|
-| Homepage search title | `home.yaml` → `seoTitle` ("Ethical Financial Consultancy, Kenya | Savantho Consultancy"), `seoDescription` | Approve. It leads with what people search for rather than the tagline; the tagline stays on the OG card and in the hero |
-| About and Contact titles | `about.yaml`, `contact.yaml` → `seoTitle` ("About us", "Contact us") | Approve (they used to repeat "Savantho Consultancy" twice) |
-| `/llms.txt` text | `pages.yaml` → `seo.llms` (summary, intro, "What Savantho does not do") | Approve: this is how AI assistants will describe Savantho. Compliance-sensitive, include it in the advocate's review |
+| GA4 measurement ID | Vercel env `PUBLIC_GA4_ID` (`PUBLIC_ANALYTICS_PROVIDER=ga4` is already the default in `.env.example`) | Create the GA4 property and send the ID (G-XXXXXXXXXX). Until it is set, no banner shows and nothing is measured |
+| GA4 property settings | GA4 → Admin | Data retention **14 months** (matches `privacy.md` → `[[14 months]]`), Google signals **off**, ads personalisation **off**, and mark `whatsapp_click`, `call_click`, `email_click`, `form_step_1`, `form_submit`, `service_view` as key events (params: `service`, `page`, `location`; `form_submit` also `channel`) |
+| Analytics wording | `privacy.md` (analytics paragraph, providers, retention), `pages.yaml` → `consent` | Advocate to confirm, including that consent kept in the browser for 12 months is acceptable under the DPA |
+| About and Contact titles | `about.yaml`, `contact.yaml` → `seoTitle` ("About us", "Contact us") | Approve |
+| `/llms.txt` text | `pages.yaml` → `seo.llms` | Approve; this is how AI assistants will describe Savantho. Include it in the advocate's review |
 | OG card eyebrows | `pages.yaml` → `seo.og` | Approve "Ethical financial consultancy · Kenya" for the home and default cards |
-| Analytics provider | Vercel env `PUBLIC_ANALYTICS_PROVIDER` (+ `PUBLIC_GA4_ID` for GA4), see `.env.example`; `privacy.md` → `[[ANALYTICS PROVIDER]]` (three places) and `[[ANALYTICS RETENTION]]` | Choose Plausible (cookieless, paid subscription) or GA4 (free, sets cookies). Until one is set, no banner shows and nothing is measured. Then fill in the privacy notice before switching it on |
-| Analytics goals | Plausible: Goals → add custom events; GA4: mark as key events | Register `whatsapp_click`, `call_click`, `email_click`, `form_step_1`, `form_submit`, `service_view` (props: `service`, `page`, `location`; `form_submit` also `channel`) |
-| Consent banner copy | `pages.yaml` → `consent` | Advocate to confirm the wording, and that analytics consent kept in the browser for 12 months is acceptable under the DPA |
-| Social profiles | `site.ts` → `socials` | Also feeds `sameAs` in the Organization JSON-LD; add any profile URLs (LinkedIn first) |
-| Street address and hours | `site.ts` | Left out of the JSON-LD while they are placeholders; once set, add them so the business can show in local results (and set up a Google Business Profile) |
+| Social profiles | `site.ts` → `socials` | **To be supplied later.** Also feeds `sameAs` in the Organization JSON-LD (LinkedIn first) |
+| Street address and hours | `site.ts` | Left out of the JSON-LD while they are placeholders; once set, they publish automatically. Then set up a Google Business Profile |
+
+## Before launch (checklist)
+
+| Step | Notes |
+|---|---|
+| Vercel env | `RESEND_API_KEY`, `CONTACT_FROM_EMAIL` (verified domain), `CONTACT_TO_EMAIL`, `PUBLIC_GA4_ID`; `PUBLIC_SHOW_PLACEHOLDERS` unset or `false` |
+| Headers live | After the first deploy: `curl -sI https://<deployment>/ | grep -iE "strict-transport|content-security|x-frame|permissions|referrer|x-content-type|x-robots"`. Preview URLs (`*.vercel.app`) must show `X-Robots-Tag: noindex`; the production domain must not |
+| PageSpeed Insights (mobile) | Run on `/`, `/about`, `/services/shariah-compliant-finance`. Local Lighthouse passes at 2× CPU; PageSpeed's servers are the reference (see `reports/lighthouse/` after `npm run lighthouse`) |
+| Google Search Console | Verify savantho.net (DNS TXT at Cloudflare), submit `/sitemap-index.xml` |
+| HSTS preload | Header is `max-age=63072000; includeSubDomains` without `preload`. Add `preload` and submit to hstspreload.org only once every subdomain serves HTTPS (it is hard to undo) |
+| Drafts | Each guide goes live by setting `draft: false` and `publishedAt`, after its review. Sitemap, `noindex`, OG and `llms.txt` follow automatically |
+| `/styleguide` | Internal page (noindex, not in the sitemap). Decide whether it ships to production |

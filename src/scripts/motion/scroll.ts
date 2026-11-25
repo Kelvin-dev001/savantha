@@ -132,11 +132,32 @@ export function initScrollMotion(root: ParentNode = document) {
       { once: true },
     );
 
+  // Bind each reveal only as it comes within half a viewport, not all at once: splitting
+  // every heading on load (a layout read after every write) was one long task on a slow
+  // phone. Anything already on screen when it is reached is left as it is.
   const run = () => {
-    root.querySelectorAll<HTMLElement>('[data-reveal]:not([data-reveal-bound])').forEach((el) => {
-      if (offscreen(el)) reveal(el);
-      else el.dataset.revealBound = 'skipped';
-    });
+    const pending = [
+      ...root.querySelectorAll<HTMLElement>('[data-reveal]:not([data-reveal-bound])'),
+    ];
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (!e.isIntersecting) continue;
+          const el = e.target as HTMLElement;
+          io.unobserve(el);
+          if (el.dataset.revealBound) continue;
+          if (offscreen(el)) reveal(el);
+          else el.dataset.revealBound = 'skipped';
+        }
+      },
+      { rootMargin: '0px 0px 50% 0px' },
+    );
+    // First pass: everything on screen now stays visible (one batch of reads, no writes).
+    const vh = window.innerHeight;
+    for (const el of pending) {
+      if (el.getBoundingClientRect().top <= vh) el.dataset.revealBound = 'skipped';
+      else io.observe(el);
+    }
     root.querySelectorAll<HTMLElement>('[data-parallax]').forEach(parallax);
   };
 

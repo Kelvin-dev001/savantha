@@ -1,0 +1,145 @@
+---
+/**
+ * Sticky WhatsApp button (brief §5): 56 px, bottom right, below 1024 px only (from 1024 px
+ * the header carries "Talk to us"). It never doubles up or covers content:
+ *  - hidden whenever another WhatsApp link is on screen (the hero CTA, a CTA band, the
+ *    footer), so it never sits on top of the call to action it repeats;
+ *  - hidden while a form field has focus (the on-screen keyboard is up), while the mobile
+ *    menu is open, and while the analytics banner is open;
+ *  - the footer reserves space beneath its last line, so nothing is permanently covered.
+ * Without JavaScript it simply stays visible.
+ * Every click is tracked as whatsapp_click (location "sticky").
+ */
+import { ui } from '@/config/navigation';
+import { whatsappLink } from '@/lib/contact';
+import Icon from '@/components/ui/Icon.astro';
+
+interface Props {
+  /** The page's own prefilled message (service pages, guides). */
+  message?: string;
+  service?: string;
+}
+const { message, service = 'general' } = Astro.props;
+---
+
+<a
+  href={whatsappLink(undefined, message)}
+  class="fab"
+  data-fab
+  target="_blank"
+  rel="noopener noreferrer"
+  data-track="whatsapp_click"
+  data-track-service={service}
+  data-track-location="sticky"
+>
+  <Icon name="whatsapp" size={24} />
+  <span class="sr-only">{ui.stickyWhatsApp} (opens in a new tab)</span>
+</a>
+
+<script>
+  // Event-driven rather than CSS :has(), which would re-check the whole document on every
+  // DOM change (the motion code splits headings into words) and cost seconds of style work
+  // on a slow phone.
+  const fab = document.querySelector<HTMLElement>('[data-fab]');
+  if (fab) {
+    const onScreen = new Set<Element>();
+    let typing = false;
+    const header = document.querySelector<HTMLElement>('header[data-open]');
+    const banner = document.querySelector<HTMLElement>('[data-consent]');
+    const isField = (el: EventTarget | null) =>
+      el instanceof HTMLElement && el.matches('input, textarea, select, [contenteditable]');
+
+    const update = () => {
+      const hide =
+        onScreen.size > 0 ||
+        typing ||
+        header?.dataset.open === 'sheet' ||
+        (banner ? !banner.hidden : false);
+      fab.dataset.state = hide ? 'hidden' : 'shown';
+    };
+
+    if ('IntersectionObserver' in window) {
+      const io = new IntersectionObserver((entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) onScreen.add(e.target);
+          else onScreen.delete(e.target);
+        }
+        update();
+      });
+      document
+        .querySelectorAll('a[href^="https://wa.me"]:not([data-fab])')
+        .forEach((a) => io.observe(a));
+    } else update();
+
+    document.addEventListener('focusin', (e) => {
+      typing = isField(e.target);
+      update();
+    });
+    document.addEventListener('focusout', () => {
+      typing = false;
+      // Focus may be moving to another field; let focusin settle first.
+      setTimeout(update, 0);
+    });
+    const watch = new MutationObserver(update);
+    if (header) watch.observe(header, { attributes: true, attributeFilter: ['data-open'] });
+    if (banner) watch.observe(banner, { attributes: true, attributeFilter: ['hidden'] });
+  }
+</script>
+
+<style>
+  /* Layered so Tailwind utilities on the same element still win. */
+  @layer components {
+    .fab {
+      position: fixed;
+      z-index: 30; /* under the analytics banner (40) and the header (50) */
+      right: max(16px, env(safe-area-inset-right));
+      bottom: max(16px, env(safe-area-inset-bottom));
+      display: grid;
+      place-items: center;
+      width: 56px;
+      height: 56px;
+      border-radius: var(--radius-md);
+      background: var(--color-ink);
+      color: var(--color-ivory);
+      border: 1px solid color-mix(in srgb, var(--color-gold) 70%, transparent);
+      box-shadow: 0 14px 32px -18px color-mix(in srgb, var(--color-ink) 70%, transparent);
+      transition:
+        opacity 220ms var(--ease-quiet),
+        transform 220ms var(--ease-quiet),
+        visibility 0s linear 0s;
+    }
+    .fab :global(svg) {
+      color: var(--color-gold-soft);
+    }
+    .fab:hover {
+      background: var(--color-ink-700);
+    }
+    /* Two-tone ring: royal reads on ivory, the ivory halo reads on ink sections. */
+    .fab:focus-visible {
+      outline: 2px solid var(--color-royal);
+      outline-offset: 2px;
+      box-shadow: 0 0 0 2px var(--color-ivory);
+    }
+    @media (min-width: 1024px) {
+      .fab {
+        display: none;
+      }
+    }
+    /* With JavaScript, start hidden until we know no other WhatsApp link is on screen. */
+    @media (scripting: enabled) {
+      .fab:not([data-state='shown']) {
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(8px);
+        transition-delay: 0s, 0s, 220ms;
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .fab,
+      .fab:not([data-state='shown']) {
+        transform: none;
+        transition: none;
+      }
+    }
+  }
+</style>

@@ -28,9 +28,11 @@ const config =
     : provider === 'ga4' && env.PUBLIC_GA4_ID?.trim()
       ? { provider, id: env.PUBLIC_GA4_ID.trim() }
       : null;
+// A provider without its ID (e.g. GA4 chosen before the property exists) switches analytics
+// off with a warning rather than failing the build.
 if (provider && !config) {
-  throw new Error(
-    `PUBLIC_ANALYTICS_PROVIDER="${provider}" needs "plausible", or "ga4" with PUBLIC_GA4_ID set.`,
+  console.warn(
+    `[analytics] PUBLIC_ANALYTICS_PROVIDER="${provider}" is set but incomplete (GA4 needs PUBLIC_GA4_ID). Analytics is off.`,
   );
 }
 ---

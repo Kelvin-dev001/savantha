@@ -90,6 +90,7 @@ const articleLd = clean({
   ogType="article"
   article={{ publishedAt: a.publishedAt, updatedAt: a.updatedAt, section: a.category.title }}
   schema={[articleLd]}
+  whatsapp={{ message: d.whatsappMessage, service: primary.slug }}
 >
   <article class="art" aria-labelledby="art-title">
     <header class="ahead shell">

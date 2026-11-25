@@ -1,10 +1,11 @@
 ---
-import '@fontsource-variable/fraunces/opsz.css';
-import '@fontsource-variable/fraunces/opsz-italic.css';
-import '@fontsource-variable/manrope/wght.css';
+import '@/styles/fonts.css';
 import '@/styles/global.css';
-import frauncesLatin from '@fontsource-variable/fraunces/files/fraunces-latin-opsz-normal.woff2?url';
-import manropeLatin from '@fontsource-variable/manrope/files/manrope-latin-wght-normal.woff2?url';
+// All three faces are preloaded so they land together: one re-layout when they swap in,
+// not three (each is a full layout of the page on a slow phone).
+import frauncesLatin from '@/assets/fonts/fraunces-opsz-normal.woff2?url';
+import frauncesItalic from '@/assets/fonts/fraunces-opsz-italic.woff2?url';
+import manropeLatin from '@/assets/fonts/manrope-wght-normal.woff2?url';
 
 import { site } from '@/config/site';
 import { ui } from '@/config/navigation';
@@ -12,6 +13,7 @@ import Header from '@/components/layout/Header.astro';
 import Footer from '@/components/layout/Footer.astro';
 import Motion from '@/components/layout/Motion.astro';
 import Consent from '@/components/layout/Consent.astro';
+import WhatsAppFab from '@/components/layout/WhatsAppFab.astro';
 import { getServices } from '@/lib/services';
 import { cardKey, cardPath, getOgCards } from '@/lib/og';
 import {
@@ -40,6 +42,8 @@ interface Props {
   pageType?: string;
   /** Extra properties on the page node itself (e.g. FAQPage → mainEntity). */
   pageProps?: JsonLdNode;
+  /** Prefill for the sticky mobile WhatsApp button (service pages, guides). */
+  whatsapp?: { message?: string; service?: string };
   /** Extra JSON-LD nodes for this page (Service, Article, FAQPage…), merged into one @graph. */
   schema?: JsonLdNode[];
 }
@@ -55,9 +59,12 @@ const {
   pageType,
   pageProps = {},
   schema = [],
+  whatsapp = {},
 } = Astro.props;
 const fullTitle = pageTitle(title);
 const canonical = new URL(Astro.url.pathname, site.url).href;
+// The 404 page answers at any missing URL, so it has no canonical address of its own.
+const isNotFound = /^\/404\/?$/.test(Astro.url.pathname);
 const showPlaceholders = import.meta.env.PUBLIC_SHOW_PLACEHOLDERS === 'true';
 
 // Budgets (brief §5): fail the build rather than ship a truncated title or description.
@@ -102,13 +109,13 @@ const graph = [
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
-    <link rel="canonical" href={canonical} />
+    {!isNotFound && <link rel="canonical" href={canonical} />}
     {noindex && <meta name="robots" content="noindex, nofollow" />}
 
     <meta property="og:type" content={ogType} />
     <meta property="og:site_name" content={site.name} />
     <meta property="og:locale" content={site.locale.replace('-', '_')} />
-    <meta property="og:url" content={canonical} />
+    {!isNotFound && <meta property="og:url" content={canonical} />}
     <meta property="og:title" content={ogTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:image" content={ogImage} />
@@ -136,6 +143,7 @@ const graph = [
     <link rel="manifest" href="/site.webmanifest" />
     <link rel="sitemap" type="application/xml" href="/sitemap-index.xml" />
     <link rel="preload" href={frauncesLatin} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={frauncesItalic} as="font" type="font/woff2" crossorigin />
     <link rel="preload" href={manropeLatin} as="font" type="font/woff2" crossorigin />
     <meta name="generator" content={Astro.generator} />
     <script type="application/ld+json" set:html={jsonLdString(graph)} />
@@ -150,6 +158,7 @@ const graph = [
       <slot />
     </main>
     <Footer />
+    <WhatsAppFab {...whatsapp} />
     <Consent />
     <Motion />
   </body>

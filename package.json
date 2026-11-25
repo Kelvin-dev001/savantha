@@ -16,7 +16,10 @@
     "format": "prettier --write .",
     "lint:copy": "node scripts/lint-copy.mjs",
     "test:a11y": "npm run build && playwright test",
-    "shots": "node scripts/screenshot.mjs"
+    "shots": "node scripts/screenshot.mjs",
+    "lint:links": "node scripts/check-links.mjs",
+    "lighthouse": "node scripts/lighthouse.mjs",
+    "fonts:subset": "node scripts/subset-fonts.mjs"
   },
   "dependencies": {
     "@astrojs/mdx": "^4.3.14",
@@ -39,13 +42,16 @@
     "@fontsource/manrope": "^5.3.0",
     "@playwright/test": "^1.65.1",
     "@types/node": "^22.20.6",
+    "chrome-launcher": "^1.2.3",
     "eslint": "^10.15.0",
     "eslint-plugin-astro": "^3.2.1",
     "globals": "^17.14.0",
+    "lighthouse": "^12.8.2",
     "prettier": "^3.10.1",
     "prettier-plugin-astro": "^1.1.2",
     "satori": "^0.18.4",
     "sharp": "^0.35.5",
+    "subset-font": "^2.9.0",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.74.0"
   },
