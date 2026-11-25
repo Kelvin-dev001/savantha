@@ -1,0 +1,233 @@
+---
+/**
+ * /services hero, on ivory: "the contents page".
+ *
+ * A two-line headline, the lead and the one promise that holds for every service, then the
+ * pillars set out like the contents of a report (numeral · name · count), each a jump link
+ * to its register below. The "What happens next" strip closes the hero.
+ */
+import type { Hub, NavPillar } from '@/lib/services';
+import NextSteps from '@/components/sections/NextSteps.astro';
+import Icon from '@/components/ui/Icon.astro';
+
+interface Props {
+  hub: Hub['hub'];
+  pillars: NavPillar[];
+}
+const { hub, pillars } = Astro.props;
+---
+
+<section class="hhero shell" aria-labelledby="hhero-title">
+  <p class="hhero__eyebrow eyebrow">
+    <span class="hhero__eyebrow-rule" aria-hidden="true"></span>
+    <span>{hub.eyebrow}</span>
+  </p>
+
+  <h1 id="hhero-title" class="hhero__title" data-reveal="mask">
+    {hub.headline.map((line, i) => (
+      <span class:list={['hhero__line', { 'hhero__line--indent': i > 0 }]}>
+        {line.emphasis
+          ? line.text.split(line.emphasis).map((part, j, arr) => (
+              <>
+                {part}
+                {j < arr.length - 1 && <em>{line.emphasis}</em>}
+              </>
+            ))
+          : line.text}{' '}
+      </span>
+    ))}
+  </h1>
+
+  <div class="hhero__mid">
+    <p class="hhero__lead text-lead" data-reveal="fade">
+      {hub.lead}
+    </p>
+    <p class="hhero__proof" data-reveal="fade">
+      <span class="hhero__proof-rule" aria-hidden="true"></span>
+      {hub.proof}
+    </p>
+  </div>
+
+  <nav class="hhero__index" aria-labelledby="hhero-index">
+    <h2 id="hhero-index" class="eyebrow hhero__index-label">
+      {hub.indexLabel}
+    </h2>
+    <ol class="hhero__pillars" data-reveal="stagger">
+      {pillars.map((p) => (
+        <li>
+          <a href={`#${p.key}`} class="hhero__pillar">
+            <span class="hhero__num eyebrow numerals">{p.numeral}</span>
+            <span class="hhero__name">{p.title}</span>
+            <span class="hhero__count eyebrow numerals">
+              {String(p.services.length).padStart(2, '0')}{' '}
+              {p.services.length === 1 ? hub.countLabel.one : hub.countLabel.many}
+            </span>
+            <Icon name="arrow-right" size={16} class="hhero__arrow" />
+          </a>
+        </li>
+      ))}
+    </ol>
+  </nav>
+
+  <NextSteps class="hhero__next" />
+</section>
+
+<style>
+  /* Layered so Tailwind utilities on the same element still win. */
+  @layer components {
+    .hhero {
+      --col: calc((min(100vw - 2 * var(--gutter-x), var(--content-max)) - 11 * var(--gap-x)) / 12);
+      padding-top: clamp(3rem, 2rem + 5vw, 7rem);
+    }
+    .hhero__eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      color: var(--color-stone);
+    }
+    .hhero__eyebrow-rule {
+      width: 2.5rem;
+      height: 1px;
+      background: var(--color-gold);
+    }
+    .hhero__title {
+      margin-top: clamp(1.5rem, 1rem + 2vw, 2.75rem);
+      font-size: var(--text-hero);
+      line-height: 1.02;
+      letter-spacing: -0.025em;
+      font-weight: 340;
+      font-variation-settings: 'opsz' 144;
+      text-wrap: initial;
+    }
+    .hhero__line {
+      display: block;
+      text-wrap: balance;
+    }
+    @media (min-width: 1280px) {
+      .hhero__line--indent {
+        padding-inline-start: calc(2 * (var(--col) + var(--gap-x)));
+      }
+    }
+    .hhero__title em {
+      font-style: italic;
+      font-weight: 300;
+      letter-spacing: -0.015em;
+    }
+
+    .hhero__mid {
+      display: grid;
+      gap: 2rem var(--gap-x);
+      margin-top: clamp(2rem, 1.5rem + 2.5vw, 4rem);
+    }
+    @media (min-width: 1024px) {
+      .hhero__mid {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        align-items: end;
+      }
+      .hhero__lead {
+        grid-column: 1 / span 6;
+      }
+      .hhero__proof {
+        grid-column: 8 / span 5;
+      }
+    }
+    .hhero__lead {
+      color: var(--color-stone);
+      max-width: 46ch;
+    }
+    .hhero__proof {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: var(--text-d4);
+      line-height: var(--text-d4--line-height);
+      font-weight: 340;
+      font-variation-settings: 'opsz' 36;
+      max-width: 30ch;
+    }
+    .hhero__proof-rule {
+      width: 2.5rem;
+      height: 1px;
+      background: var(--color-gold);
+    }
+
+    /* ---------- Contents ---------- */
+    .hhero__index {
+      margin-top: clamp(3.5rem, 2rem + 5vw, 7rem);
+    }
+    .hhero__index-label {
+      color: var(--color-stone);
+      padding-bottom: 1rem;
+    }
+    .hhero__pillars {
+      display: grid;
+      border-top: 1px solid var(--color-ink);
+    }
+    @media (min-width: 768px) {
+      .hhero__pillars {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+      .hhero__pillars > li + li {
+        border-left: 1px solid var(--color-line);
+      }
+    }
+    .hhero__pillars > li {
+      border-bottom: 1px solid var(--color-line);
+    }
+    .hhero__pillar {
+      position: relative;
+      display: grid;
+      grid-template-columns: 2.5rem minmax(0, 1fr) auto;
+      grid-template-rows: auto auto;
+      align-items: baseline;
+      gap: 0.25rem 0.75rem;
+      padding: 1.5rem clamp(0rem, 1.5vw, 1.5rem) 1.5rem 0;
+      min-height: 44px;
+      transition: color 320ms var(--ease-quiet);
+    }
+    @media (min-width: 768px) {
+      .hhero__pillars > li + li .hhero__pillar {
+        padding-left: clamp(1rem, 1.5vw, 1.5rem);
+      }
+    }
+    .hhero__num {
+      color: var(--color-stone);
+    }
+    .hhero__name {
+      font-family: var(--font-display);
+      font-size: var(--text-d2);
+      line-height: 1;
+      letter-spacing: -0.02em;
+      font-weight: 340;
+      font-variation-settings: 'opsz' 144;
+      transition: font-weight 600ms var(--ease-quiet);
+    }
+    .hhero__count {
+      grid-column: 2;
+      color: var(--color-stone);
+    }
+    .hhero__pillar :global(.hhero__arrow) {
+      grid-column: 3;
+      grid-row: 1;
+      align-self: center;
+      color: var(--color-gold);
+      transform: rotate(90deg);
+      transition: transform 520ms var(--ease-settle);
+    }
+    .hhero__pillar:hover {
+      color: var(--color-royal);
+    }
+    .hhero__pillar:hover .hhero__name {
+      font-weight: 420;
+    }
+    .hhero__pillar:hover :global(.hhero__arrow) {
+      transform: rotate(90deg) translateX(4px);
+    }
+
+    .hhero :global(.hhero__next) {
+      margin-top: clamp(3.5rem, 2rem + 4vw, 6rem);
+    }
+  }
+</style>

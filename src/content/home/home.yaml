@@ -63,7 +63,8 @@ audiences:
         programme achieved.
       services: [financial-literacy, project-me]
 
-# 02 — Three pillars. Pillar names, lines and services come from src/config/navigation.ts.
+# 02 — Three pillars. Pillar names and lines come from src/content/services-hub/hub.yaml;
+# the services under each come from src/content/services/.
 pillars:
   label: What we do
   heading: Three pillars. Six services.

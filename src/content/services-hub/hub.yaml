@@ -1,0 +1,83 @@
+# Services: the three pillars, the /services hub, and the labels every service page uses.
+# Compliance-sensitive: reviewed with every other content file. The six services themselves
+# are in src/content/services/*.md.
+
+pillars:
+  - key: grow
+    numeral: I
+    title: Grow
+    line: Plan, structure and protect family wealth on ethical terms.
+    intro: >-
+      For families and professionals. We help you see where your money goes, decide what
+      comes first, and arrange your wealth, your property and your legacy on terms you can
+      explain to your children.
+  - key: trade
+    numeral: II
+    title: Trade
+    line: Structure the finance behind what you import and export.
+    intro: >-
+      For importers, exporters and growing companies. We make the finance behind a shipment
+      clear before you sign: what it costs, who carries which risk, and what your bank will
+      ask for.
+  - key: build
+    numeral: III
+    title: Build
+    line: Grow financial capability in teams, and measure what programmes achieve.
+    intro: >-
+      For employers, SACCOs, NGOs and donor-funded programmes. We train people to manage money
+      with confidence, and we measure what a programme actually changed.
+
+hub:
+  eyebrow: Services
+  headline:
+    - text: Six services.
+    - text: One way of working.
+      emphasis: One
+  lead: >-
+    Every engagement sits under one of three pillars. Whatever the question, it starts the same
+    way: a free conversation, then a written proposal with the scope, the fees and the risks
+    set out plainly.
+  proof: We explain every fee, product and risk in writing, before you commit to anything.
+  indexLabel: The pillars
+  countLabel: { one: service, many: services }
+  unsure:
+    heading: Not sure which service fits?
+    body: >-
+      Most people are not, and that is fine. Tell us what you are trying to do in a sentence
+      or two. We will point you to the right place, even if it is not us.
+    cta: Describe it on WhatsApp
+  seoTitle: Financial Consultancy Services
+  seoDescription: >-
+    Wealth planning, Shariah-compliant finance guidance, real estate due diligence, trade
+    finance, financial literacy training and M&E, for Kenya.
+
+page:
+  breadcrumbLabel: Breadcrumb
+  breadcrumb: Services
+  pillarLabel: Pillar
+  heroCta: Discuss this on WhatsApp
+  heroLink: { label: How the work runs, href: '#process' }
+  factsLabel: At a glance
+  facts:
+    format: Format
+    timeline: Typical timeline
+    firstStep: First step
+    firstStepValue: A free 20-minute call
+    fees: Fees
+    feesValue: Quoted in writing, before you commit
+  sections:
+    audience: { label: Who it is for, heading: Who this is for }
+    deliverables: { label: What you get, heading: What you leave with }
+    boundaries: What we do not do
+    total: { label: In short, text: Everything in writing. }
+    process: { label: Process, heading: How the work runs }
+    timeline:
+      label: Timeline
+      heading: How long it usually takes
+      note: Every engagement is different. Your proposal sets out the timetable for yours.
+    faq:
+      label: Questions
+      heading: Asked plainly, answered plainly.
+      link: { label: All questions, href: /faq }
+    related: { label: Related services, heading: Often paired with }
+  disclaimerLabel: Please note

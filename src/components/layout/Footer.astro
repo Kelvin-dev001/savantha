@@ -1,7 +1,8 @@
 ---
 import { getEntry, render } from 'astro:content';
 import { site, type SocialKey } from '@/config/site';
-import { pillars, companyLinks, legalLinks, ui } from '@/config/navigation';
+import { companyLinks, legalLinks, ui } from '@/config/navigation';
+import { getPillars } from '@/lib/services';
 import { whatsappLink, telLink, mailLink } from '@/lib/contact';
 import Monogram from '@/components/ui/Monogram.astro';
 import Lattice from '@/components/ui/Lattice.astro';
@@ -10,6 +11,7 @@ import Ph from '@/components/ui/Ph.astro';
 const disclaimer = await getEntry('legal', 'disclaimer');
 if (!disclaimer) throw new Error('src/content/legal/disclaimer.md is required (compliance).');
 const { Content: Disclaimer } = await render(disclaimer);
+const pillars = await getPillars();
 
 const socialLabels: Record<SocialKey, string> = {
   linkedin: 'LinkedIn',

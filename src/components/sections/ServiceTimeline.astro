@@ -1,0 +1,154 @@
+---
+/**
+ * Service page — Typical timeline: "the schedule".
+ *
+ * The short answer set large, the summary beneath it, and the stages as a contents-page
+ * schedule: stage · dotted leader · duration, in tabular numerals. A footnote says the
+ * proposal sets the real timetable.
+ */
+import SectionLabel from '@/components/ui/SectionLabel.astro';
+
+interface Props {
+  number: string;
+  label: string;
+  heading: string;
+  note: string;
+  timeline: { headline: string; summary: string; stages: { label: string; duration: string }[] };
+}
+const { number, label, heading, note, timeline } = Astro.props;
+---
+
+<section class="svt shell section-y" aria-labelledby="svt-title">
+  <SectionLabel number={number}>{label}</SectionLabel>
+
+  <div class="svt__grid">
+    <div class="svt__head">
+      <h2 id="svt-title" class="svt__title" data-reveal="mask">
+        {heading}
+      </h2>
+      <p class="svt__answer" data-reveal="fade">
+        {timeline.headline}.
+      </p>
+      <p class="svt__summary" data-reveal="fade">
+        {timeline.summary}
+      </p>
+    </div>
+
+    <div class="svt__schedule">
+      <ol class="svt__list" data-reveal="stagger">
+        {timeline.stages.map((s, i) => (
+          <li class="svt__row">
+            <span class="svt__num eyebrow numerals" aria-hidden="true">
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            <span class="svt__stage">{s.label}</span>
+            <span class="svt__leader" aria-hidden="true" />
+            <span class="svt__dur numerals">{s.duration}</span>
+          </li>
+        ))}
+      </ol>
+      <p class="svt__note">
+        <span aria-hidden="true">* </span>
+        {note}
+      </p>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Layered so Tailwind utilities on the same element still win. */
+  @layer components {
+    .svt__grid {
+      display: grid;
+      gap: 2.5rem var(--gap-x);
+      margin-top: clamp(2.5rem, 1.5rem + 3vw, 5rem);
+    }
+    @media (min-width: 1024px) {
+      .svt__grid {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        align-items: start;
+      }
+      .svt__head {
+        grid-column: 1 / span 5;
+      }
+      .svt__schedule {
+        grid-column: 7 / span 6;
+      }
+    }
+    /* The question is set small; the answer beneath it is the display line. */
+    .svt__title {
+      font-size: var(--text-d4);
+      line-height: var(--text-d4--line-height);
+      font-style: italic;
+      font-weight: 340;
+      font-variation-settings: 'opsz' 36;
+      color: var(--color-stone);
+    }
+    .svt__answer {
+      margin-top: 1rem;
+      font-family: var(--font-display);
+      font-size: var(--text-d2);
+      line-height: var(--text-d2--line-height);
+      letter-spacing: var(--text-d2--letter-spacing);
+      font-weight: 340;
+      font-variation-settings: 'opsz' 144;
+      text-wrap: balance;
+      max-width: 16ch;
+    }
+    .svt__summary {
+      margin-top: 1.5rem;
+      color: var(--color-stone);
+      max-width: 46ch;
+    }
+
+    .svt__list {
+      border-top: 1px solid var(--color-ink);
+    }
+    .svt__row {
+      display: grid;
+      grid-template-columns: 2.5rem auto minmax(1.5rem, 1fr) auto;
+      align-items: baseline;
+      gap: 0 0.75rem;
+      padding-block: 1.125rem;
+      border-bottom: 1px solid var(--color-line);
+    }
+    .svt__num {
+      color: var(--color-stone);
+    }
+    .svt__stage {
+      font-weight: 600;
+    }
+    .svt__leader {
+      align-self: end;
+      height: 1px;
+      margin-bottom: 0.4em;
+      background-image: radial-gradient(circle, var(--color-gold) 0.75px, transparent 1px);
+      background-size: 6px 1px;
+      background-repeat: repeat-x;
+      background-position: left center;
+    }
+    .svt__dur {
+      text-align: right;
+      color: var(--color-ink);
+    }
+    @media (max-width: 559.98px) {
+      .svt__row {
+        grid-template-columns: 2.5rem minmax(0, 1fr);
+        gap: 0.125rem 0.75rem;
+      }
+      .svt__leader {
+        display: none;
+      }
+      .svt__dur {
+        grid-column: 2;
+        text-align: left;
+        color: var(--color-stone);
+      }
+    }
+    .svt__note {
+      margin-top: 1.25rem;
+      font-size: var(--text-small);
+      color: var(--color-stone);
+    }
+  }
+</style>

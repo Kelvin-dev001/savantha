@@ -11,11 +11,13 @@ import Lattice from '@/components/ui/Lattice.astro';
 import Button from '@/components/ui/Button.astro';
 
 interface Props {
-  /** Service name for the prefilled WhatsApp message (service pages). */
+  /** Service slug, for tracking (service pages). */
   service?: string;
+  /** Prefilled WhatsApp message (a service's `whatsappMessage`). */
+  message?: string;
   location?: string;
 }
-const { service, location = 'cta-band' } = Astro.props;
+const { service, message, location = 'cta-band' } = Astro.props;
 
 const home = await getEntry('home', 'home');
 if (!home) throw new Error('src/content/home/home.yaml is required.');
@@ -46,7 +48,7 @@ const { cta } = home.data;
       </p>
       <span class="magnetic cta__primary" data-magnetic>
         <Button
-          href={whatsappLink(service)}
+          href={whatsappLink(undefined, message)}
           tone="dark"
           size="lg"
           icon="whatsapp"

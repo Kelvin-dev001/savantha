@@ -1,0 +1,174 @@
+---
+/**
+ * Service page — Process, on paper. The steps run left to right like columns in a
+ * schedule: a fine rule draws across the top, then each step's numeral, name and detail.
+ * Stacks below 768 px. Not pinned (the homepage holds the site's one pinned section).
+ */
+import SectionLabel from '@/components/ui/SectionLabel.astro';
+
+interface Props {
+  number: string;
+  label: string;
+  heading: string;
+  intro: string;
+  steps: { step: string; detail: string }[];
+}
+const { number, label, heading, intro, steps } = Astro.props;
+---
+
+<section id="process" class="svp surface-paper" aria-labelledby="svp-title">
+  <div class="shell section-y">
+    <SectionLabel number={number}>{label}</SectionLabel>
+
+    <div class="svp__head">
+      <h2 id="svp-title" class="svp__title" data-reveal="mask">
+        {heading}
+      </h2>
+      <p class="svp__intro" data-reveal="fade">
+        {intro}
+      </p>
+    </div>
+
+    <div class="svp__track">
+      <span class="svp__rule" data-reveal="rule" aria-hidden="true"></span>
+      <ol class="svp__steps" style={`--count:${steps.length}`} data-reveal="stagger">
+        {steps.map((s, i) => (
+          <li class="svp__step">
+            <span class="svp__tick" aria-hidden="true" />
+            <span class="svp__num numerals" aria-hidden="true">
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            <h3 class="svp__name">{s.step}</h3>
+            <p class="svp__detail">{s.detail}</p>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Layered so Tailwind utilities on the same element still win. */
+  @layer components {
+    .svp {
+      scroll-margin-top: 0;
+    }
+    .svp__head {
+      display: grid;
+      gap: 1.5rem var(--gap-x);
+      margin-top: clamp(2.5rem, 1.5rem + 3vw, 5rem);
+    }
+    @media (min-width: 1024px) {
+      .svp__head {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        align-items: end;
+      }
+      .svp__title {
+        grid-column: 1 / span 6;
+      }
+      .svp__intro {
+        grid-column: 8 / span 5;
+      }
+    }
+    .svp__title {
+      font-size: var(--text-d2);
+      line-height: var(--text-d2--line-height);
+      letter-spacing: var(--text-d2--letter-spacing);
+      font-weight: 340;
+      font-variation-settings: 'opsz' 144;
+    }
+    .svp__intro {
+      color: var(--color-stone);
+      max-width: 46ch;
+    }
+
+    .svp__track {
+      position: relative;
+      margin-top: clamp(3rem, 2rem + 3vw, 5rem);
+    }
+    .svp__rule {
+      display: none;
+    }
+    .svp__steps {
+      display: grid;
+      gap: 0 var(--gap-x);
+    }
+    .svp__step {
+      position: relative;
+      display: grid;
+      grid-template-columns: 3.5rem minmax(0, 1fr);
+      gap: 0.25rem 0.75rem;
+      padding-block: 1.5rem;
+      border-top: 1px solid var(--color-line);
+    }
+    .svp__step:first-child {
+      border-top-color: var(--color-ink);
+    }
+    .svp__tick {
+      display: none;
+    }
+    .svp__num {
+      grid-row: 1 / span 2;
+      font-family: var(--font-display);
+      font-size: var(--text-d3);
+      line-height: 1;
+      font-weight: 300;
+      color: var(--color-stone);
+    }
+    .svp__name {
+      font-size: var(--text-d4);
+      line-height: var(--text-d4--line-height);
+      font-weight: 400;
+      font-variation-settings: 'opsz' 36;
+    }
+    .svp__detail {
+      color: var(--color-stone);
+      font-size: var(--text-small);
+      line-height: var(--text-small--line-height);
+      max-width: 44ch;
+    }
+
+    @media (min-width: 768px) {
+      .svp__rule {
+        display: block;
+        height: 1px;
+        background: var(--color-ink);
+        transform-origin: left;
+      }
+      .svp__steps {
+        grid-template-columns: repeat(var(--count), minmax(0, 1fr));
+      }
+      .svp__step {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto auto 1fr;
+        align-content: start;
+        gap: 0;
+        padding-top: 2rem;
+        border-top: 0;
+      }
+      /* A short gold tick where each step meets the rule */
+      .svp__tick {
+        display: block;
+        position: absolute;
+        top: -4px;
+        left: 0;
+        width: 1px;
+        height: 9px;
+        background: var(--color-gold);
+      }
+      .svp__num {
+        grid-row: auto;
+        font-size: clamp(2.5rem, 1.5rem + 2.5vw, 4rem);
+        letter-spacing: -0.02em;
+        color: var(--color-ink);
+      }
+      .svp__name {
+        margin-top: 1.5rem;
+      }
+      .svp__detail {
+        margin-top: 0.75rem;
+        padding-right: 1rem;
+      }
+    }
+  }
+</style>

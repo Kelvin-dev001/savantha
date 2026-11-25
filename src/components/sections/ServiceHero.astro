@@ -1,0 +1,233 @@
+---
+/**
+ * Service page hero, on ivory: "the head of an engagement letter".
+ *
+ * Breadcrumb, pillar eyebrow and the service name (its last word set in italic), the
+ * answer-first lead and the WhatsApp CTA on the left; on the right, the terms at a glance as
+ * a ruled ledger (format, timeline, first step, fees). The "What happens next" strip closes
+ * the hero. `watermark` adds the lattice behind it (the Shariah page, per the brief).
+ */
+import type { Hub, NavPillar, Service } from '@/lib/services';
+import { whatsappLink } from '@/lib/contact';
+import Breadcrumb from '@/components/ui/Breadcrumb.astro';
+import Button from '@/components/ui/Button.astro';
+import Lattice from '@/components/ui/Lattice.astro';
+import NextSteps from '@/components/sections/NextSteps.astro';
+
+interface Props {
+  service: Service['data'];
+  pillar: NavPillar;
+  page: Hub['page'];
+  watermark?: boolean;
+}
+const { service, pillar, page, watermark = false } = Astro.props;
+
+const words = service.title.split(' ');
+const last = words.pop();
+const facts = [
+  { label: page.facts.format, value: service.format },
+  { label: page.facts.timeline, value: service.timeline.headline },
+  { label: page.facts.firstStep, value: page.facts.firstStepValue },
+  { label: page.facts.fees, value: page.facts.feesValue },
+];
+---
+
+<section class:list={['svh', { 'svh--watermark': watermark }]} aria-labelledby="svh-title">
+  {watermark && (
+    <Lattice
+      animate
+      density="regular"
+      detail
+      opacity={0.42}
+      origin={[88, 30]}
+      align="right"
+      spread={900}
+      class="svh__lattice"
+    />
+  )}
+
+  <div class="shell svh__inner">
+    <Breadcrumb
+      label={page.breadcrumbLabel}
+      items={[
+        { label: page.breadcrumb, href: '/services' },
+        { label: pillar.title, href: `/services#${pillar.key}` },
+        { label: service.title },
+      ]}
+    />
+
+    <div class="svh__grid">
+      <div class="svh__main">
+        <p class="svh__eyebrow eyebrow numerals">
+          <span class="svh__eyebrow-rule" aria-hidden="true"></span>
+          <span>
+            {page.pillarLabel} {pillar.numeral} <span aria-hidden="true">—</span>
+            {pillar.title}
+          </span>
+        </p>
+        <h1 id="svh-title" class="svh__title" data-reveal="mask">
+          {words.join(' ')} <em>{last}</em>
+        </h1>
+        <p class="svh__lead text-lead" data-reveal="fade">
+          {service.lead}
+        </p>
+        <div class="svh__actions">
+          <span class="magnetic svh__primary" data-magnetic>
+            <Button
+              href={whatsappLink(undefined, service.whatsappMessage)}
+              size="lg"
+              icon="whatsapp"
+              data-track="whatsapp_click"
+              data-track-service={service.slug}
+              data-track-location="service-hero"
+            >
+              {page.heroCta}
+            </Button>
+          </span>
+          <Button href={page.heroLink.href} variant="text">
+            {page.heroLink.label}
+          </Button>
+        </div>
+      </div>
+
+      <aside class="svh__facts" aria-labelledby="svh-facts">
+        <h2 id="svh-facts" class="svh__facts-label eyebrow">
+          {page.factsLabel}
+        </h2>
+        <dl class="svh__dl" data-reveal="stagger">
+          {facts.map((f) => (
+            <div class="svh__fact">
+              <dt class="eyebrow">{f.label}</dt>
+              <dd>{f.value}</dd>
+            </div>
+          ))}
+        </dl>
+      </aside>
+    </div>
+
+    <NextSteps class="svh__next" />
+  </div>
+</section>
+
+<style>
+  /* Layered so Tailwind utilities on the same element still win. */
+  @layer components {
+    .svh {
+      position: relative;
+      isolation: isolate;
+      overflow: hidden;
+    }
+    .svh :global(.svh__lattice) {
+      z-index: -1;
+      mask-image: radial-gradient(
+        ellipse 60% 75% at 88% 30%,
+        #000 0%,
+        rgb(0 0 0 / 0.4) 45%,
+        transparent 78%
+      );
+    }
+    @media (max-width: 1023.98px) {
+      .svh :global(.svh__lattice) {
+        mask-image: radial-gradient(ellipse 80% 45% at 100% 0%, #000 0%, transparent 80%);
+      }
+    }
+    .svh__inner {
+      padding-top: clamp(1.5rem, 1rem + 2vw, 3rem);
+    }
+
+    .svh__grid {
+      display: grid;
+      gap: 3rem var(--gap-x);
+      margin-top: clamp(2.5rem, 1.5rem + 4vw, 5.5rem);
+    }
+    @media (min-width: 1024px) {
+      .svh__grid {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        align-items: end;
+      }
+      .svh__main {
+        grid-column: 1 / span 8;
+      }
+      .svh__facts {
+        grid-column: 9 / span 4;
+      }
+    }
+
+    .svh__eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      color: var(--color-stone);
+    }
+    .svh__eyebrow-rule {
+      width: 2.5rem;
+      height: 1px;
+      background: var(--color-gold);
+    }
+    .svh__title {
+      margin-top: clamp(1.25rem, 1rem + 1.5vw, 2.25rem);
+      font-size: clamp(2.625rem, 1.5rem + 4.4vw, 5.75rem);
+      line-height: 1.02;
+      letter-spacing: -0.03em;
+      font-weight: 330;
+      font-variation-settings: 'opsz' 144;
+      max-width: 13ch;
+      hyphens: manual;
+    }
+    .svh__title em {
+      font-style: italic;
+      font-weight: 300;
+      letter-spacing: -0.015em;
+    }
+    .svh__lead {
+      margin-top: clamp(1.5rem, 1rem + 1.5vw, 2.5rem);
+      color: var(--color-stone);
+      max-width: 52ch;
+    }
+    .svh__actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem 2rem;
+      margin-top: clamp(2rem, 1.5rem + 1.5vw, 3rem);
+    }
+    @media (max-width: 639.98px) {
+      .svh__primary,
+      .svh__primary :global(.btn) {
+        width: 100%;
+      }
+    }
+
+    /* ---------- Terms at a glance ---------- */
+    .svh__facts {
+      background: color-mix(in srgb, var(--color-paper) 88%, transparent);
+    }
+    .svh__facts-label {
+      color: var(--color-stone);
+      padding-bottom: 1rem;
+    }
+    .svh__dl {
+      border-top: 1px solid var(--color-ink);
+    }
+    .svh__fact {
+      display: grid;
+      gap: 0.25rem;
+      padding-block: 1rem;
+      border-bottom: 1px solid var(--color-line);
+    }
+    .svh__fact dt {
+      color: var(--color-stone);
+    }
+    .svh__fact dd {
+      font-family: var(--font-display);
+      font-size: 1.1875rem;
+      line-height: 1.35;
+      font-weight: 400;
+      font-variation-settings: 'opsz' 24;
+    }
+
+    .svh :global(.svh__next) {
+      margin-top: clamp(3.5rem, 2rem + 4vw, 6rem);
+    }
+  }
+</style>

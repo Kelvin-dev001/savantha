@@ -1,0 +1,115 @@
+---
+/**
+ * "What happens next" strip for light surfaces: the same three steps as the homepage hero
+ * foot (copy in src/content/home/home.yaml → hero.next, the single source), set as a
+ * ruled ledger line. Every page carries one (brief §4).
+ */
+import { getEntry } from 'astro:content';
+
+interface Props {
+  class?: string;
+}
+const { class: className = '' } = Astro.props;
+
+const home = await getEntry('home', 'home');
+if (!home) throw new Error('src/content/home/home.yaml is required.');
+const { next } = home.data.hero;
+const uid = `next-${Math.random().toString(36).slice(2, 8)}`;
+---
+
+<section class:list={['next', className]} aria-labelledby={uid}>
+  <span class="next__rule" data-reveal="rule" aria-hidden="true"></span>
+  <div class="next__grid">
+    <h2 id={uid} class="next__label eyebrow">
+      {next.label}
+    </h2>
+    <ol class="next__steps">
+      {next.steps.map((s, n) => (
+        <li class="next__step">
+          <span class="next__num eyebrow numerals" aria-hidden="true">
+            {String(n + 1).padStart(2, '0')}
+          </span>
+          <span class="next__body">
+            <span class="next__title">{s.title}</span>
+            <span class="next__detail">{s.detail}</span>
+          </span>
+        </li>
+      ))}
+    </ol>
+  </div>
+</section>
+
+<style>
+  /* Layered so Tailwind utilities on the same element still win. */
+  @layer components {
+    .next__rule {
+      display: block;
+      height: 1px;
+      background: var(--color-ink);
+      transform-origin: left;
+    }
+    .next__grid {
+      display: grid;
+      gap: 1rem var(--gap-x);
+      padding-top: 1.25rem;
+    }
+    @media (min-width: 1024px) {
+      .next__grid {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+      }
+      .next__label {
+        grid-column: 1 / span 3;
+        padding-top: 0.2rem;
+      }
+      .next__steps {
+        grid-column: 4 / span 9;
+      }
+    }
+    .next__label {
+      font-family: var(--font-sans);
+      color: var(--color-stone);
+    }
+    .next__steps {
+      display: grid;
+    }
+    @media (min-width: 768px) {
+      .next__steps {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        column-gap: var(--gap-x);
+      }
+    }
+    .next__step {
+      display: grid;
+      grid-template-columns: 2.25rem minmax(0, 1fr);
+      padding-block: 0.75rem;
+      border-top: 1px solid var(--color-line);
+    }
+    .next__step:first-child {
+      border-top: 0;
+    }
+    @media (min-width: 768px) {
+      .next__step {
+        border-top: 0;
+        padding-block: 0;
+      }
+    }
+    .next__num {
+      color: var(--color-ink);
+      padding-top: 0.2rem;
+    }
+    .next__body {
+      display: flex;
+      flex-direction: column;
+      gap: 0.125rem;
+      font-size: var(--text-small);
+      line-height: var(--text-small--line-height);
+    }
+    .next__title {
+      font-weight: 620;
+    }
+    .next__detail {
+      color: var(--color-stone);
+      text-wrap: balance;
+    }
+  }
+</style>

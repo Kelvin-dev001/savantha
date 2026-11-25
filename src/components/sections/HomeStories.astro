@@ -7,7 +7,7 @@
  * first entries, rather than inventing anything. Stories describe the process, never returns.
  */
 import { getCollection, getEntry } from 'astro:content';
-import { serviceBySlug } from '@/config/navigation';
+import { getServiceIndex } from '@/lib/services';
 import SectionLabel from '@/components/ui/SectionLabel.astro';
 
 const home = await getEntry('home', 'home');
@@ -17,6 +17,7 @@ const stories = (await getCollection('stories', (s) => s.data.consent === true))
   .sort((a, b) => a.data.order - b.data.order)
   .slice(0, 3);
 const empty = stories.length === 0;
+const services = await getServiceIndex();
 ---
 
 <section class="sto shell section-y" aria-labelledby="sto-title">
@@ -67,7 +68,7 @@ const empty = stories.length === 0;
               </blockquote>
               <figcaption class="sto__by">
                 <span>{s.data.client}</span>
-                <span class="text-muted">{serviceBySlug(s.data.service).title}</span>
+                <span class="text-muted">{services.get(s.data.service)?.title}</span>
               </figcaption>
             </figure>
           </li>

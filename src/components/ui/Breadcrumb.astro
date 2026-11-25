@@ -1,0 +1,71 @@
+---
+/**
+ * Breadcrumb trail: tracked uppercase, gold slashes, the current page last (aria-current).
+ * Phase 7 adds the matching BreadcrumbList JSON-LD.
+ */
+interface Props {
+  label: string;
+  items: { label: string; href?: string }[];
+  class?: string;
+}
+const { label, items, class: className = '' } = Astro.props;
+---
+
+<nav aria-label={label} class:list={['crumbs', className]}>
+  <ol class="crumbs__list">
+    {items.map((item, i) => (
+      <li class="crumbs__item">
+        {i > 0 && (
+          <span class="crumbs__sep" aria-hidden="true">
+            /
+          </span>
+        )}
+        {item.href && i < items.length - 1 ? (
+          <a href={item.href} class="crumbs__link">
+            {item.label}
+          </a>
+        ) : (
+          <span aria-current="page">{item.label}</span>
+        )}
+      </li>
+    ))}
+  </ol>
+</nav>
+
+<style>
+  /* Layered so Tailwind utilities on the same element still win. */
+  @layer components {
+    .crumbs__list {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      font-size: var(--text-micro);
+      line-height: var(--text-micro--line-height);
+      letter-spacing: var(--text-micro--letter-spacing);
+      text-transform: uppercase;
+      font-weight: 650;
+      color: var(--surface-muted);
+    }
+    .crumbs__item {
+      display: inline-flex;
+      align-items: center;
+    }
+    .crumbs__sep {
+      color: var(--color-gold);
+      padding-inline: 0.75rem;
+    }
+    .crumbs__link {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      color: var(--surface-text);
+      text-decoration: underline;
+      text-decoration-color: transparent;
+      text-underline-offset: 4px;
+      transition: text-decoration-color 240ms var(--ease-quiet);
+    }
+    .crumbs__link:hover {
+      text-decoration-color: var(--color-gold);
+    }
+  }
+</style>

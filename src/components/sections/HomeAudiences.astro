@@ -7,13 +7,14 @@
  * Hovering or focusing a note underlines its phrase in the sentence (CSS :has(), no JS).
  */
 import { getEntry } from 'astro:content';
-import { serviceBySlug } from '@/config/navigation';
+import { getServiceIndex } from '@/lib/services';
 import SectionLabel from '@/components/ui/SectionLabel.astro';
 import Icon from '@/components/ui/Icon.astro';
 
 const home = await getEntry('home', 'home');
 if (!home) throw new Error('src/content/home/home.yaml is required.');
 const { audiences } = home.data;
+const services = await getServiceIndex();
 ---
 
 <section class="aud shell section-y" aria-labelledby="aud-title">
@@ -49,7 +50,7 @@ const { audiences } = home.data;
         <p class="aud__body">{item.body}</p>
         <ul class="aud__links">
           {item.services.map((slug) => {
-            const s = serviceBySlug(slug);
+            const s = services.get(slug)!;
             return (
               <li>
                 <a href={s.href} class="aud__link">

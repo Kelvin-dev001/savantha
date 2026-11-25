@@ -1,0 +1,136 @@
+---
+/**
+ * One service as a line in a register: index · title and summary · meta · arrow.
+ * The whole row is the link (stretched from the heading's anchor). Hover and keyboard focus
+ * draw a gold rule along the top, bring the arrow forward and turn the title royal.
+ */
+import Icon from './Icon.astro';
+
+interface Props {
+  index: string;
+  title: string;
+  href: string;
+  summary: string;
+  meta?: { label: string; value: string };
+  as?: 'h2' | 'h3';
+  class?: string;
+}
+const {
+  index,
+  title,
+  href,
+  summary,
+  meta,
+  as: Heading = 'h3',
+  class: className = '',
+} = Astro.props;
+---
+
+<article class:list={['srow', className]}>
+  <span class="srow__rule" aria-hidden="true"></span>
+  <span class="srow__idx eyebrow numerals" aria-hidden="true">
+    {index}
+  </span>
+  <div class="srow__main">
+    <Heading class="srow__title">
+      <a href={href} class="srow__link">
+        {title}
+      </a>
+    </Heading>
+    <p class="srow__summary">{summary}</p>
+    {meta && (
+      <p class="srow__meta">
+        <span class="eyebrow">{meta.label}</span>
+        <span>{meta.value}</span>
+      </p>
+    )}
+  </div>
+  <Icon name="arrow-right" size={20} class="srow__arrow" />
+</article>
+
+<style>
+  /* Layered so Tailwind utilities on the same element still win. */
+  @layer components {
+    .srow {
+      position: relative;
+      display: grid;
+      grid-template-columns: 3rem minmax(0, 1fr) auto;
+      gap: 0 var(--gap-x);
+      align-items: start;
+      padding-block: clamp(1.5rem, 1rem + 1.2vw, 2.25rem);
+      border-top: 1px solid var(--color-line);
+    }
+    @media (max-width: 639.98px) {
+      .srow {
+        grid-template-columns: minmax(0, 1fr) auto;
+      }
+      .srow__idx {
+        grid-column: 1 / -1;
+        margin-bottom: 0.75rem;
+      }
+    }
+    .srow__rule {
+      position: absolute;
+      inset: -1px 0 auto 0;
+      height: 1px;
+      background: var(--color-gold);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 700ms var(--ease-settle);
+    }
+    .srow:is(:hover, :focus-within) .srow__rule {
+      transform: scaleX(1);
+    }
+    .srow__idx {
+      color: var(--color-stone);
+      padding-top: 0.55rem;
+    }
+    .srow__title {
+      font-size: var(--text-d3);
+      line-height: var(--text-d3--line-height);
+      letter-spacing: var(--text-d3--letter-spacing);
+      font-weight: 360;
+      font-variation-settings: 'opsz' 72;
+      transition: color 320ms var(--ease-quiet);
+    }
+    .srow:is(:hover, :focus-within) .srow__title {
+      color: var(--color-royal);
+    }
+    .srow__link::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+    }
+    .srow__link:focus-visible {
+      outline: none;
+    }
+    .srow:has(.srow__link:focus-visible) {
+      outline: 2px solid var(--focus-ring);
+      outline-offset: 4px;
+    }
+    .srow__summary {
+      margin-top: 0.625rem;
+      color: var(--color-stone);
+      max-width: 54ch;
+    }
+    .srow__meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0.25rem 0.75rem;
+      margin-top: 1rem;
+      font-size: var(--text-small);
+    }
+    .srow__meta .eyebrow {
+      color: var(--color-stone);
+    }
+    .srow :global(.srow__arrow) {
+      margin-top: 0.5rem;
+      color: var(--color-gold);
+      transition: transform 520ms var(--ease-settle);
+    }
+    .srow:is(:hover, :focus-within) :global(.srow__arrow) {
+      transform: translateX(4px);
+    }
+  }
+</style>

@@ -7,7 +7,8 @@
  * Vanilla JS, ~1.5 KB. No library. Pauses the scroll engine (Lenis) while the sheet is open.
  */
 import { site } from '@/config/site';
-import { pillars, primaryNav, ui } from '@/config/navigation';
+import { primaryNav, ui } from '@/config/navigation';
+import { getPillars } from '@/lib/services';
 import { whatsappLink } from '@/lib/contact';
 import Monogram from '@/components/ui/Monogram.astro';
 import Button from '@/components/ui/Button.astro';
@@ -19,6 +20,7 @@ interface Props {
   tone?: 'light' | 'dark';
 }
 const { overlay = false, tone = 'light' } = Astro.props;
+const pillars = await getPillars();
 const path = Astro.url.pathname.replace(/\/$/, '') || '/';
 const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`);
 ---

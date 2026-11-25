@@ -1,0 +1,122 @@
+---
+/**
+ * /services/[slug]: one page per file in src/content/services/.
+ *
+ * Read like an engagement letter: the head (hero + terms at a glance + what happens next),
+ * then numbered clauses: who it is for, (screening principles, Shariah only), what you get
+ * and what we do not do, how the work runs, the typical timeline, questions, related
+ * services. Grow-pillar pages carry the disclaimer in the page, not only in the footer.
+ * The closing call to action prefills the service's own WhatsApp message.
+ */
+import type { GetStaticPaths } from 'astro';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import ServiceHero from '@/components/sections/ServiceHero.astro';
+import ServiceAudience from '@/components/sections/ServiceAudience.astro';
+import ServicePrinciples from '@/components/sections/ServicePrinciples.astro';
+import ServiceDeliverables from '@/components/sections/ServiceDeliverables.astro';
+import ServiceProcess from '@/components/sections/ServiceProcess.astro';
+import ServiceTimeline from '@/components/sections/ServiceTimeline.astro';
+import ServiceFaq from '@/components/sections/ServiceFaq.astro';
+import ServiceRelated from '@/components/sections/ServiceRelated.astro';
+import CtaBand from '@/components/sections/CtaBand.astro';
+import DisclaimerNote from '@/components/ui/DisclaimerNote.astro';
+import { getHub, getPillars, getServiceIndex, getServices, type Service } from '@/lib/services';
+
+export const getStaticPaths = (async () => {
+  const services = await getServices();
+  return services.map((service) => ({ params: { slug: service.data.slug }, props: { service } }));
+}) satisfies GetStaticPaths;
+
+interface Props {
+  service: Service;
+}
+const { data: s } = Astro.props.service;
+const [{ page }, pillars, index] = await Promise.all([getHub(), getPillars(), getServiceIndex()]);
+const pillar = pillars.find((p) => p.key === s.pillar)!;
+const related = s.related.map((slug) => index.get(slug)!);
+const { sections } = page;
+
+// Clause numbers follow the sections actually present.
+let n = 0;
+const num = () => String(++n).padStart(2, '0');
+---
+
+<BaseLayout title={s.seoTitle} description={s.seoDescription}>
+  <ServiceHero
+    service={s}
+    pillar={pillar}
+    page={page}
+    watermark={s.slug === 'shariah-compliant-finance'}
+  />
+
+  <ServiceAudience
+    number={num()}
+    label={sections.audience.label}
+    heading={sections.audience.heading}
+    intro={s.intros.audience}
+    items={s.audience}
+  />
+
+  {s.principles && <ServicePrinciples number={num()} principles={s.principles} />}
+
+  <ServiceDeliverables
+    number={num()}
+    label={sections.deliverables.label}
+    heading={sections.deliverables.heading}
+    intro={s.intros.deliverables}
+    items={s.deliverables}
+    boundariesLabel={sections.boundaries}
+    boundaries={s.boundaries}
+    total={sections.total}
+  />
+
+  <ServiceProcess
+    number={num()}
+    label={sections.process.label}
+    heading={sections.process.heading}
+    intro={s.intros.process}
+    steps={s.process}
+  />
+
+  <ServiceTimeline
+    number={num()}
+    label={sections.timeline.label}
+    heading={sections.timeline.heading}
+    note={sections.timeline.note}
+    timeline={s.timeline}
+  />
+
+  <ServiceFaq
+    number={num()}
+    label={sections.faq.label}
+    heading={sections.faq.heading}
+    link={sections.faq.link}
+    items={s.faqs}
+  />
+
+  <ServiceRelated
+    number={num()}
+    label={sections.related.label}
+    heading={sections.related.heading}
+    pillarLabel={page.pillarLabel}
+    services={related}
+    pillars={pillars}
+  />
+
+  {s.pillar === 'grow' && (
+    <div class="shell service-note">
+      <DisclaimerNote label={page.disclaimerLabel} />
+    </div>
+  )}
+
+  <CtaBand service={s.slug} message={s.whatsappMessage} location="service-cta" />
+</BaseLayout>
+
+<style>
+  /* Layered so Tailwind utilities on the same element still win. */
+  @layer components {
+    .service-note {
+      padding-bottom: clamp(3rem, 2rem + 3vw, 5rem);
+    }
+  }
+</style>

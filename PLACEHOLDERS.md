@@ -2,7 +2,7 @@
 
 Every placeholder on the site is listed here. Text placeholders use `[[SQUARE BRACKETS]]`; elements carry `data-placeholder="true"` and show a dashed outline while `PUBLIC_SHOW_PLACEHOLDERS=true`.
 
-Last updated: 2026-11-25 (Phase 3)
+Last updated: 2026-11-25 (Phase 4)
 
 ## Identity and registration
 
@@ -22,7 +22,7 @@ Last updated: 2026-11-25 (Phase 3)
 | Placeholder | Where | What we need |
 |---|---|---|
 | `[[FOUNDER NAME]]` | `/styleguide` (sample); About page in Phase 5 | Founder name, story, photo |
-| `[[NAME, CREDENTIALS]]` | `/styleguide` (sample); Shariah page in Phase 4 | Shariah reviewer name and credentials |
+| `[[NAME, CREDENTIALS]]` | `src/content/services/shariah-compliant-finance.md` → `principles.reviewer` (`/services/shariah-compliant-finance`, end of the Screening section); `/styleguide` (sample) | Shariah reviewer name and credentials. The page also says the reviewer "oversees" the screening work: confirm that describes the arrangement |
 
 ## Compliance
 
@@ -52,6 +52,25 @@ All homepage copy is in `src/content/home/home.yaml`, so it can be reviewed in o
 | Value proofs | `home.yaml` → `values` | Confirm Savantho can stand behind each line (e.g. a reserve before anything else; working alongside the client's advocate on legacy) |
 | FAQ answers | `home.yaml` → `faq` | Confirm the free 20-minute call, the written proposal, and the trade-finance scope (LCs, documentary collections, supplier credit) |
 | Advocate review | `home.yaml` | The whole file is compliance-sensitive copy: include it in the advocate's review alongside `src/content/legal/` |
+
+## Content to confirm (services, Phase 4)
+
+The six services are in `src/content/services/*.md` (one file each, frontmatter only); pillar intros, hub copy and the labels every service page uses are in `src/content/services-hub/hub.yaml`. Both are compliance-sensitive: include them in the advocate's review.
+
+| Item | Where | What we need |
+|---|---|---|
+| Timelines and proposal turnaround | each service → `timeline` (hero "At a glance", hub rows, Timeline section) | Confirm the typical durations, and that a written proposal goes out within 2–5 business days as stated per service |
+| Fees | `hub.yaml` → `page.facts.feesValue`; wealth planning FAQ "How are your fees set?" | Confirm fees are quoted in writing before work starts, and that wealth plans are a fixed fee with reviews priced separately |
+| Formats | each service → `format` | Confirm delivery formats, including training in Kiswahili and online sessions |
+| Audiences | each service → `audience`, `intros.audience` | Confirm each list matches who Savantho actually serves (e.g. Kenyans abroad for wealth planning and real estate) |
+| Deliverables | each service → `deliverables` | Confirm Savantho produces each document named (options paper, screening note, bank-ready file, indicator reference sheets, etc.) |
+| What we do not do | each service → `boundaries` | Confirm every scope statement, especially: buyer-side only and no property valuation (real estate); no lending or instruments (trade finance); no Shariah rulings (Shariah); M&E independence lines |
+| Provider independence | financial literacy FAQ "Will you promote products…?" | Confirm Savantho receives nothing from any financial provider for training content |
+| Shariah home finance | Shariah FAQ "Can I buy a home…?" | Confirm the statement that several Kenyan banks offer murabaha / ijara home finance (no banks are named) |
+| Specialisms | M&E FAQ "Do you specialise…?" | Confirm depth in financial-inclusion, savings-group, livelihoods and financial-literacy programmes |
+| Training details | financial literacy FAQs | Confirm session lengths (two hours to a day), group size (up to thirty) and the before-and-after assessment |
+| Review intervals | wealth planning `timeline` ("Every 6 or 12 months") | Confirm the usual review cadence |
+| Page titles and descriptions | each service → `seoTitle`, `seoDescription`; `hub.yaml` → `hub.seoTitle` | Approve the search titles (rendered as "‹title› · Savantho Consultancy" with a pipe separator, ≤ 60 characters) |
 
 ## Collections waiting for content
 

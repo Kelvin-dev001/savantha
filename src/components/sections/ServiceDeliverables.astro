@@ -1,0 +1,201 @@
+---
+/**
+ * Service page — What you get: "the schedule of deliverables".
+ *
+ * Left: heading, answer-first paragraph, and "What we do not do" as a ruled aside (scope,
+ * stated plainly). Right: each deliverable as a numbered line item (2.1, 2.2 …) and a
+ * double-ruled total at the foot, echoing the values ledger on the homepage.
+ */
+import SectionLabel from '@/components/ui/SectionLabel.astro';
+
+interface Props {
+  number: string;
+  label: string;
+  heading: string;
+  intro: string;
+  items: { title: string; detail: string }[];
+  boundariesLabel: string;
+  boundaries: string[];
+  total: { label: string; text: string };
+}
+const { number, label, heading, intro, items, boundariesLabel, boundaries, total } = Astro.props;
+const clause = Number.parseInt(number, 10);
+---
+
+<section class="svd shell section-y" aria-labelledby="svd-title">
+  <SectionLabel number={number}>{label}</SectionLabel>
+
+  <div class="svd__grid">
+    <div class="svd__head">
+      <h2 id="svd-title" class="svd__title" data-reveal="mask">
+        {heading}
+      </h2>
+      <p class="svd__intro" data-reveal="fade">
+        {intro}
+      </p>
+
+      <aside class="svd__not" aria-labelledby="svd-not">
+        <h3 id="svd-not" class="svd__not-label eyebrow">
+          {boundariesLabel}
+        </h3>
+        <ul class="svd__not-list">
+          {boundaries.map((b) => (
+            <li>{b}</li>
+          ))}
+        </ul>
+      </aside>
+    </div>
+
+    <div class="svd__ledger">
+      <ol class="svd__list" data-reveal="stagger">
+        {items.map((item, i) => (
+          <li class="svd__item">
+            <span class="svd__num eyebrow numerals" aria-hidden="true">
+              {clause}.{i + 1}
+            </span>
+            <div>
+              <h3 class="svd__item-title">{item.title}</h3>
+              <p class="svd__item-detail">{item.detail}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+      <div class="svd__total">
+        <span class="svd__double" data-reveal="rule" aria-hidden="true"></span>
+        <p class="svd__total-row">
+          <span class="eyebrow svd__total-label">{total.label}</span>
+          <span class="svd__total-text">{total.text}</span>
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Layered so Tailwind utilities on the same element still win. */
+  @layer components {
+    .svd__grid {
+      display: grid;
+      gap: 3rem var(--gap-x);
+      margin-top: clamp(2.5rem, 1.5rem + 3vw, 5rem);
+    }
+    @media (min-width: 1024px) {
+      .svd__grid {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        align-items: start;
+      }
+      .svd__head {
+        grid-column: 1 / span 5;
+        position: sticky;
+        top: calc(var(--header-h) + 2rem);
+      }
+      .svd__ledger {
+        grid-column: 7 / span 6;
+      }
+    }
+    .svd__title {
+      font-size: var(--text-d2);
+      line-height: var(--text-d2--line-height);
+      letter-spacing: var(--text-d2--letter-spacing);
+      font-weight: 340;
+      font-variation-settings: 'opsz' 144;
+    }
+    .svd__intro {
+      margin-top: 1.5rem;
+      color: var(--color-stone);
+      max-width: 46ch;
+    }
+
+    .svd__not {
+      margin-top: clamp(2rem, 1.5rem + 2vw, 3.5rem);
+      padding: 1.5rem;
+      background: var(--color-paper);
+      border: 1px solid var(--color-line);
+      border-radius: var(--radius-xs);
+      max-width: 46ch;
+    }
+    .svd__not-label {
+      font-family: var(--font-sans);
+      color: var(--color-ink);
+    }
+    .svd__not-list {
+      margin-top: 1rem;
+      display: grid;
+      gap: 0.75rem;
+      font-size: var(--text-small);
+      line-height: var(--text-small--line-height);
+      color: var(--color-stone);
+    }
+    .svd__not-list li {
+      position: relative;
+      padding-left: 1.5rem;
+    }
+    /* A short struck rule: "not this" */
+    .svd__not-list li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0.75em;
+      width: 0.75rem;
+      height: 1px;
+      background: var(--color-gold);
+    }
+
+    .svd__list {
+      border-top: 1px solid var(--color-ink);
+    }
+    .svd__item {
+      display: grid;
+      grid-template-columns: 3rem minmax(0, 1fr);
+      gap: 0 0.75rem;
+      padding-block: 1.5rem;
+      border-bottom: 1px solid var(--color-line);
+    }
+    .svd__num {
+      color: var(--color-stone);
+      padding-top: 0.35rem;
+    }
+    .svd__item-title {
+      font-size: var(--text-d4);
+      line-height: var(--text-d4--line-height);
+      font-weight: 400;
+      font-variation-settings: 'opsz' 36;
+    }
+    .svd__item-detail {
+      margin-top: 0.5rem;
+      color: var(--color-stone);
+      max-width: 52ch;
+    }
+
+    .svd__total {
+      margin-top: 0.75rem;
+    }
+    .svd__double {
+      display: block;
+      height: 4px;
+      border-top: 1px solid var(--color-ink);
+      border-bottom: 1px solid var(--color-ink);
+      transform-origin: left;
+    }
+    .svd__total-row {
+      display: grid;
+      grid-template-columns: 3rem minmax(0, 1fr);
+      gap: 0 0.75rem;
+      align-items: baseline;
+      padding-top: 1.25rem;
+    }
+    .svd__total-label {
+      grid-column: 1 / -1;
+      color: var(--color-stone);
+      margin-bottom: 0.5rem;
+    }
+    .svd__total-text {
+      grid-column: 2;
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: var(--text-d3);
+      line-height: var(--text-d3--line-height);
+      font-weight: 340;
+    }
+  }
+</style>

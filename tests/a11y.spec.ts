@@ -59,7 +59,7 @@ test.describe('without JavaScript', () => {
     await expect(page.locator('h1')).toBeVisible();
     await page.waitForTimeout(2200); // CSS entry sequence ≤ 2 s
     await expect(page.locator('.hero__actions')).toHaveCSS('opacity', '1');
-    for (const route of ['/', '/styleguide']) {
+    for (const route of ['/', '/styleguide', '/services', '/services/shariah-compliant-finance']) {
       await page.goto(route);
       for (const el of await page.locator('[data-reveal]').all()) {
         await expect(el).toHaveCSS('opacity', '1');
@@ -75,6 +75,36 @@ test.describe('without JavaScript', () => {
       await expect(step).toHaveCSS('opacity', '1');
     }
   });
+});
+
+// Services: every page carries its own WhatsApp message, 5–6 FAQs, "What happens next";
+// Grow-pillar pages repeat the disclaimer in the page (not only in the footer).
+const servicePages = all.filter((r) => /^\/services\/[^/]+$/.test(r));
+test('six service pages are built', () => {
+  expect(servicePages).toHaveLength(6);
+});
+for (const route of servicePages) {
+  test(`service content: ${route}`, async ({ page }) => {
+    await page.goto(route);
+    const hero = page.locator('.svh [data-track="whatsapp_click"]');
+    const cta = page.locator('.cta [data-track="whatsapp_click"]');
+    const heroHref = await hero.getAttribute('href');
+    expect(heroHref).toMatch(/^https:\/\/wa\.me\/\d+\?text=Hello%20Savantho/);
+    expect(await cta.getAttribute('href')).toBe(heroHref);
+    const faqs = await page.locator('.svf .faql__item').count();
+    expect(faqs).toBeGreaterThanOrEqual(5);
+    expect(faqs).toBeLessThanOrEqual(6);
+    await expect(page.locator('.next')).toHaveCount(1);
+    const isGrow = (await page.locator('.svh__eyebrow').innerText()).includes('GROW');
+    await expect(page.locator('.dnote')).toHaveCount(isGrow ? 1 : 0);
+  });
+}
+test('services hub links to all six services and three pillars', async ({ page }) => {
+  await page.goto('/services');
+  await expect(page.locator('.srow__link')).toHaveCount(6);
+  for (const key of ['grow', 'trade', 'build']) {
+    await expect(page.locator(`section#${key}`)).toHaveCount(1);
+  }
 });
 
 test('skip link moves focus to main', async ({ page }) => {

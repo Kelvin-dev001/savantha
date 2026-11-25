@@ -1,0 +1,164 @@
+---
+/**
+ * Service page — screening principles (the Shariah page). On paper, like a glossary at the
+ * back of a report: the term in italic display type, its plain-English gloss, and what it
+ * means in practice. The reviewer line closes it (placeholder until named).
+ */
+import type { Service } from '@/lib/services';
+import { isPlaceholder } from '@/config/site';
+import SectionLabel from '@/components/ui/SectionLabel.astro';
+import Ph from '@/components/ui/Ph.astro';
+
+interface Props {
+  number: string;
+  principles: NonNullable<Service['data']['principles']>;
+}
+const { number, principles: p } = Astro.props;
+---
+
+<section class="spr surface-paper" aria-labelledby="spr-title">
+  <div class="shell section-y">
+    <SectionLabel number={number}>{p.label}</SectionLabel>
+
+    <div class="spr__head">
+      <h2 id="spr-title" class="spr__title" data-reveal="mask">
+        {p.heading}
+      </h2>
+      <p class="spr__lead" data-reveal="fade">
+        {p.lead}
+      </p>
+    </div>
+
+    <dl class="spr__list" data-reveal="stagger">
+      {p.items.map((item, i) => (
+        <div class="spr__row">
+          <dt class="spr__term">
+            <span class="spr__num eyebrow numerals" aria-hidden="true">
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            <span class="spr__word">{item.term}</span>
+            <span class="spr__gloss eyebrow">{item.gloss}</span>
+          </dt>
+          <dd class="spr__detail">{item.detail}</dd>
+        </div>
+      ))}
+    </dl>
+
+    <p class="spr__reviewer">
+      <span class="eyebrow spr__reviewer-label">{p.reviewerLabel}</span>
+      {isPlaceholder(p.reviewer) ? <Ph>{p.reviewer}</Ph> : <span>{p.reviewer}</span>}
+    </p>
+  </div>
+</section>
+
+<style>
+  /* Layered so Tailwind utilities on the same element still win. */
+  @layer components {
+    .spr__head {
+      display: grid;
+      gap: 1.5rem var(--gap-x);
+      margin-top: clamp(2.5rem, 1.5rem + 3vw, 5rem);
+    }
+    @media (min-width: 1024px) {
+      .spr__head {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        align-items: end;
+      }
+      .spr__title {
+        grid-column: 1 / span 6;
+      }
+      .spr__lead {
+        grid-column: 8 / span 5;
+      }
+    }
+    .spr__title {
+      font-size: var(--text-d2);
+      line-height: var(--text-d2--line-height);
+      letter-spacing: var(--text-d2--letter-spacing);
+      font-weight: 340;
+      font-variation-settings: 'opsz' 144;
+      max-width: 16ch;
+    }
+    .spr__lead {
+      color: var(--color-stone);
+      max-width: 46ch;
+    }
+
+    .spr__list {
+      margin-top: clamp(2.5rem, 1.5rem + 3vw, 4.5rem);
+      border-top: 1px solid var(--color-ink);
+    }
+    .spr__row {
+      display: grid;
+      gap: 0.75rem var(--gap-x);
+      padding-block: clamp(1.25rem, 1rem + 1vw, 2rem);
+      border-bottom: 1px solid var(--color-line);
+    }
+    @media (min-width: 768px) {
+      .spr__row {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        align-items: baseline;
+      }
+      .spr__term {
+        grid-column: 1 / span 6;
+      }
+      .spr__detail {
+        grid-column: 7 / span 6;
+      }
+    }
+    @media (min-width: 1024px) {
+      .spr__term {
+        grid-column: 1 / span 6;
+      }
+      .spr__detail {
+        grid-column: 8 / span 5;
+      }
+    }
+    .spr__term {
+      display: grid;
+      grid-template-columns: 2.5rem auto 1fr;
+      align-items: baseline;
+      gap: 0.25rem 1rem;
+    }
+    .spr__num {
+      color: var(--color-stone);
+    }
+    .spr__word {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: var(--text-d3);
+      line-height: 1.1;
+      font-weight: 340;
+      font-variation-settings: 'opsz' 72;
+    }
+    .spr__gloss {
+      color: var(--color-ink);
+    }
+    @media (max-width: 479.98px) {
+      .spr__term {
+        grid-template-columns: 2.5rem 1fr;
+      }
+      .spr__gloss {
+        grid-column: 2;
+      }
+    }
+    .spr__detail {
+      color: var(--color-stone);
+      max-width: 48ch;
+    }
+
+    .spr__reviewer {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0.5rem 1rem;
+      margin-top: 2rem;
+      font-family: var(--font-display);
+      font-size: var(--text-d4);
+      font-weight: 380;
+    }
+    .spr__reviewer-label {
+      color: var(--color-stone);
+    }
+  }
+</style>

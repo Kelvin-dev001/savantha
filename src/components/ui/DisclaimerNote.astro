@@ -1,0 +1,58 @@
+---
+/**
+ * The site-wide disclaimer as an in-page note (every Grow-pillar page, brief + CLAUDE.md).
+ * Text comes from src/content/legal/disclaimer.md, the same file the footer renders.
+ */
+import { getEntry, render } from 'astro:content';
+
+interface Props {
+  label: string;
+  class?: string;
+}
+const { label, class: className = '' } = Astro.props;
+
+const disclaimer = await getEntry('legal', 'disclaimer');
+if (!disclaimer) throw new Error('src/content/legal/disclaimer.md is required (compliance).');
+const { Content } = await render(disclaimer);
+---
+
+<aside class:list={['dnote', className]} aria-label={label}>
+  <p class="dnote__label eyebrow">{label}</p>
+  <div class="dnote__body">
+    <Content />
+  </div>
+</aside>
+
+<style>
+  /* Layered so Tailwind utilities on the same element still win. */
+  @layer components {
+    .dnote {
+      display: grid;
+      gap: 0.75rem var(--gap-x);
+      padding-block: 1.5rem;
+      border-top: 1px solid var(--color-line);
+      border-bottom: 1px solid var(--color-line);
+    }
+    @media (min-width: 1024px) {
+      .dnote {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+      }
+      .dnote__label {
+        grid-column: 1 / span 3;
+        padding-top: 0.25rem;
+      }
+      .dnote__body {
+        grid-column: 4 / span 8;
+      }
+    }
+    .dnote__label {
+      color: var(--color-stone);
+    }
+    .dnote__body {
+      font-size: var(--text-small);
+      line-height: var(--text-small--line-height);
+      color: var(--color-stone);
+      max-width: 72ch;
+    }
+  }
+</style>

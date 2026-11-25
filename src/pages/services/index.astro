@@ -1,0 +1,95 @@
+---
+/**
+ * /services: the hub. A contents page (hero), then one register per pillar with its
+ * services, a short "not sure which fits?" line, and the closing call to action on ink
+ * (the page's only ink section above the footer).
+ */
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import HubHero from '@/components/sections/HubHero.astro';
+import HubPillar from '@/components/sections/HubPillar.astro';
+import CtaBand from '@/components/sections/CtaBand.astro';
+import Button from '@/components/ui/Button.astro';
+import { getHub, getPillars, getServices } from '@/lib/services';
+import { whatsappLink } from '@/lib/contact';
+
+const [copy, pillars, services] = await Promise.all([getHub(), getPillars(), getServices()]);
+const { hub, page } = copy;
+---
+
+<BaseLayout title={hub.seoTitle} description={hub.seoDescription}>
+  <HubHero hub={hub} pillars={pillars} />
+
+  {pillars.map((p) => (
+    <HubPillar
+      pillar={p}
+      services={services.filter((s) => s.data.pillar === p.key)}
+      pillarLabel={`${page.pillarLabel} ${p.numeral}`}
+      timelineLabel={page.facts.timeline}
+      countLabel={hub.countLabel}
+      surface={p.key === 'trade' ? 'paper' : 'ivory'}
+    />
+  ))}
+
+  <section class="unsure shell" aria-labelledby="unsure-title">
+    <div class="unsure__grid">
+      <h2 id="unsure-title" class="unsure__title" data-reveal="mask">
+        {hub.unsure.heading}
+      </h2>
+      <div class="unsure__side">
+        <p class="unsure__body" data-reveal="fade">
+          {hub.unsure.body}
+        </p>
+        <Button
+          href={whatsappLink()}
+          variant="text"
+          data-track="whatsapp_click"
+          data-track-service="general"
+          data-track-location="services-unsure"
+        >
+          {hub.unsure.cta}
+        </Button>
+      </div>
+    </div>
+  </section>
+
+  <CtaBand location="services-cta" />
+</BaseLayout>
+
+<style>
+  /* Layered so Tailwind utilities on the same element still win. */
+  @layer components {
+    .unsure {
+      padding-bottom: var(--section-y);
+    }
+    .unsure__grid {
+      display: grid;
+      gap: 1.5rem var(--gap-x);
+      padding-top: clamp(2rem, 1.5rem + 2vw, 3.5rem);
+      border-top: 1px solid var(--color-ink);
+    }
+    @media (min-width: 1024px) {
+      .unsure__grid {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        align-items: start;
+      }
+      .unsure__title {
+        grid-column: 1 / span 5;
+      }
+      .unsure__side {
+        grid-column: 6 / span 6;
+      }
+    }
+    .unsure__title {
+      font-size: var(--text-d3);
+      line-height: var(--text-d3--line-height);
+      letter-spacing: var(--text-d3--letter-spacing);
+      font-weight: 360;
+      max-width: 18ch;
+    }
+    .unsure__body {
+      color: var(--color-stone);
+      max-width: 52ch;
+      margin-bottom: 0.75rem;
+    }
+  }
+</style>

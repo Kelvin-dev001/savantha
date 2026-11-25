@@ -3,7 +3,7 @@ import { glob } from 'astro/loaders';
 
 /**
  * Compliance-sensitive copy lives in content files so an advocate can review it in one place.
- * Phase 4 adds `services`; Phase 6 completes `insights` (list, article template, bodies).
+ * Phase 6 completes `insights` (list, article template, bodies).
  */
 const legal = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/legal' }),
@@ -15,7 +15,7 @@ const legal = defineCollection({
   }),
 });
 
-/** Service slugs (routes under /services). Phase 4 turns these into the `services` collection. */
+/** Service slugs (routes under /services). Each has one file in src/content/services/. */
 export const serviceSlugs = [
   'wealth-planning',
   'shariah-compliant-finance',
@@ -151,4 +151,138 @@ const insights = defineCollection({
   }),
 });
 
-export const collections = { legal, home, stories, insights };
+/** Answer-first FAQ answers: 40–60 words each (brief §4). */
+const wordCount = (s: string) => s.trim().split(/\s+/).filter(Boolean).length;
+const faqAnswer = z.string().refine(
+  (a) => wordCount(a) >= 40 && wordCount(a) <= 60,
+  (a) => ({ message: `FAQ answers must be 40–60 words (this one is ${wordCount(a)}).` }),
+);
+
+export const pillarKeys = ['grow', 'trade', 'build'] as const;
+const pillarKey = z.enum(pillarKeys);
+
+/**
+ * The six services, one Markdown file each (frontmatter only). The schema follows the brief:
+ * title, pillar, slug, summary, audience[], deliverables[], process[], timeline, faqs[],
+ * whatsappMessage, seoTitle, seoDescription, order, plus the few fields the page template
+ * needs to read well (answer-first intros, what we do not do, the Shariah principles).
+ */
+const services = defineCollection({
+  loader: glob({ pattern: '**/[^_]*.md', base: './src/content/services' }),
+  schema: z.object({
+    title: z.string(),
+    /** Lower-case name used inside sentences ("Talk to us about trade finance"). */
+    shortTitle: z.string(),
+    pillar: pillarKey,
+    slug: serviceSlug,
+    /** One or two sentences: hub rows, related services, meta fallbacks. */
+    summary: z.string().max(200),
+    /** Hero paragraph, answer first: what the service is and what it is for. */
+    lead: z.string(),
+    /** How the work is delivered, e.g. "One-to-one, in person or online". */
+    format: z.string(),
+    audience: z.array(z.string()).min(3).max(5),
+    deliverables: z
+      .array(z.object({ title: z.string(), detail: z.string() }))
+      .min(4)
+      .max(6),
+    /** What we do not do: plain statements of scope (compliance and trust). */
+    boundaries: z.array(z.string()).min(2).max(4),
+    process: z
+      .array(z.object({ step: z.string(), detail: z.string() }))
+      .min(3)
+      .max(5),
+    timeline: z.object({
+      /** Short answer for the hero ledger, e.g. "Four to six weeks". */
+      headline: z.string(),
+      summary: z.string(),
+      stages: z
+        .array(z.object({ label: z.string(), duration: z.string() }))
+        .min(3)
+        .max(5),
+    }),
+    /** Answer-first paragraph under each section heading. */
+    intros: z.object({ audience: z.string(), deliverables: z.string(), process: z.string() }),
+    /** Optional explainer section (the Shariah screening principles). */
+    principles: z
+      .object({
+        label,
+        heading: z.string(),
+        lead: z.string(),
+        items: z
+          .array(z.object({ term: z.string(), gloss: z.string(), detail: z.string() }))
+          .min(3),
+        reviewerLabel: label,
+        reviewer: z.string(),
+      })
+      .optional(),
+    faqs: z
+      .array(z.object({ q: z.string(), a: faqAnswer }))
+      .min(5)
+      .max(6),
+    related: z.array(serviceSlug).min(2).max(3),
+    whatsappMessage: z.string().startsWith('Hello Savantho'),
+    /** Rendered as "<seoTitle> | Savantho Consultancy", which must stay ≤ 60 characters. */
+    seoTitle: z.string().max(60 - ' | Savantho Consultancy'.length),
+    seoDescription: z.string().max(155),
+    order: z.number().int(),
+  }),
+});
+
+/** Pillars, the services hub, and the labels used by the service page template. */
+const servicesHub = defineCollection({
+  loader: glob({ pattern: '**/*.yaml', base: './src/content/services-hub' }),
+  schema: z.object({
+    pillars: z
+      .array(
+        z.object({
+          key: pillarKey,
+          numeral: z.string(),
+          title: z.string(),
+          line: z.string(),
+          intro: z.string(),
+        }),
+      )
+      .length(3),
+    hub: z.object({
+      eyebrow: label,
+      headline,
+      lead: z.string(),
+      proof: z.string(),
+      indexLabel: label,
+      countLabel: z.object({ one: z.string(), many: z.string() }),
+      unsure: z.object({ heading: z.string(), body: z.string(), cta: z.string() }),
+      seoTitle: z.string().max(37),
+      seoDescription: z.string().max(155),
+    }),
+    page: z.object({
+      breadcrumbLabel: label,
+      breadcrumb: label,
+      pillarLabel: label,
+      heroCta: z.string(),
+      heroLink: link,
+      factsLabel: label,
+      facts: z.object({
+        format: label,
+        timeline: label,
+        firstStep: label,
+        firstStepValue: z.string(),
+        fees: label,
+        feesValue: z.string(),
+      }),
+      sections: z.object({
+        audience: z.object({ label, heading: z.string() }),
+        deliverables: z.object({ label, heading: z.string() }),
+        boundaries: label,
+        total: z.object({ label, text: z.string() }),
+        process: z.object({ label, heading: z.string() }),
+        timeline: z.object({ label, heading: z.string(), note: z.string() }),
+        faq: z.object({ label, heading: z.string(), link }),
+        related: z.object({ label, heading: z.string() }),
+      }),
+      disclaimerLabel: label,
+    }),
+  }),
+});
+
+export const collections = { legal, home, stories, insights, services, servicesHub };

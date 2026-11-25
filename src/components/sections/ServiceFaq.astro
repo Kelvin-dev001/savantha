@@ -1,0 +1,69 @@
+---
+/**
+ * Service page — Questions: five or six answer-first Q&As (40–60 words, enforced by the
+ * schema), in the same layout as the homepage FAQ teaser.
+ */
+import SectionLabel from '@/components/ui/SectionLabel.astro';
+import Button from '@/components/ui/Button.astro';
+import FaqList from '@/components/ui/FaqList.astro';
+
+interface Props {
+  number: string;
+  label: string;
+  heading: string;
+  link: { label: string; href: string };
+  items: { q: string; a: string }[];
+}
+const { number, label, heading, link, items } = Astro.props;
+---
+
+<section class="svf shell section-y" aria-labelledby="svf-title">
+  <SectionLabel number={number}>{label}</SectionLabel>
+  <div class="svf__grid">
+    <div class="svf__intro">
+      <h2 id="svf-title" class="svf__title" data-reveal="mask">
+        {heading}
+      </h2>
+      <Button href={link.href} variant="text" class="svf__more">
+        {link.label}
+      </Button>
+    </div>
+    <FaqList items={items} name="service-faq" class="svf__list" />
+  </div>
+</section>
+
+<style>
+  /* Layered so Tailwind utilities on the same element still win. */
+  @layer components {
+    .svf__grid {
+      display: grid;
+      gap: 3rem var(--gap-x);
+      margin-top: clamp(2.5rem, 1.5rem + 3vw, 5rem);
+    }
+    @media (min-width: 1024px) {
+      .svf__grid {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        align-items: start;
+      }
+      .svf__intro {
+        grid-column: 1 / span 4;
+        position: sticky;
+        top: calc(var(--header-h) + 2rem);
+      }
+      .svf__grid :global(.svf__list) {
+        grid-column: 6 / span 7;
+      }
+    }
+    .svf__title {
+      font-size: var(--text-d2);
+      line-height: var(--text-d2--line-height);
+      letter-spacing: var(--text-d2--letter-spacing);
+      font-weight: 340;
+      font-variation-settings: 'opsz' 144;
+      max-width: 12ch;
+    }
+    .svf__intro :global(.svf__more) {
+      margin-top: 1.5rem;
+    }
+  }
+</style>

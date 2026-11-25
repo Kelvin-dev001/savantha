@@ -1,0 +1,101 @@
+---
+/**
+ * Service page — Who it is for. Heading and an answer-first paragraph on the left; the
+ * audiences on the right as ruled lines, each with a roman numeral, like the parties named
+ * at the head of an agreement.
+ */
+import SectionLabel from '@/components/ui/SectionLabel.astro';
+
+interface Props {
+  number: string;
+  label: string;
+  heading: string;
+  intro: string;
+  items: string[];
+}
+const { number, label, heading, intro, items } = Astro.props;
+const roman = ['i', 'ii', 'iii', 'iv', 'v'];
+---
+
+<section class="sva shell section-y" aria-labelledby="sva-title">
+  <SectionLabel number={number}>{label}</SectionLabel>
+  <div class="sva__grid">
+    <div class="sva__head">
+      <h2 id="sva-title" class="sva__title" data-reveal="mask">
+        {heading}
+      </h2>
+      <p class="sva__intro" data-reveal="fade">
+        {intro}
+      </p>
+    </div>
+    <ol class="sva__list" data-reveal="stagger">
+      {items.map((item, i) => (
+        <li class="sva__item">
+          <span class="sva__num" aria-hidden="true">
+            {roman[i]}.
+          </span>
+          <span class="sva__text">{item}</span>
+        </li>
+      ))}
+    </ol>
+  </div>
+</section>
+
+<style>
+  /* Layered so Tailwind utilities on the same element still win. */
+  @layer components {
+    .sva__grid {
+      display: grid;
+      gap: 2.5rem var(--gap-x);
+      margin-top: clamp(2.5rem, 1.5rem + 3vw, 5rem);
+    }
+    @media (min-width: 1024px) {
+      .sva__grid {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        align-items: start;
+      }
+      .sva__head {
+        grid-column: 1 / span 5;
+      }
+      .sva__list {
+        grid-column: 7 / span 6;
+      }
+    }
+    .sva__title {
+      font-size: var(--text-d2);
+      line-height: var(--text-d2--line-height);
+      letter-spacing: var(--text-d2--letter-spacing);
+      font-weight: 340;
+      font-variation-settings: 'opsz' 144;
+    }
+    .sva__intro {
+      margin-top: 1.5rem;
+      color: var(--color-stone);
+      max-width: 46ch;
+    }
+    .sva__list {
+      border-top: 1px solid var(--color-ink);
+    }
+    .sva__item {
+      display: grid;
+      grid-template-columns: 2.75rem minmax(0, 1fr);
+      gap: 0 0.75rem;
+      align-items: baseline;
+      padding-block: 1.25rem;
+      border-bottom: 1px solid var(--color-line);
+    }
+    .sva__num {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: var(--text-d4);
+      color: var(--color-stone);
+    }
+    .sva__text {
+      font-family: var(--font-display);
+      font-size: var(--text-d4);
+      line-height: var(--text-d4--line-height);
+      font-weight: 360;
+      font-variation-settings: 'opsz' 36;
+    }
+  }
+</style>

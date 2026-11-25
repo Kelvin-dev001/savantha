@@ -1,0 +1,79 @@
+---
+/**
+ * Service page — Related services: two or three register lines, indexed by pillar numeral.
+ */
+import type { NavPillar, NavService } from '@/lib/services';
+import SectionLabel from '@/components/ui/SectionLabel.astro';
+import ServiceRow from '@/components/ui/ServiceRow.astro';
+
+interface Props {
+  number: string;
+  label: string;
+  heading: string;
+  pillarLabel: string;
+  services: NavService[];
+  pillars: NavPillar[];
+}
+const { number, label, heading, pillarLabel, services, pillars } = Astro.props;
+const pillarOf = (key: string) => pillars.find((p) => p.key === key)!;
+---
+
+<section class="svr shell section-y" aria-labelledby="svr-title">
+  <SectionLabel number={number}>{label}</SectionLabel>
+  <div class="svr__grid">
+    <h2 id="svr-title" class="svr__title" data-reveal="mask">
+      {heading}
+    </h2>
+    <div class="svr__list" data-reveal="stagger">
+      {services.map((s) => {
+        const p = pillarOf(s.pillar);
+        return (
+          <ServiceRow
+            index={p.numeral}
+            title={s.title}
+            href={s.href}
+            summary={s.summary}
+            meta={{ label: pillarLabel, value: p.title }}
+          />
+        );
+      })}
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Layered so Tailwind utilities on the same element still win. */
+  @layer components {
+    .svr__grid {
+      display: grid;
+      gap: 2.5rem var(--gap-x);
+      margin-top: clamp(2.5rem, 1.5rem + 3vw, 5rem);
+    }
+    @media (min-width: 1024px) {
+      .svr__grid {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        align-items: start;
+      }
+      .svr__title {
+        grid-column: 1 / span 4;
+      }
+      .svr__list {
+        grid-column: 6 / span 7;
+      }
+    }
+    .svr__title {
+      font-size: var(--text-d2);
+      line-height: var(--text-d2--line-height);
+      letter-spacing: var(--text-d2--letter-spacing);
+      font-weight: 340;
+      font-variation-settings: 'opsz' 144;
+      max-width: 10ch;
+    }
+    .svr__list {
+      border-bottom: 1px solid var(--color-line);
+    }
+    .svr__list > :global(.srow:first-child) {
+      border-top-color: var(--color-ink);
+    }
+  }
+</style>

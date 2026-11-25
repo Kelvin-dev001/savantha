@@ -8,7 +8,8 @@
  * in). The list is always readable; on touch screens it is simply shown in its forward state. The whole panel is one link (stretched), with the services above it.
  */
 import { getEntry } from 'astro:content';
-import { pillars, ui } from '@/config/navigation';
+import { ui } from '@/config/navigation';
+import { getPillars } from '@/lib/services';
 import SectionLabel from '@/components/ui/SectionLabel.astro';
 import Lattice from '@/components/ui/Lattice.astro';
 import Button from '@/components/ui/Button.astro';
@@ -17,6 +18,7 @@ import Icon from '@/components/ui/Icon.astro';
 const home = await getEntry('home', 'home');
 if (!home) throw new Error('src/content/home/home.yaml is required.');
 const { pillars: copy } = home.data;
+const pillars = await getPillars();
 const drift = [24, 16, 12];
 ---
 

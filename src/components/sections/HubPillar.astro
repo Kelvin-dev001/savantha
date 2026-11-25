@@ -1,0 +1,124 @@
+---
+/**
+ * /services: one pillar as a register. The pillar's name is set large on the left and drifts
+ * a few pixels with the scroll (≤ 24 px); its services are the ruled lines on the right,
+ * numbered like clauses (I.1, I.2 …). Trade sits on paper, so the three registers read as
+ * separate chapters without adding an ink section.
+ */
+import type { NavPillar, Service } from '@/lib/services';
+import SectionLabel from '@/components/ui/SectionLabel.astro';
+import ServiceRow from '@/components/ui/ServiceRow.astro';
+
+interface Props {
+  pillar: NavPillar;
+  services: Service[];
+  pillarLabel: string;
+  timelineLabel: string;
+  countLabel: { one: string; many: string };
+  surface?: 'ivory' | 'paper';
+}
+const { pillar, services, pillarLabel, timelineLabel, countLabel, surface = 'ivory' } = Astro.props;
+---
+
+<section
+  id={pillar.key}
+  class:list={['hpil', `surface-${surface}`]}
+  aria-labelledby={`hpil-${pillar.key}`}
+>
+  <div class="shell section-y">
+    <SectionLabel number={pillar.numeral}>{pillarLabel}</SectionLabel>
+
+    <div class="hpil__grid">
+      <div class="hpil__head">
+        <h2 id={`hpil-${pillar.key}`} class="hpil__name">
+          <span class="hpil__word" data-parallax="18">
+            {pillar.title}
+          </span>
+        </h2>
+        <p class="hpil__line">{pillar.line}</p>
+        <p class="hpil__intro" data-reveal="fade">
+          {pillar.intro}
+        </p>
+        <p class="hpil__count eyebrow numerals">
+          {String(services.length).padStart(2, '0')}{' '}
+          {services.length === 1 ? countLabel.one : countLabel.many}
+        </p>
+      </div>
+
+      <div class="hpil__list" data-reveal="stagger">
+        {services.map((s, i) => (
+          <ServiceRow
+            index={`${pillar.numeral}.${i + 1}`}
+            title={s.data.title}
+            href={`/services/${s.data.slug}`}
+            summary={s.data.summary}
+            meta={{ label: timelineLabel, value: s.data.timeline.headline }}
+          />
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Layered so Tailwind utilities on the same element still win. */
+  @layer components {
+    .hpil {
+      scroll-margin-top: 0;
+    }
+    .hpil__grid {
+      display: grid;
+      gap: 2.5rem var(--gap-x);
+      margin-top: clamp(2.5rem, 1.5rem + 3vw, 5rem);
+    }
+    @media (min-width: 1024px) {
+      .hpil__grid {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        align-items: start;
+      }
+      .hpil__head {
+        grid-column: 1 / span 5;
+        position: sticky;
+        top: calc(var(--header-h) + 2rem);
+      }
+      .hpil__list {
+        grid-column: 6 / span 7;
+      }
+    }
+    .hpil__name {
+      font-size: clamp(4rem, 1.5rem + 8vw, 9.5rem);
+      line-height: 0.92;
+      letter-spacing: -0.04em;
+      font-weight: 300;
+      font-variation-settings: 'opsz' 144;
+    }
+    .hpil__word {
+      display: inline-block;
+    }
+    .hpil__line {
+      margin-top: 1.5rem;
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: var(--text-d4);
+      line-height: var(--text-d4--line-height);
+      font-weight: 340;
+      font-variation-settings: 'opsz' 36;
+      max-width: 26ch;
+    }
+    .hpil__intro {
+      margin-top: 1.25rem;
+      color: var(--color-stone);
+      max-width: 44ch;
+    }
+    .hpil__count {
+      margin-top: 1.75rem;
+      color: var(--color-stone);
+    }
+    .hpil__list {
+      border-bottom: 1px solid var(--color-line);
+    }
+    .hpil__list > :global(.srow:first-child) {
+      border-top-color: var(--color-ink);
+    }
+  }
+</style>
