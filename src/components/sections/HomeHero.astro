@@ -1,0 +1,456 @@
+---
+/**
+ * Homepage hero — "the seal and the ledger".
+ *
+ * An ink field where the lattice draws itself outward from Savantho's seal, a two-line
+ * headline set like an engraved statement, and a ledger foot that says exactly what
+ * happens after you get in touch.
+ *
+ * Entry sequence (CSS only, ≤ 2 s, plays once):
+ *   0 ms     lattice line-draws outward from the seal (~1.6 s)
+ *   280 ms   seal rings draw, monogram rises
+ *   520 ms   headline rises word by word, 60 ms apart
+ *   1050 ms  lead, then CTAs, then the ledger foot
+ * No JS is involved, so the text is readable even if scripts never run. Under
+ * prefers-reduced-motion every element is simply shown in its final state.
+ */
+import { getEntry } from 'astro:content';
+import { site } from '@/config/site';
+import { whatsappLink } from '@/lib/contact';
+import Lattice from '@/components/ui/Lattice.astro';
+import Seal from '@/components/ui/Seal.astro';
+import Button from '@/components/ui/Button.astro';
+
+const home = await getEntry('home', 'home');
+if (!home) throw new Error('src/content/home/home.yaml is required.');
+const { hero } = home.data;
+
+// Split the headline into words for the staggered rise; keep real spaces for screen readers.
+let i = 0;
+const lines = hero.headline.map((line) =>
+  line.text.split(/\s+/).map((word) => ({
+    word,
+    i: i++,
+    em: line.emphasis ? word.replace(/[^\p{L}]/gu, '') === line.emphasis : false,
+  })),
+);
+---
+
+<section class="hero surface-ink" aria-labelledby="hero-title">
+  <Lattice
+    animate
+    density="regular"
+    opacity={0.34}
+    origin={[84, 36]}
+    align="right"
+    spread={780}
+    class="hero__lattice"
+  />
+
+  <div class="shell hero__inner">
+    <div class="hero__top">
+      <p class="hero__eyebrow eyebrow">
+        <span class="hero__eyebrow-rule" aria-hidden="true"></span>
+        <span>{site.tagline}</span>
+      </p>
+
+      <h1 id="hero-title" class="hero__title">
+        {lines.map((words, li) => (
+          <span class:list={['hl', { 'hl--indent': li > 0 }]}>
+            {words.map((w, wi) => (
+              <>
+                <span class="hw">
+                  {w.em ? (
+                    <em class="hw__i" style={`--i:${w.i}`}>
+                      {w.word}
+                    </em>
+                  ) : (
+                    <span class="hw__i" style={`--i:${w.i}`}>
+                      {w.word}
+                    </span>
+                  )}
+                </span>
+                {wi < words.length - 1 && ' '}
+              </>
+            ))}
+            {li < lines.length - 1 && ' '}
+          </span>
+        ))}
+      </h1>
+
+      <Seal animate class="hero__seal" />
+    </div>
+
+    <div class="hero__mid">
+      <p class="hero__lead text-lead">{hero.lead}</p>
+      <div class="hero__actions">
+        <span class="magnetic hero__primary" data-magnetic>
+          <Button
+            href={whatsappLink()}
+            tone="dark"
+            size="lg"
+            icon="whatsapp"
+            data-track="whatsapp_click"
+            data-track-service="general"
+            data-track-location="hero"
+          >
+            {hero.primaryCta}
+          </Button>
+        </span>
+        <Button href={hero.secondaryCta.href} variant="text" tone="dark">
+          {hero.secondaryCta.label}
+        </Button>
+      </div>
+    </div>
+
+    <div class="hero__next">
+      <span class="hero__rule" aria-hidden="true"></span>
+      <div class="hero__next-grid">
+        <h2 class="hero__next-label eyebrow">{hero.next.label}</h2>
+        <ol class="hero__steps">
+          {hero.next.steps.map((s, n) => (
+            <li class="hero__step" style={`--n:${n}`}>
+              <span class="hero__step-num eyebrow numerals" aria-hidden="true">
+                {String(n + 1).padStart(2, '0')}
+              </span>
+              <span class="hero__step-body">
+                <span class="hero__step-title">{s.title}</span>
+                <span class="hero__step-detail">{s.detail}</span>
+              </span>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Layered so Tailwind utilities on the same element still win. */
+  @layer components {
+    .hero {
+      /* Choreography (see header comment) */
+      --t-seal: 280ms;
+      --t-eyebrow: 420ms;
+      --t-words: 520ms;
+      --t-lead: 1050ms;
+      --t-cta: 1180ms;
+      --t-rule: 1080ms;
+      --t-steps: 1280ms;
+      /* One 12-col column at the current width */
+      --col: calc((min(100vw - 2 * var(--gutter-x), var(--content-max)) - 11 * var(--gap-x)) / 12);
+
+      position: relative;
+      isolation: isolate;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: max(100svh, 640px);
+      background:
+        radial-gradient(ellipse 70% 80% at 84% 36%, var(--color-ink-800) 0%, transparent 70%),
+        var(--color-ink);
+    }
+    @media (max-width: 1023.98px) {
+      .hero {
+        background:
+          radial-gradient(circle at 92% 14%, var(--color-ink-800) 0%, transparent 55%),
+          var(--color-ink);
+      }
+    }
+
+    .hero :global(.hero__lattice) {
+      z-index: -1;
+      mask-image: linear-gradient(to left, #000 8%, rgb(0 0 0 / 0.5) 45%, transparent 80%);
+    }
+
+    .hero__inner {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding-top: calc(var(--header-h) + clamp(2rem, 1rem + 6vh, 6.5rem));
+      padding-bottom: clamp(1.25rem, 0.5rem + 3vh, 2.75rem);
+    }
+
+    /* ---------- Top: eyebrow · title · seal ---------- */
+    .hero__top {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-areas:
+        'eyebrow seal'
+        'title title';
+      column-gap: var(--gap-x);
+      align-items: end;
+    }
+    @media (min-width: 1024px) {
+      .hero__top {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        grid-template-areas: none;
+        grid-template-rows: auto auto;
+        align-items: start;
+      }
+      .hero__top > .hero__eyebrow {
+        grid-area: 1 / 1 / 2 / 10;
+      }
+      /* The title may run into column 10; the seal sits right-aligned in 10–12. */
+      .hero__top > .hero__title {
+        grid-area: 2 / 1 / 3 / 11;
+      }
+    }
+
+    .hero__eyebrow {
+      grid-area: eyebrow;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+      color: var(--color-gold-soft);
+      padding-bottom: 0.5rem;
+      max-width: 18ch;
+      animation: hero-fade 900ms var(--ease-quiet) both;
+      animation-delay: var(--t-eyebrow);
+    }
+    .hero__eyebrow-rule {
+      width: 2.5rem;
+      height: 1px;
+      background: var(--color-gold);
+      transform-origin: left;
+      animation: hero-rule 900ms var(--ease-ledger) both;
+      animation-delay: var(--t-eyebrow);
+    }
+    @media (min-width: 640px) {
+      .hero__eyebrow {
+        flex-direction: row;
+        align-items: center;
+        max-width: none;
+      }
+    }
+    @media (min-width: 1024px) {
+      .hero__eyebrow {
+        padding-bottom: 0;
+      }
+    }
+
+    .hero__title {
+      grid-area: title;
+      margin-top: clamp(1.75rem, 1rem + 3vw, 3.25rem);
+      font-family: var(--font-display);
+      font-size: var(--text-hero);
+      font-weight: 340;
+      font-variation-settings: 'opsz' 144;
+      line-height: 1.02;
+      letter-spacing: -0.025em;
+      color: var(--color-ivory);
+      text-wrap: initial;
+    }
+    .hl {
+      display: block;
+      text-wrap: balance; /* "Clarity for / your money." on phones, never an orphaned word */
+    }
+    @media (min-width: 1280px) {
+      .hl--indent {
+        padding-inline-start: calc(var(--col) + var(--gap-x));
+      }
+    }
+    /* Each word rises out of its own mask. Padding keeps ascenders, descenders and italics. */
+    .hw {
+      display: inline-block;
+      overflow: clip;
+      vertical-align: top;
+      padding: 0.12em 0.06em 0.16em;
+      margin: -0.12em -0.06em -0.16em;
+    }
+    .hw__i {
+      display: inline-block;
+      animation: hero-rise 1000ms var(--ease-settle) both;
+      animation-delay: calc(var(--t-words) + var(--i) * 60ms);
+    }
+    .hero__title em {
+      font-style: italic;
+      font-weight: 300;
+      font-variation-settings: 'opsz' 144;
+      letter-spacing: -0.015em;
+    }
+
+    .hero :global(.hero__seal) {
+      grid-area: seal;
+      width: clamp(132px, 34vw, 200px);
+      margin-right: calc(clamp(132px, 34vw, 200px) * -0.18);
+      --seal-delay: var(--t-seal);
+    }
+    @media (min-width: 1024px) {
+      .hero :global(.hero__seal) {
+        grid-area: 1 / 10 / 3 / 13;
+        align-self: center;
+        justify-self: end;
+        width: clamp(180px, 19vw, 300px);
+        margin-right: 0;
+        margin-top: 2rem;
+      }
+    }
+
+    /* ---------- Middle: lead · actions ---------- */
+    .hero__mid {
+      display: grid;
+      gap: 2rem var(--gap-x);
+      margin-top: clamp(1.75rem, 1rem + 4vh, 4rem);
+    }
+    @media (min-width: 1024px) {
+      .hero__mid {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        align-items: end;
+      }
+    }
+    .hero__lead {
+      color: var(--surface-muted);
+      max-width: 44ch;
+      animation: hero-fade 900ms var(--ease-quiet) both;
+      animation-delay: var(--t-lead);
+    }
+    @media (min-width: 1024px) {
+      .hero__lead {
+        grid-column: 1 / span 6;
+      }
+    }
+    .hero__actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem 2rem;
+      animation: hero-fade-up 900ms var(--ease-settle) both;
+      animation-delay: var(--t-cta);
+    }
+    @media (max-width: 639.98px) {
+      .hero__primary,
+      .hero__primary :global(.btn) {
+        width: 100%;
+      }
+    }
+    @media (min-width: 1024px) {
+      .hero__actions {
+        grid-column: 8 / span 5;
+        justify-content: flex-end;
+      }
+    }
+
+    /* ---------- Foot: what happens next ---------- */
+    .hero__next {
+      margin-top: auto;
+      padding-top: clamp(2.5rem, 1rem + 6vh, 5rem);
+    }
+    .hero__rule {
+      display: block;
+      height: 1px;
+      background: var(--color-line);
+      transform-origin: left;
+      animation: hero-rule 1100ms var(--ease-ledger) both;
+      animation-delay: var(--t-rule);
+    }
+    .hero__next-grid {
+      display: grid;
+      gap: 1rem var(--gap-x);
+      padding-top: 1.25rem;
+    }
+    @media (min-width: 1024px) {
+      .hero__next-grid {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+      }
+    }
+    .hero__next-label {
+      font-family: var(--font-sans);
+      color: var(--color-gold-soft);
+      animation: hero-fade 700ms var(--ease-quiet) both;
+      animation-delay: var(--t-steps);
+    }
+    @media (min-width: 1024px) {
+      .hero__next-label {
+        grid-column: 1 / span 3;
+        padding-top: 0.2rem;
+      }
+    }
+    .hero__steps {
+      display: grid;
+    }
+    @media (min-width: 768px) {
+      .hero__steps {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        column-gap: var(--gap-x);
+      }
+    }
+    @media (min-width: 1024px) {
+      .hero__steps {
+        grid-column: 4 / span 9;
+      }
+    }
+    .hero__step {
+      display: grid;
+      grid-template-columns: 2.25rem minmax(0, 1fr);
+      padding-block: 0.75rem;
+      border-top: 1px solid var(--color-line);
+      animation: hero-fade 700ms var(--ease-quiet) both;
+      animation-delay: calc(var(--t-steps) + var(--n) * 70ms);
+    }
+    .hero__step:first-child {
+      border-top: 0;
+    }
+    @media (min-width: 768px) {
+      .hero__step {
+        border-top: 0;
+        padding-block: 0;
+      }
+    }
+    .hero__step-num {
+      color: var(--color-gold);
+      padding-top: 0.2rem;
+    }
+    .hero__step-body {
+      display: flex;
+      flex-direction: column;
+      gap: 0.125rem;
+      font-size: var(--text-small);
+      line-height: var(--text-small--line-height);
+    }
+    .hero__step-title {
+      font-weight: 620;
+      color: var(--color-ivory);
+    }
+    .hero__step-detail {
+      color: var(--surface-muted);
+      text-wrap: balance;
+    }
+
+    @keyframes hero-rise {
+      from {
+        transform: translateY(112%);
+      }
+    }
+    @keyframes hero-fade {
+      from {
+        opacity: 0;
+      }
+    }
+    @keyframes hero-fade-up {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+    }
+    @keyframes hero-rule {
+      from {
+        transform: scaleX(0);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .hero__eyebrow,
+      .hero__eyebrow-rule,
+      .hw__i,
+      .hero__lead,
+      .hero__actions,
+      .hero__rule,
+      .hero__next-label,
+      .hero__step {
+        animation: none;
+      }
+    }
+  }
+</style>

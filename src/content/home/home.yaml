@@ -1,0 +1,26 @@
+# Homepage copy. Compliance-sensitive: reviewed with every other content file.
+# Phase 3 adds the remaining sections below `hero`.
+
+hero:
+  # The tagline above the headline comes from src/config/site.ts.
+  headline:
+    - text: Clarity for your money.
+    - text: Legacy for your family.
+      emphasis: Legacy
+  lead: >-
+    Ethical financial consultancy for Kenyan families and businesses, from first budget to
+    lasting legacy. We help you understand your options and their risks, so every decision is an
+    informed one.
+  primaryCta: Book a free discovery call
+  secondaryCta:
+    label: Explore services
+    href: /services
+  next:
+    label: What happens next
+    steps:
+      - title: Message us
+        detail: We reply within one business day.
+      - title: A free 20-minute call
+        detail: We listen before we suggest anything.
+      - title: A written proposal
+        detail: Scope, fees and risks, set out plainly.

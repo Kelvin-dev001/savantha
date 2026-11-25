@@ -282,9 +282,58 @@
 }
 
 /* ------------------------------------------------------------------
+   Motion system (see src/scripts/motion)
+------------------------------------------------------------------- */
+@layer components {
+  /* Lenis (from lenis/dist/lenis.css, trimmed) */
+  html.lenis,
+  html.lenis body {
+    height: auto;
+  }
+  .lenis.lenis-stopped {
+    overflow: clip;
+  }
+  .lenis [data-lenis-prevent] {
+    overscroll-behavior: contain;
+  }
+  .lenis.lenis-smooth iframe {
+    pointer-events: none;
+  }
+
+  /* Magnetic wrapper: transform-only, set by magnetic.ts */
+  .magnetic {
+    display: inline-flex;
+    translate: var(--mx, 0px) var(--my, 0px);
+    transition: translate 700ms var(--ease-settle);
+  }
+
+  /* SplitText line masks keep descenders and italic overhangs */
+  .reveal-line {
+    padding-bottom: 0.08em;
+    margin-bottom: -0.08em;
+  }
+}
+
+/* Cross-document view transitions: a short cross-fade between pages. No JS. */
+@view-transition {
+  navigation: auto;
+}
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 260ms;
+  animation-timing-function: var(--ease-quiet);
+}
+
+/* ------------------------------------------------------------------
    Reduced motion — final states only
 ------------------------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
+  @view-transition {
+    navigation: none;
+  }
+  .magnetic {
+    translate: none;
+  }
   html {
     scroll-behavior: auto;
   }

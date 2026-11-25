@@ -4,7 +4,7 @@
  * - `overlay`: transparent over a hero, turns ivory with a hairline after 80 px.
  * - Hides on scroll down, returns on scroll up (and whenever focus enters it).
  * - Services mega-menu (disclosure pattern) on ≥1024 px; full-height sheet below.
- * Vanilla JS, ~1.5 KB. No library.
+ * Vanilla JS, ~1.5 KB. No library. Pauses the scroll engine (Lenis) while the sheet is open.
  */
 import { site } from '@/config/site';
 import { pillars, primaryNav, ui } from '@/config/navigation';
@@ -132,7 +132,7 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
   </div>
 
   <!-- Mobile / tablet sheet -->
-  <div id="mobile-menu" class="sheet surface-ivory" hidden data-sheet>
+  <div id="mobile-menu" class="sheet surface-ivory" hidden data-sheet data-lenis-prevent>
     <nav aria-label={ui.mainNavLabel} class="shell flex min-h-full flex-col py-8">
       <p class="eyebrow text-muted">{ui.services}</p>
       <ul class="mt-4">
@@ -387,6 +387,8 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
 </style>
 
 <script>
+  import { setScrollLock } from '@/scripts/motion/env';
+
   const header = document.querySelector<HTMLElement>('.site-header');
   if (header) {
     const overlay = header.dataset.overlay === 'true';
@@ -454,6 +456,7 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
       header.dataset.open = open ? 'sheet' : 'none';
       header.dataset.hidden = 'false';
       document.documentElement.style.overflow = open ? 'hidden' : '';
+      setScrollLock(open);
       outside().forEach((el) => (el.inert = open));
       if (label)
         label.textContent = (open ? label.dataset.labelClose : label.dataset.labelOpen) ?? '';

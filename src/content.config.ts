@@ -15,4 +15,24 @@ const legal = defineCollection({
   }),
 });
 
-export const collections = { legal };
+/** Homepage copy, one YAML file. Phase 3 extends the schema section by section. */
+const home = defineCollection({
+  loader: glob({ pattern: '**/*.yaml', base: './src/content/home' }),
+  schema: z.object({
+    hero: z.object({
+      headline: z
+        .array(z.object({ text: z.string(), emphasis: z.string().optional() }))
+        .min(1)
+        .max(3),
+      lead: z.string(),
+      primaryCta: z.string(),
+      secondaryCta: z.object({ label: z.string(), href: z.string() }),
+      next: z.object({
+        label: z.string(),
+        steps: z.array(z.object({ title: z.string(), detail: z.string() })).length(3),
+      }),
+    }),
+  }),
+});
+
+export const collections = { legal, home };

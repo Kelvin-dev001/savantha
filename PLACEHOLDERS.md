@@ -8,7 +8,7 @@ Last updated: 2026-11-25 (Phase 1)
 
 | Placeholder | Where | What we need |
 |---|---|---|
-| Monogram (star + italic "S") | `src/components/ui/Monogram.astro`, `public/brand/monogram.svg`, `public/favicon.svg` | Final monogram as vector SVG (single colour and full colour) |
+| Monogram (star + italic "S") | `src/components/ui/Monogram.astro`, `public/brand/monogram.svg`, `public/favicon.svg`; also inside the homepage hero seal (`src/components/ui/Seal.astro`) | Final monogram as vector SVG (single colour and full colour). It must read at 200 px with a fine (≈ 1 px) stroke as well as at 30 px |
 | Full logo lockup | `public/brand/logo-full.svg` | Final full logo as vector SVG |
 | `[[COMPANY REG. NO.]]` | `src/config/site.ts` → `registration` (footer, styleguide) | Registrar of Companies registration number |
 | `[[OFFICE ADDRESS]]`, `[[CITY]]` | `src/config/site.ts` → `address` (footer) | Office street address, building and city |

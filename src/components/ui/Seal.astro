@@ -1,0 +1,172 @@
+---
+/**
+ * <Seal /> — the monogram set in an engraved ring, like a notary seal or the edge of a coin.
+ * Two hairline rings carry an inscription (the legal name and the tagline, approved at Checkpoint 2).
+ * Decorative only: the same words appear as real text elsewhere on the page.
+ *
+ * Sizing comes from the parent via `width` (CSS). Strokes stay 1 px at any size.
+ * `animate`: rings draw, inscription settles, monogram fades up (CSS only, once).
+ * Timings are CSS custom properties so a section can choreograph them.
+ */
+import { site } from '@/config/site';
+import Monogram from './Monogram.astro';
+
+interface Props {
+  animate?: boolean;
+  class?: string;
+}
+const { animate = false, class: className = '' } = Astro.props;
+
+const inscription = `${site.legalName} · ${site.tagline} ·`.toUpperCase();
+
+const C = 160;
+const BASE = 133; // inscription baseline radius (band between the rings is centred on ~138)
+const circle = (r: number) => `M ${C} ${C - r} A ${r} ${r} 0 1 1 ${C - 0.01} ${C - r} Z`;
+const uid = `seal${Math.random().toString(36).slice(2, 8)}`;
+const textLength = (2 * Math.PI * BASE - 6).toFixed(1);
+---
+
+<div class:list={['seal', className]} data-animate={animate ? 'true' : 'false'} aria-hidden="true">
+  <svg class="seal__ring" viewBox="0 0 320 320" focusable="false" fill="none">
+    <defs>
+      <path id={`${uid}-p`} d={circle(BASE)}></path>
+    </defs>
+    <g transform={`rotate(-90 ${C} ${C})`}>
+      <circle class="seal__stroke" cx={C} cy={C} r="157" pathLength="1"></circle>
+      <circle
+        class="seal__stroke seal__stroke--inner"
+        cx={C}
+        cy={C}
+        r="120"
+        pathLength="1"
+      ></circle>
+    </g>
+    <g class="seal__inscription">
+      <text textLength={textLength} lengthAdjust="spacing">
+        <textPath href={`#${uid}-p`}>{inscription}</textPath>
+      </text>
+    </g>
+  </svg>
+  <div class="seal__mark">
+    <Monogram size={200} strokeWidth={1.1} class="seal__monogram" />
+  </div>
+</div>
+
+<style>
+  /* Layered so Tailwind utilities on the same element still win. */
+  @layer components {
+    .seal {
+      --seal-delay: 0ms;
+      position: relative;
+      aspect-ratio: 1;
+      color: var(--color-ivory);
+      isolation: isolate;
+    }
+    /* A quiet clearing in the lattice, lit slightly from within. */
+    .seal::before {
+      content: '';
+      position: absolute;
+      inset: -22%;
+      z-index: -1;
+      border-radius: 50%;
+      background: radial-gradient(
+        closest-side,
+        var(--color-ink-800) 0 58%,
+        color-mix(in srgb, var(--color-ink-800) 70%, transparent) 70%,
+        transparent 100%
+      );
+    }
+    .seal__ring {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+    .seal__stroke {
+      stroke: var(--color-gold);
+      stroke-width: 1;
+      vector-effect: non-scaling-stroke;
+      opacity: 0.7;
+    }
+    .seal__stroke--inner {
+      opacity: 0.45;
+    }
+    .seal__inscription {
+      transform-origin: 160px 160px;
+    }
+    .seal__inscription text {
+      fill: var(--color-gold-soft);
+      font-family: var(--font-sans);
+      font-size: 11.5px;
+      font-weight: 600;
+      letter-spacing: 0.3em;
+    }
+    .seal__mark {
+      position: absolute;
+      inset: 19%;
+      display: grid;
+      place-items: center;
+    }
+    .seal__mark :global(.seal__monogram) {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Entry: rings draw → inscription settles → monogram rises */
+    .seal[data-animate='true'] .seal__stroke {
+      stroke-dasharray: 1 1;
+      animation: seal-draw 1300ms var(--ease-ledger) both;
+      animation-delay: var(--seal-delay);
+    }
+    .seal[data-animate='true'] .seal__stroke--inner {
+      animation-delay: calc(var(--seal-delay) + 120ms);
+      animation-name: seal-draw-rev; /* counter-clockwise */
+    }
+    .seal[data-animate='true'] .seal__inscription {
+      animation: seal-turn 1500ms var(--ease-settle) both;
+      animation-delay: calc(var(--seal-delay) + 200ms);
+    }
+    .seal[data-animate='true'] .seal__mark {
+      animation: seal-rise 1000ms var(--ease-settle) both;
+      animation-delay: calc(var(--seal-delay) + 160ms);
+    }
+
+    @keyframes seal-draw {
+      from {
+        stroke-dashoffset: 1;
+      }
+      to {
+        stroke-dashoffset: 0;
+      }
+    }
+    @keyframes seal-draw-rev {
+      from {
+        stroke-dashoffset: -1;
+      }
+      to {
+        stroke-dashoffset: 0;
+      }
+    }
+    @keyframes seal-turn {
+      from {
+        opacity: 0;
+        transform: rotate(-14deg);
+      }
+    }
+    @keyframes seal-rise {
+      from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.98);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .seal[data-animate='true'] .seal__stroke,
+      .seal[data-animate='true'] .seal__inscription,
+      .seal[data-animate='true'] .seal__mark {
+        animation: none;
+      }
+    }
+  }
+</style>

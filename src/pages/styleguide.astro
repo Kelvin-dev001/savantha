@@ -1,6 +1,6 @@
 ---
 /**
- * /styleguide — Phase 1 checkpoint. Internal reference (noindex).
+ * /styleguide — internal design-system reference (noindex). Phase 2 adds 07 Motion.
  * Colours and contrast ratios are computed from global.css at build time.
  */
 import BaseLayout from '@/layouts/BaseLayout.astro';
@@ -159,6 +159,41 @@ const sections = [
     title: 'Placeholders',
     note: 'How missing client assets are shown.',
   },
+  { n: '07', id: 'motion', title: 'Motion', note: 'What moves, when, and for whom.' },
+];
+
+const primitives = [
+  {
+    attr: 'data-reveal="mask"',
+    use: 'Headings',
+    spec: 'Lines rise out of a mask · 1.1 s · expo out · 80 ms per line',
+  },
+  { attr: 'data-reveal="fade"', use: 'Body copy', spec: 'Opacity only · 1.0 s · no drift' },
+  {
+    attr: 'data-reveal="rule"',
+    use: 'Hairlines',
+    spec: 'Draws left to right like a ledger rule · 1.4 s',
+  },
+  { attr: 'data-reveal="stagger"', use: 'Lists, rows', spec: 'Children in sequence · 60 ms apart' },
+  {
+    attr: 'data-parallax="24"',
+    use: 'Images, cards',
+    spec: 'Drifts up to 24 px while in view · scrubbed',
+  },
+  {
+    attr: 'data-magnetic',
+    use: 'The primary CTA',
+    spec: 'Leans ≤ 6 px toward the cursor · fine pointers only',
+  },
+];
+
+const heroTimeline = [
+  { t: '0', what: 'Lattice line-draws outward from the seal', dur: '1.6 s' },
+  { t: '280', what: 'Seal rings draw, monogram rises', dur: '1.3 s' },
+  { t: '520', what: 'Headline rises word by word, 60 ms apart', dur: '1.0 s each' },
+  { t: '1050', what: 'Lead fades in', dur: '0.9 s' },
+  { t: '1180', what: 'Calls to action', dur: '0.9 s' },
+  { t: '1280', what: '“What happens next” ledger', dur: '0.7 s' },
 ];
 
 const fmt = (r: number) => r.toFixed(2);
@@ -187,11 +222,11 @@ const fmt = (r: number) => r.toFixed(2);
         <dl class="sg-meta mt-12">
           <div>
             <dt class="eyebrow text-muted">Version</dt>
-            <dd class="numerals">0.1</dd>
+            <dd class="numerals">0.2</dd>
           </div>
           <div>
             <dt class="eyebrow text-muted">Phase</dt>
-            <dd>1 · Foundation</dd>
+            <dd>2 · Motion</dd>
           </div>
           <div>
             <dt class="eyebrow text-muted">Updated</dt>
@@ -713,6 +748,109 @@ const fmt = (r: number) => r.toFixed(2);
       </div>
     </div>
   </section>
+
+  <!-- 07 Motion -->
+  <section id="motion" class="sg-section surface-paper" aria-labelledby="motion-h">
+    <div class="shell">
+      <SectionLabel number="07">Motion</SectionLabel>
+      <div class="grid-12 mt-12 gap-y-6">
+        <h2 id="motion-h" class="text-d1 display col-span-12 lg:col-span-6" data-reveal="mask">
+          Movement with a reason, played once.
+        </h2>
+        <p
+          class="text-muted col-span-12 lg:col-span-5 lg:col-start-8 lg:self-end"
+          data-reveal="fade"
+          data-reveal-delay="0.15"
+        >
+          Motion shows order: what to read first, what belongs together. Nothing loops and nothing
+          replays on the way back up. Visitors who ask their device for reduced motion get the
+          finished page straight away, and if scripts never load, nothing is hidden.
+        </p>
+      </div>
+
+      <div class="sg-total mt-16" data-reveal="rule" role="presentation"></div>
+
+      <div class="grid-12 mt-12 gap-y-14">
+        <div class="col-span-12 lg:col-span-7">
+          <Eyebrow>Primitives · add the attribute, the system does the rest</Eyebrow>
+          <dl class="sg-motion-list mt-5" data-reveal="stagger">
+            {primitives.map((m) => (
+              <div class="sg-motion-row">
+                <dt>
+                  <code class="sg-code">{m.attr}</code>
+                </dt>
+                <dd class="text-small">
+                  <span class="sg-motion-use">{m.use}</span>
+                  <span class="text-muted">{m.spec}</span>
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+        <div class="col-span-12 lg:col-span-4 lg:col-start-9">
+          <Eyebrow>Parallax · data-parallax="24"</Eyebrow>
+          <div class="sg-parallax-frame mt-5">
+            <div data-parallax="24">
+              <PlaceholderImage
+                width={800}
+                height={1000}
+                caption="Mombasa Old Town arch"
+                alt="Placeholder for a photograph of a coral-stone arch in Mombasa Old Town."
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-12 mt-20 gap-y-14">
+        <div class="col-span-12 lg:col-span-7">
+          <Eyebrow>Homepage hero · CSS only, ≤ 2 s</Eyebrow>
+          <table class="sg-timeline mt-5">
+            <caption class="sr-only">Hero entry sequence</caption>
+            <thead>
+              <tr>
+                <th scope="col" class="eyebrow text-muted">
+                  ms
+                </th>
+                <th scope="col" class="eyebrow text-muted">
+                  What moves
+                </th>
+                <th scope="col" class="eyebrow text-muted">
+                  Duration
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {heroTimeline.map((r) => (
+                <tr>
+                  <td class="numerals">{r.t}</td>
+                  <td>{r.what}</td>
+                  <td class="numerals text-muted">{r.dur}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div class="col-span-12 lg:col-span-4 lg:col-start-9">
+          <Eyebrow>Magnetic CTA · try it with a mouse</Eyebrow>
+          <div class="sg-magnet mt-5">
+            <span class="magnetic" data-magnetic>
+              <Button href={whatsappLink()} icon="whatsapp" data-track="whatsapp_click">
+                Book a free discovery call
+              </Button>
+            </span>
+          </div>
+          <Eyebrow class="mt-12">Loading</Eyebrow>
+          <ul class="sg-rules mt-4">
+            <li>Up front: a loader under 1.5 KB gzipped.</li>
+            <li>Lenis smooth scroll: on idle, mouse and trackpad only. Touch stays native.</li>
+            <li>GSAP + ScrollTrigger: only when a page has reveals, one viewport ahead.</li>
+            <li>Between pages: a 260 ms cross-fade, using the browser's own view transitions.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
 </BaseLayout>
 
 <style>
@@ -1148,6 +1286,70 @@ const fmt = (r: number) => r.toFixed(2);
       border: 1px solid var(--color-stone);
     }
 
+    .sg-motion-list {
+      border-top: 1px solid var(--color-line);
+    }
+    .sg-motion-row {
+      display: grid;
+      gap: 0.375rem var(--gap-x);
+      padding-block: 1.125rem;
+      border-bottom: 1px solid var(--color-line);
+    }
+    @media (min-width: 768px) {
+      .sg-motion-row {
+        grid-template-columns: 15rem 1fr;
+        align-items: baseline;
+      }
+    }
+    .sg-motion-row dd {
+      display: flex;
+      flex-direction: column;
+    }
+    .sg-motion-use {
+      font-weight: 620;
+    }
+    .sg-code {
+      font-size: 0.8125rem;
+      color: var(--color-royal);
+    }
+    .sg-parallax-frame {
+      overflow: hidden;
+      border-radius: var(--radius-xs);
+    }
+    .sg-parallax-frame > div {
+      margin-block: -12px;
+    }
+    .sg-timeline {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: var(--text-small);
+    }
+    .sg-timeline th {
+      text-align: left;
+      padding: 0 1rem 0.75rem 0;
+      font-weight: 650;
+    }
+    .sg-timeline td {
+      padding: 0.875rem 1rem 0.875rem 0;
+      border-top: 1px solid var(--color-line);
+      vertical-align: baseline;
+    }
+    .sg-timeline td:first-child {
+      width: 4.5rem;
+    }
+    .sg-timeline td:last-child,
+    .sg-timeline th:last-child {
+      text-align: right;
+      padding-right: 0;
+      white-space: nowrap;
+    }
+    .sg-magnet {
+      display: grid;
+      place-items: center;
+      min-height: 200px;
+      border: 1px solid var(--color-line);
+      border-radius: var(--radius-xs);
+    }
     .sg-total {
       height: 4px;
       border-top: 1px solid var(--color-ink);

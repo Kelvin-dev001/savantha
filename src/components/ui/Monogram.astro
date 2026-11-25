@@ -9,8 +9,10 @@ interface Props {
   /** Accessible name. Omit when the monogram sits next to the wordmark. */
   label?: string;
   tone?: 'gold' | 'ink' | 'ivory';
+  /** Star stroke in viewBox units (100). Thinner reads finer at large sizes. */
+  strokeWidth?: number;
 }
-const { size = 32, class: className = '', label, tone = 'gold' } = Astro.props;
+const { size = 32, class: className = '', label, tone = 'gold', strokeWidth = 2.4 } = Astro.props;
 const stroke = { gold: 'var(--color-gold)', ink: 'var(--color-ink)', ivory: 'var(--color-ivory)' }[
   tone
 ];
@@ -38,7 +40,7 @@ const d = `M${pts.join('L')}Z`;
   focusable="false"
   data-placeholder="true"
 >
-  <path d={d} fill="none" stroke={stroke} stroke-width="2.4" stroke-linejoin="miter"></path>
+  <path d={d} fill="none" stroke={stroke} stroke-width={strokeWidth} stroke-linejoin="miter"></path>
   <!-- prettier-ignore -->
   <text x="50" y="51" text-anchor="middle" dominant-baseline="central" fill="currentColor" style="font-family: var(--font-display); font-style: italic; font-size: 46px; font-weight: 420; font-variation-settings: 'opsz' 72;">S</text>
 </svg>

@@ -10,6 +10,7 @@ import { site } from '@/config/site';
 import { ui } from '@/config/navigation';
 import Header from '@/components/layout/Header.astro';
 import Footer from '@/components/layout/Footer.astro';
+import Motion from '@/components/layout/Motion.astro';
 
 interface Props {
   title: string;
@@ -57,6 +58,7 @@ const showPlaceholders = import.meta.env.PUBLIC_SHOW_PLACEHOLDERS === 'true';
       <slot />
     </main>
     <Footer />
+    <Motion />
   </body>
 </html>
 
