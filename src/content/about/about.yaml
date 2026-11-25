@@ -1,0 +1,118 @@
+# /about copy. Compliance-sensitive: reviewed with every other content file.
+# Everything in [[DOUBLE BRACKETS]] is waiting for Savantho (see PLACEHOLDERS.md).
+
+seoTitle: About Savantho Consultancy
+seoDescription: >-
+  Savantho Consultancy Limited is a Kenyan ethical financial consultancy. Who we are, what we
+  hold ourselves to, how we are registered and how we are paid.
+
+hero:
+  eyebrow: About Savantho
+  headline:
+    - text: We would rather
+    - text: explain than sell.
+      emphasis: explain
+  lead: >-
+    Savantho Consultancy Limited is a Kenyan financial consultancy. We help families, businesses
+    and organisations understand their money, their options and the risks attached to each, so
+    every decision they make is an informed one.
+  proof: We explain every fee, product and risk in writing, before you commit to anything.
+  logoAlt: Savantho Consultancy Limited
+
+founder:
+  label: Who we are
+  heading: The person you will speak to.
+  portraitCaption: Founder portrait, warm grade
+  portraitAlt: Portrait of [[FOUNDER NAME]], founder of Savantho Consultancy
+  nameLabel: Founder
+  name: '[[FOUNDER NAME]]'
+  role: '[[ROLE, e.g. Founder and Principal Consultant]]'
+  quote: '[[ONE SENTENCE IN THE FOUNDER’S OWN WORDS: why Savantho exists]]'
+  story:
+    - '[[FOUNDER STORY, PARAGRAPH 1: background and the path into financial consultancy]]'
+    - '[[FOUNDER STORY, PARAGRAPH 2: what you saw families and businesses struggle with, and why ethics and transparency became the point of the firm]]'
+    - '[[FOUNDER STORY, PARAGRAPH 3: who you work with today, and how]]'
+
+values:
+  label: What we hold ourselves to
+  heading: Four values, and the practice behind each.
+  lead: >-
+    Anyone can print a list of values. These are written as commitments, so you can check them
+    against how we actually work.
+  articleLabel: Article
+  practiceLabel: In practice
+  items:
+    - value: Integrity
+      means: We tell you what things cost and what can go wrong, before you ask.
+      practice: >-
+        Every fee, product and risk is set out in writing before you commit. If we are not the
+        right fit for your question, we say so and point you elsewhere.
+    - value: Resilience
+      means: A plan should survive a hard year, not only a good one.
+      practice: >-
+        A reserve comes before anything else. We test every plan against a fall in income, a
+        late payment or an emergency, and say what would give first.
+    - value: Innovation
+      means: Modern tools, explained plainly, that leave you in control.
+      practice: >-
+        Simple trackers, clear records and digital documents that you own and understand. No
+        black boxes, and nothing you cannot read for yourself.
+    - value: Legacy
+      means: We plan past the next decade.
+      practice: >-
+        Who inherits what, and how, worked through with your family and alongside your advocate,
+        so the plan outlasts the people who made it.
+
+record:
+  label: On the record
+  heading: Registration and credentials.
+  lead: >-
+    The facts a careful client checks first. Where something is still being confirmed, it says
+    so.
+  rows:
+    - term: Legal name
+      from: legalName
+    - term: Company registration
+      from: registration
+    - term: Registered office
+      from: address
+    - term: Regulatory position
+      value: >-
+        Not licensed by the Capital Markets Authority. We do not manage client funds or
+        recommend specific securities. Where regulated investment advice is needed, we refer
+        you to a CMA-licensed adviser.
+      link: { label: Read the disclaimer, href: /disclaimer }
+    - term: Data protection
+      value: '[[ODPC REGISTRATION NO., if registered as a data controller]]'
+      link: { label: Read the privacy notice, href: /privacy }
+    - term: Qualifications
+      value: '[[PROFESSIONAL QUALIFICATIONS AND MEMBERSHIPS]]'
+    - term: Shariah review
+      from: shariahReviewer
+      note: For Shariah-compliant finance guidance.
+
+fees:
+  label: How we are paid
+  heading: You always know what you are paying for.
+  lead: >-
+    How a consultant is paid shapes what they suggest. So here is how we are paid, in full.
+  items:
+    - title: The first conversation is free.
+      detail: About twenty minutes, with no obligation. We tell you honestly whether we can help.
+    - title: Fees are quoted in writing, before work starts.
+      detail: >-
+        Your proposal states the fee, what it covers and what it does not. Nothing starts until
+        you have agreed it.
+    - title: You pay us, and only us.
+      detail: >-
+        We do not take commissions from banks, insurers, developers or product providers, so
+        nothing we suggest earns us more.
+    - title: Changes in scope are agreed first.
+      detail: If the work grows, we tell you in writing what it adds and what it costs. You decide.
+    - title: Referrals are disclosed.
+      detail: >-
+        If we refer you to a licensed adviser or another professional, we tell you in writing
+        whether we receive anything for it.
+  total:
+    label: In short
+    text: No surprises on the invoice.

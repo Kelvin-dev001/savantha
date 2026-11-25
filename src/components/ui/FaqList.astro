@@ -6,16 +6,18 @@
  */
 interface Props {
   items: { q: string; a: string }[];
+  /** Open the first answer on load (default true). */
+  openFirst?: boolean;
   /** Exclusive-accordion group name; unique per list on a page. */
   name: string;
   class?: string;
 }
-const { items, name, class: className = '' } = Astro.props;
+const { items, name, openFirst = true, class: className = '' } = Astro.props;
 ---
 
 <div class:list={['faql', className]} data-reveal="stagger">
   {items.map((item, i) => (
-    <details class="faql__item" name={name} open={i === 0}>
+    <details class="faql__item" name={name} open={openFirst && i === 0}>
       <summary class="faql__q">
         <span class="faql__num numerals" aria-hidden="true">
           {String(i + 1).padStart(2, '0')}

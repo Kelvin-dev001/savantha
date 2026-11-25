@@ -1,0 +1,60 @@
+# Copy for the smaller pages: /faq, the legal page template, and the 404 page.
+# FAQ answers themselves live with each service (src/content/services/*.md → faqs) and, for
+# general questions, in src/content/home/home.yaml → faq.
+
+faq:
+  seoTitle: Frequently Asked Questions
+  seoDescription: >-
+    Plain answers about working with Savantho: fees, the free first call, wealth planning,
+    Shariah finance, real estate, trade finance, training and M&E.
+  eyebrow: Questions
+  headline:
+    - text: Asked plainly,
+    - text: answered plainly.
+      emphasis: plainly.
+  lead: >-
+    The questions we hear most often, grouped by service. Every answer starts with the answer,
+    then explains it.
+  indexLabel: Jump to
+  general:
+    key: working-with-us
+    title: Working with us
+    line: Fees, the first call, and what we do not do.
+  countLabel: { one: question, many: questions }
+  serviceLink: About this service
+  more:
+    heading: Not answered here?
+    body: Ask us directly. We reply within one business day, and there is no obligation.
+    cta: Ask on WhatsApp
+    whatsappMessage: Hello Savantho, I have a question that is not answered on your FAQ page.
+    link: { label: Or write to us, href: /contact#enquiry }
+
+legal:
+  breadcrumb: Legal
+  updatedLabel: Last updated
+  reviewedLabel: Reviewed by
+  contentsLabel: On this page
+  statementLabel: The short version
+  draftNote: >-
+    This document is a draft prepared for Savantho and is awaiting review by an advocate.
+    Items in square brackets are still to be confirmed.
+  questions:
+    heading: Questions about this page?
+    body: Write to us and we will answer in plain language.
+
+notFound:
+  seoTitle: Page not found
+  eyebrow: Error 404
+  headline:
+    - text: This page is not
+    - text: on the ledger.
+      emphasis: ledger.
+  lead: >-
+    The link may be old, or the page may have moved. Here is where most people were heading.
+  linksLabel: Try instead
+  links:
+    - { label: Home, href: /, line: Where Savantho starts. }
+    - { label: Services, href: /services, line: 'Three pillars, six services.' }
+    - { label: Questions, href: /faq, line: 'Plain answers, grouped by service.' }
+    - { label: Contact, href: /contact, line: 'Three questions, one business day.' }
+  cta: Ask us on WhatsApp

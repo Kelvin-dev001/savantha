@@ -1,0 +1,185 @@
+---
+/**
+ * Hero for the inner pages (About, Contact, FAQ, legal) on ivory, in the same family as the
+ * service and hub heroes: optional breadcrumb, gold-ruled eyebrow, a display headline with
+ * an italic phrase, the lead and (optionally) one line of proof.
+ *
+ * Slots: `actions` (under the lead), `aside` (right-hand column from 1024 px), `foot`
+ * (full width under the grid, e.g. the "What happens next" strip).
+ */
+import Breadcrumb from '@/components/ui/Breadcrumb.astro';
+import Headline from '@/components/ui/Headline.astro';
+
+interface Props {
+  eyebrow: string;
+  headline: { text: string; emphasis?: string }[];
+  lead?: string;
+  proof?: string;
+  crumbs?: { label: string; items: { label: string; href?: string }[] };
+  /** Headline size: "hero" for About/Contact, "page" for FAQ, "doc" for legal pages. */
+  size?: 'hero' | 'page' | 'doc';
+  class?: string;
+}
+const {
+  eyebrow,
+  headline,
+  lead,
+  proof,
+  crumbs,
+  size = 'hero',
+  class: className = '',
+} = Astro.props;
+const hasAside = Astro.slots.has('aside');
+---
+
+<section
+  class:list={['phero shell', `phero--${size}`, { 'phero--aside': hasAside }, className]}
+  aria-labelledby="phero-title"
+>
+  {crumbs && <Breadcrumb label={crumbs.label} items={crumbs.items} class="phero__crumbs" />}
+
+  <div class="phero__grid">
+    <div class="phero__main">
+      <p class="phero__eyebrow eyebrow">
+        <span class="phero__rule" aria-hidden="true"></span>
+        <span>{eyebrow}</span>
+      </p>
+      <h1 id="phero-title" class="phero__title" data-reveal="mask">
+        <Headline lines={headline} indent={size === 'hero' && !hasAside} />
+      </h1>
+      {lead && (
+        <p class="phero__lead text-lead" data-reveal="fade">
+          {lead}
+        </p>
+      )}
+      {proof && (
+        <p class="phero__proof" data-reveal="fade">
+          <span class="phero__proof-rule" aria-hidden="true" />
+          {proof}
+        </p>
+      )}
+      {Astro.slots.has('actions') && (
+        <div class="phero__actions">
+          <slot name="actions" />
+        </div>
+      )}
+    </div>
+    {hasAside && (
+      <div class="phero__aside">
+        <slot name="aside" />
+      </div>
+    )}
+  </div>
+
+  {Astro.slots.has('foot') && (
+    <div class="phero__foot">
+      <slot name="foot" />
+    </div>
+  )}
+</section>
+
+<style>
+  /* Layered so Tailwind utilities on the same element still win. */
+  @layer components {
+    .phero {
+      position: relative;
+      padding-top: clamp(1.5rem, 1rem + 2vw, 3rem);
+    }
+    .phero:not(:has(.phero__crumbs)) {
+      padding-top: clamp(3rem, 2rem + 5vw, 7rem);
+    }
+    .phero__grid {
+      display: grid;
+      gap: 3rem var(--gap-x);
+    }
+    .phero:has(.phero__crumbs) .phero__grid {
+      margin-top: clamp(2.5rem, 1.5rem + 4vw, 5.5rem);
+    }
+    @media (min-width: 1024px) {
+      .phero--aside .phero__grid {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        align-items: end;
+      }
+      .phero--aside .phero__main {
+        grid-column: 1 / span 7;
+      }
+      .phero--aside .phero__aside {
+        grid-column: 9 / span 4;
+      }
+    }
+
+    .phero__eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      color: var(--color-stone);
+    }
+    .phero__rule {
+      width: 2.5rem;
+      height: 1px;
+      background: var(--color-gold);
+    }
+    .phero__title {
+      margin-top: clamp(1.25rem, 1rem + 1.5vw, 2.5rem);
+      line-height: 1.02;
+      letter-spacing: -0.03em;
+      font-weight: 330;
+      font-variation-settings: 'opsz' 144;
+      text-wrap: initial;
+    }
+    .phero--hero .phero__title {
+      font-size: var(--text-hero);
+    }
+    .phero--page .phero__title {
+      font-size: clamp(2.625rem, 1.5rem + 4.4vw, 5.75rem);
+    }
+    .phero--doc .phero__title {
+      font-size: var(--text-d1);
+      line-height: var(--text-d1--line-height);
+      letter-spacing: var(--text-d1--letter-spacing);
+      font-weight: 340;
+    }
+
+    .phero__lead {
+      margin-top: clamp(1.5rem, 1rem + 1.5vw, 2.5rem);
+      color: var(--color-stone);
+      max-width: 50ch;
+    }
+    .phero__proof {
+      display: flex;
+      align-items: baseline;
+      gap: 1rem;
+      margin-top: 1.75rem;
+      max-width: 52ch;
+      font-family: var(--font-display);
+      font-size: var(--text-d4);
+      line-height: var(--text-d4--line-height);
+      font-weight: 400;
+      font-style: italic;
+      font-variation-settings: 'opsz' 36;
+    }
+    .phero__proof-rule {
+      flex: none;
+      width: 1.5rem;
+      height: 1px;
+      background: var(--color-gold);
+      translate: 0 -0.35em;
+    }
+    .phero__actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem 2rem;
+      margin-top: clamp(2rem, 1.5rem + 1.5vw, 3rem);
+    }
+    @media (max-width: 639.98px) {
+      .phero__actions > :global(.magnetic),
+      .phero__actions > :global(.magnetic .btn) {
+        width: 100%;
+      }
+    }
+    .phero__foot {
+      margin-top: clamp(3.5rem, 2rem + 4vw, 6rem);
+    }
+  }
+</style>

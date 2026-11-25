@@ -1,0 +1,31 @@
+---
+/** Where the enquiry form lands when a send fails without JavaScript. Not indexed. */
+import { getEntry } from 'astro:content';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PageHero from '@/components/sections/PageHero.astro';
+import Button from '@/components/ui/Button.astro';
+import { whatsappLink } from '@/lib/contact';
+
+const n = (await getEntry('contact', 'contact'))!.data.notSent;
+---
+
+<BaseLayout title={n.seoTitle} description={n.body} noindex>
+  <PageHero eyebrow={n.eyebrow} headline={[{ text: n.heading }]} lead={n.body} size="page">
+    <Fragment slot="actions">
+      <Button
+        href={whatsappLink()}
+        size="lg"
+        icon="whatsapp"
+        data-track="whatsapp_click"
+        data-track-service="general"
+        data-track-location="contact-not-sent"
+      >
+        {n.cta}
+      </Button>
+      <Button href={n.back.href} variant="text">
+        {n.back.label}
+      </Button>
+    </Fragment>
+  </PageHero>
+  <div class="section-y" aria-hidden="true"></div>
+</BaseLayout>

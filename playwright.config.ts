@@ -17,6 +17,8 @@ export default defineConfig({
   webServer: {
     // Build first (npm run test:a11y does this). Node runs Astro directly so the server is killable on Windows.
     command: `node node_modules/astro/astro.js preview --port ${PORT}`,
+    // The enquiry endpoint logs instead of sending, and the rate limit is relaxed for the suite.
+    env: { CONTACT_DRY_RUN: 'true', CONTACT_RATE_LIMIT: '1000', RESEND_API_KEY: '' },
     url: `http://localhost:${PORT}`,
     reuseExistingServer: false,
     timeout: 60_000,

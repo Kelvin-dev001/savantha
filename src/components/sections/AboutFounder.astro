@@ -1,0 +1,125 @@
+---
+/**
+ * About · 01 Who we are. The founder, set like the signature page of a letter: portrait
+ * (placeholder) on the left, name and role as a ruled line, a pull quote in their own words,
+ * then the story. Every founder detail is a [[PLACEHOLDER]] until Savantho supplies it.
+ */
+import type { CollectionEntry } from 'astro:content';
+import { isPlaceholder } from '@/config/site';
+import Ph from '@/components/ui/Ph.astro';
+import PlaceholderImage from '@/components/ui/PlaceholderImage.astro';
+import SectionLabel from '@/components/ui/SectionLabel.astro';
+
+interface Props {
+  number: string;
+  founder: CollectionEntry<'about'>['data']['founder'];
+}
+const { number, founder: f } = Astro.props;
+---
+
+<section class="fdr shell section-y" aria-labelledby="fdr-title">
+  <SectionLabel number={number}>{f.label}</SectionLabel>
+
+  <div class="fdr__grid">
+    <figure class="fdr__portrait">
+      <PlaceholderImage width={800} height={1000} caption={f.portraitCaption} alt={f.portraitAlt} />
+    </figure>
+
+    <div class="fdr__text">
+      <h2 id="fdr-title" class="fdr__title" data-reveal="mask">
+        {f.heading}
+      </h2>
+
+      <p class="fdr__sig">
+        <span class="eyebrow fdr__sig-label">{f.nameLabel}</span>
+        <span class="fdr__name">{isPlaceholder(f.name) ? <Ph>{f.name}</Ph> : f.name}</span>
+        <span class="fdr__role">{isPlaceholder(f.role) ? <Ph>{f.role}</Ph> : f.role}</span>
+      </p>
+
+      <blockquote class="fdr__quote" data-reveal="fade">
+        <p>{isPlaceholder(f.quote) ? <Ph>{f.quote}</Ph> : f.quote}</p>
+      </blockquote>
+
+      <div class="fdr__story" data-reveal="fade">
+        {f.story.map((p) => (isPlaceholder(p) ? <Ph as="p">{p}</Ph> : <p>{p}</p>))}
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Layered so Tailwind utilities on the same element still win. */
+  @layer components {
+    .fdr__grid {
+      display: grid;
+      gap: 3rem var(--gap-x);
+      margin-top: clamp(3rem, 2rem + 4vw, 6rem);
+    }
+    @media (min-width: 1024px) {
+      .fdr__grid {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        align-items: start;
+      }
+      .fdr__portrait {
+        grid-column: 1 / span 5;
+        position: sticky;
+        top: calc(var(--header-h) + 2rem);
+      }
+      .fdr__text {
+        grid-column: 7 / span 6;
+      }
+    }
+    @media (max-width: 1023.98px) {
+      .fdr__portrait {
+        max-width: 26rem;
+      }
+    }
+    .fdr__title {
+      font-size: var(--text-d1);
+      line-height: var(--text-d1--line-height);
+      letter-spacing: var(--text-d1--letter-spacing);
+      font-weight: 340;
+      max-width: 14ch;
+    }
+    .fdr__sig {
+      display: grid;
+      gap: 0.25rem;
+      margin-top: clamp(2rem, 1.5rem + 2vw, 3rem);
+      padding-block: 1rem;
+      border-top: 1px solid var(--color-ink);
+      border-bottom: 1px solid var(--color-line);
+    }
+    .fdr__sig-label {
+      color: var(--color-stone);
+    }
+    .fdr__name {
+      font-family: var(--font-display);
+      font-size: var(--text-d4);
+      line-height: var(--text-d4--line-height);
+      font-weight: 420;
+    }
+    .fdr__role {
+      color: var(--color-stone);
+      font-size: var(--text-small);
+    }
+    .fdr__quote {
+      position: relative;
+      margin-top: clamp(2rem, 1.5rem + 2vw, 3rem);
+      padding-left: 1.5rem;
+      border-left: 1px solid var(--color-gold);
+      font-family: var(--font-display);
+      font-size: var(--text-d3);
+      line-height: var(--text-d3--line-height);
+      font-style: italic;
+      font-weight: 320;
+      font-variation-settings: 'opsz' 72;
+    }
+    .fdr__story {
+      display: grid;
+      gap: 1.25rem;
+      margin-top: clamp(2rem, 1.5rem + 2vw, 3rem);
+      color: var(--color-stone);
+      max-width: 60ch;
+    }
+  }
+</style>

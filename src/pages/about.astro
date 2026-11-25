@@ -1,0 +1,131 @@
+---
+/**
+ * /about, read as a letter of introduction on letterhead: the full logo lockup (the one
+ * page it appears at full size, per the brief), who we are, the values as a short charter,
+ * the company register, how we are paid, then "What happens next" and the closing CTA.
+ */
+import { getEntry } from 'astro:content';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PageHero from '@/components/sections/PageHero.astro';
+import AboutFounder from '@/components/sections/AboutFounder.astro';
+import AboutValues from '@/components/sections/AboutValues.astro';
+import AboutRecord from '@/components/sections/AboutRecord.astro';
+import AboutFees from '@/components/sections/AboutFees.astro';
+import NextSteps from '@/components/sections/NextSteps.astro';
+import CtaBand from '@/components/sections/CtaBand.astro';
+import Button from '@/components/ui/Button.astro';
+import Lattice from '@/components/ui/Lattice.astro';
+import { site } from '@/config/site';
+import { whatsappLink } from '@/lib/contact';
+
+const entry = await getEntry('about', 'about');
+if (!entry) throw new Error('src/content/about/about.yaml is required.');
+const a = entry.data;
+const home = (await getEntry('home', 'home'))!.data;
+---
+
+<BaseLayout title={a.seoTitle} description={a.seoDescription}>
+  <div class="about-head">
+    <Lattice density="sparse" opacity={0.2} fade="right" class="about-head__lattice" />
+    <PageHero
+      eyebrow={a.hero.eyebrow}
+      headline={a.hero.headline}
+      lead={a.hero.lead}
+      proof={a.hero.proof}
+    >
+      <Fragment slot="actions">
+        <span class="magnetic" data-magnetic>
+          <Button
+            href={whatsappLink()}
+            size="lg"
+            icon="whatsapp"
+            data-track="whatsapp_click"
+            data-track-service="general"
+            data-track-location="about-hero"
+          >
+            {home.hero.primaryCta}
+          </Button>
+        </span>
+      </Fragment>
+      <Fragment slot="aside">
+        <div class="letterhead">
+          <img
+            src="/brand/logo-full.svg"
+            alt={a.hero.logoAlt}
+            width="480"
+            height="120"
+            class="letterhead__logo"
+            data-placeholder="true"
+          />
+          <p class="letterhead__tagline">{site.tagline}</p>
+          <p class="letterhead__values eyebrow">
+            {site.values.map((v, i) => (
+              <>
+                {i > 0 && <span aria-hidden="true"> · </span>}
+                <span>{v}</span>
+              </>
+            ))}
+          </p>
+        </div>
+      </Fragment>
+      <Fragment slot="foot">
+        <NextSteps />
+      </Fragment>
+    </PageHero>
+  </div>
+
+  <AboutFounder number="01" founder={a.founder} />
+  <AboutValues number="02" values={a.values} />
+  <AboutRecord number="03" record={a.record} />
+  <AboutFees number="04" fees={a.fees} />
+
+  <CtaBand location="about-cta" />
+</BaseLayout>
+
+<style>
+  /* Layered so Tailwind utilities on the same element still win. */
+  @layer components {
+    .about-head {
+      position: relative;
+      isolation: isolate;
+      overflow: hidden;
+    }
+    .about-head :global(.about-head__lattice) {
+      z-index: -1;
+      inset: 0 0 auto auto;
+      width: min(48rem, 60%);
+      height: 70%;
+      mask-image: radial-gradient(ellipse 80% 80% at 100% 20%, #000 0%, transparent 75%);
+    }
+    .letterhead {
+      padding-block: 1.75rem;
+      border-top: 1px solid var(--color-ink);
+      border-bottom: 1px solid var(--color-line);
+      background: color-mix(in srgb, var(--color-ivory) 82%, transparent);
+    }
+    .letterhead__logo {
+      display: block;
+      width: 100%;
+      max-width: 22rem;
+      height: auto;
+    }
+    .letterhead__tagline {
+      margin-top: 1.5rem;
+      font-family: var(--font-display);
+      font-size: var(--text-d4);
+      line-height: var(--text-d4--line-height);
+      font-style: italic;
+      font-weight: 340;
+    }
+    .letterhead__values {
+      margin-top: 0.75rem;
+      color: var(--color-stone);
+    }
+    @media (max-width: 1023.98px) {
+      .about-head :global(.about-head__lattice) {
+        width: 100%;
+        height: 40%;
+      }
+    }
+  }
+</style>

@@ -285,4 +285,213 @@ const servicesHub = defineCollection({
   }),
 });
 
-export const collections = { legal, home, stories, insights, services, servicesHub };
+const seo = {
+  seoTitle: z.string().max(60 - ' | Savantho Consultancy'.length),
+  seoDescription: z.string().max(155),
+};
+
+/** /about: letter of introduction. Founder details stay [[PLACEHOLDERS]] until supplied. */
+const about = defineCollection({
+  loader: glob({ pattern: '**/*.yaml', base: './src/content/about' }),
+  schema: z.object({
+    ...seo,
+    hero: z.object({
+      eyebrow: label,
+      headline,
+      lead: z.string(),
+      proof: z.string(),
+      logoAlt: z.string(),
+    }),
+    founder: z.object({
+      label,
+      heading: z.string(),
+      portraitCaption: z.string(),
+      portraitAlt: z.string(),
+      nameLabel: label,
+      name: z.string(),
+      role: z.string(),
+      quote: z.string(),
+      story: z.array(z.string()).min(1),
+    }),
+    values: z.object({
+      label,
+      heading: z.string(),
+      lead: z.string(),
+      articleLabel: label,
+      practiceLabel: label,
+      items: z
+        .array(z.object({ value: z.string(), means: z.string(), practice: z.string() }))
+        .length(4),
+    }),
+    record: z.object({
+      label,
+      heading: z.string(),
+      lead: z.string(),
+      rows: z
+        .array(
+          z.object({
+            term: z.string(),
+            /** Literal value, or one read from site.ts / the services collection. */
+            value: z.string().optional(),
+            from: z.enum(['legalName', 'registration', 'address', 'shariahReviewer']).optional(),
+            note: z.string().optional(),
+            link: link.optional(),
+          }),
+        )
+        .min(3),
+    }),
+    fees: z.object({
+      label,
+      heading: z.string(),
+      lead: z.string(),
+      items: z
+        .array(z.object({ title: z.string(), detail: z.string() }))
+        .min(3)
+        .max(6),
+      total: z.object({ label, text: z.string() }),
+    }),
+  }),
+});
+
+/**
+ * /contact: the three-question enquiry (what you need, your goal, where to reach you),
+ * plus every label and error message the form and its endpoint use.
+ */
+const contact = defineCollection({
+  loader: glob({ pattern: '**/*.yaml', base: './src/content/contact' }),
+  schema: z.object({
+    ...seo,
+    hero: z.object({ eyebrow: label, headline, lead: z.string(), proof: z.string() }),
+    ways: z.object({
+      label,
+      whatsapp: z.object({ heading: z.string(), body: z.string(), cta: z.string() }),
+      call: label,
+      email: label,
+      hours: label,
+      office: label,
+      mapCaption: z.string(),
+      mapAlt: z.string(),
+    }),
+    form: z.object({
+      label,
+      heading: z.string(),
+      intro: z.string(),
+      progressLabel: label,
+      ofLabel: label,
+      questions: z.object({
+        need: z.object({ short: label, question: z.string(), help: z.string() }),
+        goal: z.object({ short: label, question: z.string(), help: z.string() }),
+        reach: z.object({ short: label, question: z.string(), help: z.string() }),
+      }),
+      notSure: z.object({ title: z.string(), line: z.string() }),
+      goalHints: z.record(z.enum([...serviceSlugs, 'not-sure']), z.string()),
+      fields: z.object({
+        goal: label,
+        name: label,
+        channel: label,
+        channels: z.object({ whatsapp: label, call: label, email: label }),
+        replyBy: z.object({ whatsapp: z.string(), call: z.string(), email: z.string() }),
+        phone: label,
+        phoneHint: z.string(),
+        email: label,
+        consent: z.string(),
+        consentLink: link,
+        optional: label,
+      }),
+      buttons: z.object({
+        next: label,
+        back: label,
+        submit: label,
+        sending: label,
+        another: label,
+      }),
+      errors: z.object({
+        summary: z.string(),
+        need: z.string(),
+        goalShort: z.string(),
+        goalLong: z.string(),
+        name: z.string(),
+        phone: z.string(),
+        email: z.string(),
+        consent: z.string(),
+        rate: z.string(),
+        server: z.string(),
+        whatsappFallback: label,
+      }),
+      success: z.object({
+        heading: z.string(),
+        body: z.string(),
+        receiptLabel: label,
+      }),
+    }),
+    thankYou: z.object({
+      seoTitle: z.string(),
+      eyebrow: label,
+      heading: z.string(),
+      body: z.string(),
+      home: link,
+    }),
+    notSent: z.object({
+      seoTitle: z.string(),
+      eyebrow: label,
+      heading: z.string(),
+      body: z.string(),
+      cta: label,
+      back: link,
+    }),
+  }),
+});
+
+/** Copy for the smaller pages: /faq, the legal template, 404. */
+const pages = defineCollection({
+  loader: glob({ pattern: '**/*.yaml', base: './src/content/pages' }),
+  schema: z.object({
+    faq: z.object({
+      ...seo,
+      eyebrow: label,
+      headline,
+      lead: z.string(),
+      indexLabel: label,
+      general: z.object({ key: z.string(), title: z.string(), line: z.string() }),
+      countLabel: z.object({ one: z.string(), many: z.string() }),
+      serviceLink: label,
+      more: z.object({
+        heading: z.string(),
+        body: z.string(),
+        cta: label,
+        whatsappMessage: z.string().startsWith('Hello Savantho'),
+        link,
+      }),
+    }),
+    legal: z.object({
+      breadcrumb: label,
+      updatedLabel: label,
+      reviewedLabel: label,
+      contentsLabel: label,
+      statementLabel: label,
+      draftNote: z.string(),
+      questions: z.object({ heading: z.string(), body: z.string() }),
+    }),
+    notFound: z.object({
+      seoTitle: z.string(),
+      eyebrow: label,
+      headline,
+      lead: z.string(),
+      linksLabel: label,
+      links: z.array(z.object({ label: z.string(), href: z.string(), line: z.string() })).min(3),
+      cta: label,
+    }),
+  }),
+});
+
+export const collections = {
+  legal,
+  home,
+  stories,
+  insights,
+  services,
+  servicesHub,
+  about,
+  contact,
+  pages,
+};

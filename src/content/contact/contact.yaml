@@ -1,0 +1,121 @@
+# /contact copy: the page, the three-question enquiry form, and every message its endpoint
+# (src/pages/api/contact.ts) returns. Contact details themselves come from src/config/site.ts.
+
+seoTitle: Contact Savantho Consultancy
+seoDescription: >-
+  Message Savantho on WhatsApp, call, email, or answer three short questions. We reply within
+  one business day, and the first 20-minute call is free.
+
+hero:
+  eyebrow: Contact
+  headline:
+    - text: Three questions.
+    - text: One business day.
+      emphasis: One
+  lead: >-
+    Tell us what you need, what you are aiming for and where to reach you. We reply within one
+    business day, and the first 20-minute call is free.
+  proof: We use your details only to reply to you. Nothing is shared or sold.
+
+ways:
+  label: The quickest way
+  whatsapp:
+    heading: Message us on WhatsApp.
+    body: Most clients start here. Write in English or Kiswahili, at any hour; we reply in working hours.
+    cta: Open WhatsApp
+  call: Call
+  email: Email
+  hours: Office hours
+  office: Office
+  mapCaption: Office location map
+  mapAlt: Map showing the Savantho office, [[OFFICE ADDRESS]]
+
+form:
+  label: Or write to us
+  heading: Prefer to write? Three questions, about a minute.
+  intro: No account and no newsletter. Just enough for a useful first reply.
+  progressLabel: Question
+  ofLabel: of
+  questions:
+    need:
+      short: Need
+      question: What do you need?
+      help: Pick the closest. “Not sure yet” is a perfectly good answer.
+    goal:
+      short: Goal
+      question: What is your goal?
+      help: A sentence or two, in your own words. No figures needed.
+    reach:
+      short: Reach
+      question: Where can we reach you?
+      help: Choose how you would like our reply.
+  notSure:
+    title: Not sure yet
+    line: Describe the situation. We will point you to the right place, even if it is not us.
+  # The goal box shows the hint for the need chosen in question one.
+  goalHints:
+    wealth-planning: For example, build a reserve and plan for our children’s school fees.
+    shariah-compliant-finance: For example, understand Shariah-compliant ways to save for a home.
+    real-estate: For example, check a plot and its title before we pay the deposit.
+    trade-finance: For example, pay a new supplier without tying up all our cash.
+    financial-literacy: For example, a money-management session for about twenty-five staff.
+    project-me: For example, a baseline and end-line evaluation for a savings-group programme.
+    not-sure: For example, we have just sold land and want to understand our options.
+  fields:
+    goal: Your goal
+    name: Your name
+    channel: Reply by
+    channels:
+      whatsapp: WhatsApp
+      call: Phone call
+      email: Email
+    replyBy:
+      whatsapp: on WhatsApp
+      call: by phone
+      email: by email
+    phone: Phone number
+    phoneHint: Include the country code if you are outside Kenya.
+    email: Email address
+    consent: I agree that Savantho may use these details to reply to my enquiry.
+    consentLink: { label: Privacy notice, href: /privacy }
+    optional: optional
+  buttons:
+    next: Continue
+    back: Back
+    submit: Send
+    sending: Sending
+    another: Write another message
+  errors:
+    summary: Please check the highlighted answer.
+    need: Choose what you need, or “Not sure yet”.
+    goalShort: Tell us a little more. One sentence is enough.
+    goalLong: Please keep it under 2,000 characters. We can go into detail on the call.
+    name: Tell us what to call you.
+    phone: Enter a phone number we can reach, for example 0712 345 678.
+    email: Enter an email address, for example name@example.com.
+    consent: Please confirm we may use these details to reply.
+    rate: Too many messages from this connection. Please try again in a few minutes, or message us on WhatsApp.
+    server: Your message did not send. Please try again, or message us on WhatsApp.
+    whatsappFallback: Message us on WhatsApp
+  success:
+    heading: Received, thank you.
+    body: We will reply {replyBy} within one business day.
+    receiptLabel: What you sent
+
+# Shown after sending without JavaScript (the endpoint redirects here).
+thankYou:
+  seoTitle: Message received
+  eyebrow: Contact
+  heading: Received, thank you.
+  body: We will reply within one business day, the way you asked us to.
+  home: { label: Back to the homepage, href: / }
+
+notSent:
+  seoTitle: Message not sent
+  eyebrow: Contact
+  heading: Your message did not send.
+  body: >-
+    Something was missing or our server could not send it. Nothing was stored. Please try
+    again, or message us on WhatsApp instead.
+  cta: Message us on WhatsApp
+  back: { label: Back to the form, href: '/contact#enquiry' }

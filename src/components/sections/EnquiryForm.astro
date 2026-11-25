@@ -1,0 +1,1186 @@
+---
+/**
+ * The enquiry form: three questions, like the clauses of a short letter of instruction.
+ *
+ *   01 What do you need?       one choice: the six services, or "Not sure yet"
+ *   02 What is your goal?      one sentence, with a hint that follows the need chosen
+ *   03 Where can we reach you? name, reply channel, and that one number or address
+ *
+ * With JavaScript: one question at a time, a ruled progress line that doubles as a way back,
+ * inline errors, a JSON post to /api/contact and a "receipt" of what was sent. Without it:
+ * all three questions in one form that posts normally (the endpoint redirects to
+ * /contact/thank-you or /contact/not-sent). Copy: src/content/contact/contact.yaml.
+ */
+import { getEntry } from 'astro:content';
+import { getPillars } from '@/lib/services';
+import { whatsappLink } from '@/lib/contact';
+import { FIELD, GOAL_MAX, GOAL_MIN, NAME_MAX } from '@/lib/enquiry-rules';
+import Button from '@/components/ui/Button.astro';
+import Icon from '@/components/ui/Icon.astro';
+import SectionLabel from '@/components/ui/SectionLabel.astro';
+
+interface Props {
+  number?: string;
+}
+const { number = '02' } = Astro.props;
+
+const entry = await getEntry('contact', 'contact');
+if (!entry) throw new Error('src/content/contact/contact.yaml is required.');
+const f = entry.data.form;
+const pillars = await getPillars();
+
+const steps = [
+  { key: 'need', ...f.questions.need },
+  { key: 'goal', ...f.questions.goal },
+  { key: 'reach', ...f.questions.reach },
+] as const;
+const channels = ['whatsapp', 'call', 'email'] as const;
+const pad = (n: number) => String(n).padStart(2, '0');
+
+/** Strings the script needs, in one JSON island. */
+const client = {
+  hints: f.goalHints,
+  errors: f.errors,
+  replyBy: f.fields.replyBy,
+  success: f.success.body,
+  sending: f.buttons.sending,
+  submit: f.buttons.submit,
+};
+---
+
+<section id="enquiry" class="enq" aria-labelledby="enq-title" data-enquiry>
+  <SectionLabel number={number}>{f.label}</SectionLabel>
+
+  <div class="enq__head">
+    <h2 id="enq-title" class="enq__title" data-reveal="mask">
+      {f.heading}
+    </h2>
+    <p class="enq__intro">{f.intro}</p>
+  </div>
+
+  <form class="enq__form" action="/api/contact" method="post" data-form data-step="0">
+    <script type="application/json" data-copy set:html={JSON.stringify(client)} />
+    <!-- Progress: three ruled cells. Answered steps become links back. -->
+    <ol class="enq__progress" data-progress aria-label={f.progressLabel} hidden>
+      {steps.map((s, i) => (
+        <li class="enq__pcell" data-pcell={i}>
+          <button type="button" class="enq__pbtn" data-goto={i} disabled>
+            <span class="enq__pnum numerals">{pad(i + 1)}</span>
+            <span class="enq__pname">{s.short}</span>
+            <span class="sr-only" data-pstate />
+          </button>
+        </li>
+      ))}
+    </ol>
+
+    <!-- Honeypot and fill-time trap -->
+    <div class="enq__trap" aria-hidden="true">
+      <label>
+        Website
+        <input type="text" name={FIELD.honeypot} tabindex="-1" autocomplete="off" />
+      </label>
+    </div>
+    <input type="hidden" name={FIELD.started} value="" data-started />
+
+    <!-- 01 What do you need? -->
+    <fieldset class="enq__step" data-panel="0" aria-describedby="need-help">
+      <legend class="enq__q" tabindex="-1" data-legend>
+        <span class="enq__qnum numerals" aria-hidden="true">
+          01
+        </span>
+        <span>{f.questions.need.question}</span>
+      </legend>
+      <p id="need-help" class="enq__help">
+        {f.questions.need.help}
+      </p>
+
+      <div class="enq__needs">
+        {pillars.map((p) => (
+          <div
+            class={`enq__group enq__group--${p.key}`}
+            role="group"
+            aria-labelledby={`need-p-${p.key}`}
+          >
+            <p id={`need-p-${p.key}`} class="enq__group-label eyebrow numerals">
+              {p.numeral} <span aria-hidden="true">—</span> {p.title}
+            </p>
+            {p.services.map((s) => (
+              <label class="enq__opt">
+                <input type="radio" name={FIELD.need} value={s.slug} required class="enq__radio" />
+                <span class="enq__tick" aria-hidden="true" />
+                <span class="enq__opt-title">{s.title}</span>
+              </label>
+            ))}
+          </div>
+        ))}
+        <div class="enq__group enq__group--unsure">
+          <label class="enq__opt enq__opt--unsure">
+            <input type="radio" name={FIELD.need} value="not-sure" class="enq__radio" />
+            <span class="enq__tick" aria-hidden="true" />
+            <span class="enq__opt-title">{f.notSure.title}</span>
+            <span class="enq__opt-line">{f.notSure.line}</span>
+          </label>
+        </div>
+      </div>
+      <p class="enq__error" id="err-need" data-error="need" hidden />
+
+      <div class="enq__nav" data-js-only hidden>
+        <Button type="button" data-next icon="arrow-right">
+          {f.buttons.next}
+        </Button>
+      </div>
+    </fieldset>
+
+    <!-- 02 What is your goal? -->
+    <fieldset class="enq__step" data-panel="1" aria-describedby="goal-help">
+      <legend class="enq__q" tabindex="-1" data-legend>
+        <span class="enq__qnum numerals" aria-hidden="true">
+          02
+        </span>
+        <span>{f.questions.goal.question}</span>
+      </legend>
+      <p id="goal-help" class="enq__help">
+        {f.questions.goal.help}
+      </p>
+
+      <div class="enq__field">
+        <label for="enq-goal" class="enq__label eyebrow">
+          {f.fields.goal}
+        </label>
+        <textarea
+          id="enq-goal"
+          name={FIELD.goal}
+          rows="4"
+          required
+          minlength={GOAL_MIN}
+          maxlength={GOAL_MAX}
+          placeholder={f.goalHints['not-sure']}
+          aria-describedby="goal-help err-goal"
+          class="enq__input enq__textarea"
+          data-goal
+        ></textarea>
+        <p class="enq__error" id="err-goal" data-error="goal" hidden></p>
+      </div>
+
+      <div class="enq__nav" data-js-only hidden>
+        <Button type="button" variant="text" icon="none" data-back>
+          {f.buttons.back}
+        </Button>
+        <Button type="button" data-next icon="arrow-right">
+          {f.buttons.next}
+        </Button>
+      </div>
+    </fieldset>
+
+    <!-- 03 Where can we reach you? -->
+    <fieldset class="enq__step" data-panel="2" aria-describedby="reach-help">
+      <legend class="enq__q" tabindex="-1" data-legend>
+        <span class="enq__qnum numerals" aria-hidden="true">
+          03
+        </span>
+        <span>{f.questions.reach.question}</span>
+      </legend>
+      <p id="reach-help" class="enq__help">
+        {f.questions.reach.help}
+      </p>
+
+      <div class="enq__reach">
+        <div class="enq__field">
+          <label for="enq-name" class="enq__label eyebrow">
+            {f.fields.name}
+          </label>
+          <input
+            id="enq-name"
+            name={FIELD.name}
+            type="text"
+            autocomplete="name"
+            required
+            maxlength={NAME_MAX}
+            aria-describedby="err-name"
+            class="enq__input"
+          />
+          <p class="enq__error" id="err-name" data-error="name" hidden></p>
+        </div>
+
+        <fieldset class="enq__field enq__channels">
+          <legend class="enq__label eyebrow">{f.fields.channel}</legend>
+          <div class="enq__seg">
+            {channels.map((c, i) => (
+              <label class="enq__segopt">
+                <input type="radio" name={FIELD.channel} value={c} checked={i === 0} data-channel />
+                <Icon
+                  name={c === 'call' ? 'phone' : c === 'email' ? 'mail' : 'whatsapp'}
+                  size={16}
+                />
+                <span>{f.fields.channels[c]}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+
+        <div class="enq__field" data-for-channel="whatsapp call">
+          <label for="enq-phone" class="enq__label eyebrow">
+            {f.fields.phone}
+          </label>
+          <input
+            id="enq-phone"
+            name={FIELD.phone}
+            type="tel"
+            inputmode="tel"
+            autocomplete="tel"
+            aria-describedby="phone-hint err-phone"
+            class="enq__input numerals"
+          />
+          <p id="phone-hint" class="enq__hint">
+            {f.fields.phoneHint}
+          </p>
+          <p class="enq__error" id="err-phone" data-error="phone" hidden></p>
+        </div>
+
+        <div class="enq__field" data-for-channel="email">
+          <label for="enq-email" class="enq__label eyebrow">
+            {f.fields.email}
+          </label>
+          <input
+            id="enq-email"
+            name={FIELD.email}
+            type="email"
+            inputmode="email"
+            autocomplete="email"
+            aria-describedby="err-email"
+            class="enq__input"
+          />
+          <p class="enq__error" id="err-email" data-error="email" hidden></p>
+        </div>
+
+        <div class="enq__consent">
+          <label class="enq__check">
+            <input type="checkbox" name={FIELD.consent} required aria-describedby="err-consent" />
+            <span class="enq__box" aria-hidden="true">
+              <Icon name="check" size={14} />
+            </span>
+            <span>
+              {f.fields.consent}{' '}
+              <a href={f.fields.consentLink.href} class="link">
+                {f.fields.consentLink.label}
+              </a>
+              .
+            </span>
+          </label>
+          <p class="enq__error" id="err-consent" data-error="consent" hidden></p>
+        </div>
+      </div>
+
+      <div class="enq__nav enq__nav--submit">
+        <Button type="button" variant="text" icon="none" data-back data-js-only hidden>
+          {f.buttons.back}
+        </Button>
+        <Button type="submit" size="lg" icon="arrow-right" data-submit>
+          {f.buttons.submit}
+        </Button>
+      </div>
+    </fieldset>
+
+    <div class="enq__alert" role="alert" data-alert hidden>
+      <p data-alert-text></p>
+      <a
+        href={whatsappLink()}
+        class="link"
+        target="_blank"
+        rel="noopener noreferrer"
+        data-track="whatsapp_click"
+        data-track-service="general"
+        data-track-location="contact-form-error"
+      >
+        {f.errors.whatsappFallback}
+        <span class="sr-only"> (opens in a new tab)</span>
+      </a>
+    </div>
+  </form>
+
+  <!-- Success: a receipt of what was sent -->
+  <div class="enq__done" data-done hidden>
+    <h3 class="enq__done-title" tabindex="-1" data-done-title>
+      <Icon name="check" size={22} class="enq__done-icon" />
+      <span data-done-heading>{f.success.heading}</span>
+    </h3>
+    <p class="enq__done-body" data-done-body></p>
+    <div class="enq__receipt">
+      <p class="eyebrow enq__receipt-label">{f.success.receiptLabel}</p>
+      <dl class="enq__receipt-dl">
+        {steps.map((s, i) => (
+          <div class="enq__receipt-row">
+            <dt>
+              <span class="numerals">{pad(i + 1)}</span> {s.question}
+            </dt>
+            <dd data-receipt={s.key} />
+          </div>
+        ))}
+      </dl>
+    </div>
+    <Button type="button" variant="text" icon="none" data-another>
+      {f.buttons.another}
+    </Button>
+  </div>
+</section>
+
+<script>
+  import { FIELD, GOAL_MAX, GOAL_MIN, isEmail, normalisePhone } from '@/lib/enquiry-rules';
+
+  type Copy = {
+    hints: Record<string, string>;
+    errors: Record<string, string>;
+    replyBy: Record<string, string>;
+    success: string;
+    sending: string;
+    submit: string;
+  };
+  type Key = 'need' | 'goal' | 'name' | 'phone' | 'email' | 'consent';
+
+  const track = (event: string, props: Record<string, string> = {}) =>
+    window.dispatchEvent(new CustomEvent('savantho:track', { detail: { event, ...props } }));
+
+  function init(root: HTMLElement) {
+    const form = root.querySelector<HTMLFormElement>('[data-form]')!;
+    const copy = JSON.parse(form.querySelector('[data-copy]')!.textContent!) as Copy;
+    const panels = [...form.querySelectorAll<HTMLFieldSetElement>('[data-panel]')];
+    const cells = [...form.querySelectorAll<HTMLElement>('[data-pcell]')];
+    const goal = form.querySelector<HTMLTextAreaElement>('[data-goal]')!;
+    const alert = form.querySelector<HTMLElement>('[data-alert]')!;
+    const submit = form.querySelector<HTMLButtonElement>('[data-submit]')!;
+    const done = root.querySelector<HTMLElement>('[data-done]')!;
+    const el = (name: string) => form.elements.namedItem(name);
+    const value = (name: string) => {
+      const item = el(name);
+      if (item instanceof RadioNodeList) return item.value;
+      if (item instanceof HTMLInputElement && item.type === 'checkbox')
+        return item.checked ? 'on' : '';
+      return (item as HTMLInputElement | null)?.value.trim() ?? '';
+    };
+
+    let step = 0;
+    let reached = 0;
+    let stepOneTracked = false;
+
+    // Enhance: one question at a time.
+    root.dataset.enhanced = 'true';
+    form.noValidate = true;
+    form
+      .querySelectorAll<HTMLElement>('[data-js-only], [data-progress]')
+      .forEach((n) => (n.hidden = false));
+    (form.querySelector('[data-started]') as HTMLInputElement).value = String(Date.now());
+
+    // Preselect a need from ?service=slug (links from service pages).
+    const pre = new URLSearchParams(location.search).get('service');
+    if (pre) {
+      const radio = form.querySelector<HTMLInputElement>(
+        `input[name="${FIELD.need}"][value="${CSS.escape(pre)}"]`,
+      );
+      if (radio) radio.checked = true;
+    }
+
+    // ---------- errors ----------
+    const errorEl = (k: Key) => form.querySelector<HTMLElement>(`[data-error="${k}"]`)!;
+    const controls = (k: Key) => [
+      ...form.querySelectorAll<HTMLInputElement>(`[name="${FIELD[k]}"]`),
+    ];
+    function setError(k: Key, message?: string) {
+      const node = errorEl(k);
+      node.textContent = message ?? '';
+      node.hidden = !message;
+      controls(k).forEach((c) => {
+        if (message) c.setAttribute('aria-invalid', 'true');
+        else c.removeAttribute('aria-invalid');
+      });
+      if (k === 'need') {
+        const fs = panels[0];
+        if (message) fs.setAttribute('aria-describedby', 'need-help err-need');
+        else fs.setAttribute('aria-describedby', 'need-help');
+      }
+    }
+    const channel = () => value(FIELD.channel) || 'whatsapp';
+
+    function check(k: Key): string | undefined {
+      const e = copy.errors;
+      const v = value(FIELD[k]);
+      switch (k) {
+        case 'need':
+          return v ? undefined : e.need;
+        case 'goal':
+          return v.length < GOAL_MIN ? e.goalShort : v.length > GOAL_MAX ? e.goalLong : undefined;
+        case 'name':
+          return v ? undefined : e.name;
+        case 'phone':
+          return channel() === 'email' || normalisePhone(v) ? undefined : e.phone;
+        case 'email':
+          return channel() !== 'email' || isEmail(v) ? undefined : e.email;
+        case 'consent':
+          return v ? undefined : e.consent;
+      }
+    }
+    const stepKeys: Key[][] = [['need'], ['goal'], ['name', 'phone', 'email', 'consent']];
+
+    /** Validate one step; focus the first problem. True when clean. */
+    function validate(i: number): boolean {
+      let first: Key | undefined;
+      for (const k of stepKeys[i]) {
+        const msg = check(k);
+        setError(k, msg);
+        if (msg && !first) first = k;
+      }
+      if (first) {
+        const target = first === 'need' ? controls('need')[0] : controls(first)[0];
+        target?.focus();
+        return false;
+      }
+      return true;
+    }
+
+    // Clear an error as soon as the answer becomes valid.
+    form.addEventListener('input', (ev) => {
+      const t = ev.target as HTMLInputElement;
+      const k = (Object.keys(FIELD) as (keyof typeof FIELD)[]).find((key) => FIELD[key] === t.name);
+      if (!k || !(stepKeys.flat() as string[]).includes(k)) return;
+      if (!errorEl(k as Key).hidden && !check(k as Key)) setError(k as Key);
+    });
+
+    // ---------- steps ----------
+    function render(focus = true) {
+      form.dataset.step = String(step);
+      panels.forEach((p, i) => {
+        p.hidden = i !== step;
+      });
+      cells.forEach((c, i) => {
+        const btn = c.querySelector('button')!;
+        const state = c.querySelector('[data-pstate]')!;
+        c.dataset.state = i === step ? 'current' : i < reached || i < step ? 'done' : 'todo';
+        btn.disabled = i > reached || i === step;
+        if (i === step) btn.setAttribute('aria-current', 'step');
+        else btn.removeAttribute('aria-current');
+        state.textContent = i === step ? ' (current)' : i <= reached ? '' : ' (not yet)';
+      });
+      if (focus)
+        panels[step].querySelector<HTMLElement>('[data-legend]')!.focus({ preventScroll: true });
+      if (focus) {
+        const top = form.getBoundingClientRect().top + window.scrollY - 120;
+        if (window.scrollY > top) window.scrollTo({ top, behavior: 'smooth' });
+      }
+    }
+    function go(i: number) {
+      form.dataset.moved = 'true';
+      step = Math.max(0, Math.min(2, i));
+      reached = Math.max(reached, step);
+      render();
+    }
+
+    form.addEventListener('click', (ev) => {
+      const t = (ev.target as HTMLElement).closest<HTMLElement>(
+        '[data-next], [data-back], [data-goto]',
+      );
+      if (!t) return;
+      if (t.hasAttribute('data-back')) return go(step - 1);
+      if (t.hasAttribute('data-goto')) {
+        const target = Number(t.dataset.goto);
+        // Moving forward through the rail still validates the steps in between.
+        for (let i = step; i < target; i++) if (!validate(i)) return go(i);
+        return go(target);
+      }
+      if (!validate(step)) return;
+      if (step === 0 && !stepOneTracked) {
+        stepOneTracked = true;
+        track('form_step_1', { service: value(FIELD.need) });
+      }
+      go(step + 1);
+    });
+
+    // Enter in a single-line field advances instead of submitting early.
+    form.addEventListener('keydown', (ev) => {
+      if (ev.key !== 'Enter' || step === 2) return;
+      const t = ev.target as HTMLElement;
+      if (t instanceof HTMLInputElement && t.type === 'radio') {
+        ev.preventDefault();
+        form.querySelector<HTMLButtonElement>(`[data-panel="${step}"] [data-next]`)?.click();
+      }
+    });
+
+    // The goal hint follows the need.
+    const syncHint = () => {
+      goal.placeholder = copy.hints[value(FIELD.need) || 'not-sure'] ?? copy.hints['not-sure'];
+    };
+    form.addEventListener('change', (ev) => {
+      const t = ev.target as HTMLInputElement;
+      if (t.name === FIELD.need) syncHint();
+      if (t.name === FIELD.channel) syncChannel();
+    });
+
+    // Only the field for the chosen channel is shown.
+    function syncChannel() {
+      const c = channel();
+      form.querySelectorAll<HTMLElement>('[data-for-channel]').forEach((n) => {
+        const on = n.dataset.forChannel!.split(' ').includes(c);
+        n.hidden = !on;
+        n.querySelector('input')!.required = on;
+      });
+      setError('phone');
+      setError('email');
+    }
+
+    // ---------- submit ----------
+    form.addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      for (let i = 0; i < 3; i++)
+        if (!validate(i)) return void (i !== step && (go(i), validate(i)));
+
+      alert.hidden = true;
+      submit.disabled = true;
+      submit.setAttribute('aria-busy', 'true');
+      const label = submit.querySelector('.btn__label')!;
+      label.textContent = copy.sending;
+
+      const data = Object.fromEntries(new FormData(form) as unknown as Iterable<[string, string]>);
+      try {
+        const res = await fetch(form.action, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify(data),
+        });
+        const json = (await res.json()) as {
+          ok: boolean;
+          replyBy?: string;
+          message?: string;
+          errors?: Partial<Record<Key, string>>;
+        };
+        if (json.ok) return showDone(json.replyBy ?? copy.replyBy[channel()]);
+
+        const errs = json.errors ?? {};
+        const keys = Object.keys(errs) as Key[];
+        if (keys.length) {
+          const i = stepKeys.findIndex((ks) => ks.some((k) => keys.includes(k)));
+          go(i);
+          keys.forEach((k) => setError(k, errs[k]));
+          controls(keys.find((k) => stepKeys[i].includes(k))!)[0]?.focus();
+        } else showAlert(json.message ?? copy.errors.server);
+      } catch {
+        showAlert(copy.errors.server);
+      } finally {
+        submit.disabled = false;
+        submit.removeAttribute('aria-busy');
+        label.textContent = copy.submit;
+      }
+    });
+
+    function showAlert(text: string) {
+      alert.querySelector('[data-alert-text]')!.textContent = text;
+      alert.hidden = false;
+    }
+
+    function showDone(replyBy: string) {
+      track('form_submit', { service: value(FIELD.need), channel: channel() });
+      const needInput = form.querySelector<HTMLInputElement>(
+        `input[name="${FIELD.need}"]:checked`,
+      )!;
+      const needText = needInput.closest('label')!.querySelector('.enq__opt-title')!.textContent!;
+      const reach = channel() === 'email' ? value(FIELD.email) : value(FIELD.phone);
+      const channelText = form
+        .querySelector<HTMLInputElement>(`input[name="${FIELD.channel}"]:checked`)!
+        .closest('label')!
+        .textContent!.trim();
+      done.querySelector('[data-receipt="need"]')!.textContent = needText;
+      done.querySelector('[data-receipt="goal"]')!.textContent = value(FIELD.goal);
+      done.querySelector('[data-receipt="reach"]')!.textContent =
+        `${value(FIELD.name)} · ${channelText}, ${reach}`;
+      done.querySelector('[data-done-body]')!.textContent = copy.success.replace(
+        '{replyBy}',
+        replyBy,
+      );
+      form.hidden = true;
+      done.hidden = false;
+      done.querySelector<HTMLElement>('[data-done-title]')!.focus();
+    }
+
+    root.querySelector('[data-another]')!.addEventListener('click', () => {
+      form.reset();
+      (form.querySelector('[data-started]') as HTMLInputElement).value = String(Date.now());
+      step = 0;
+      reached = 0;
+      done.hidden = true;
+      form.hidden = false;
+      syncHint();
+      syncChannel();
+      render();
+    });
+
+    syncHint();
+    syncChannel();
+    render(false);
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-enquiry]').forEach(init);
+</script>
+
+<style>
+  /* Layered so Tailwind utilities on the same element still win. */
+  @layer components {
+    .enq__head {
+      margin-top: clamp(2rem, 1.5rem + 2vw, 3.5rem);
+    }
+    .enq__title {
+      font-size: var(--text-d2);
+      line-height: var(--text-d2--line-height);
+      letter-spacing: var(--text-d2--letter-spacing);
+      font-weight: 340;
+      max-width: 18ch;
+    }
+    .enq__intro {
+      margin-top: 1rem;
+      color: var(--color-stone);
+      max-width: 46ch;
+    }
+
+    .enq__form {
+      margin-top: clamp(2rem, 1.5rem + 2vw, 3rem);
+    }
+
+    /* ---------- progress rail ---------- */
+    .enq__progress {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      margin-bottom: clamp(2rem, 1.5rem + 2vw, 3rem);
+    }
+    .enq__pcell {
+      position: relative;
+      border-top: 1px solid var(--color-line);
+    }
+    .enq__pcell::before {
+      content: '';
+      position: absolute;
+      inset: -1px 0 auto 0;
+      height: 2px;
+      background: var(--color-ink);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 620ms var(--ease-settle);
+    }
+    .enq__pcell[data-state='current']::before,
+    .enq__pcell[data-state='done']::before {
+      transform: scaleX(1);
+    }
+    .enq__pcell[data-state='done']::before {
+      background: var(--color-gold);
+    }
+    .enq__pbtn {
+      display: flex;
+      align-items: baseline;
+      gap: 0.625rem;
+      width: 100%;
+      min-height: 48px;
+      padding: 0.875rem 0.5rem 0 0;
+      font-size: var(--text-micro);
+      letter-spacing: var(--text-micro--letter-spacing);
+      text-transform: uppercase;
+      font-weight: 650;
+      color: var(--color-stone);
+      text-align: left;
+      cursor: pointer;
+    }
+    .enq__pbtn:disabled {
+      cursor: default;
+    }
+    .enq__pcell[data-state='current'] .enq__pbtn {
+      color: var(--color-ink);
+    }
+    .enq__pcell[data-state='done'] .enq__pbtn:not(:disabled):hover .enq__pname {
+      text-decoration: underline;
+      text-decoration-color: var(--color-gold);
+      text-underline-offset: 4px;
+    }
+    .enq__pnum {
+      color: var(--color-ink);
+    }
+
+    /* ---------- trap ---------- */
+    .enq__trap {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
+    /* ---------- a question ---------- */
+    .enq__step {
+      min-width: 0;
+      border: 0;
+      padding: 0;
+      margin: 0;
+    }
+    /* Without JS every question shows, ruled apart like clauses. */
+    .enq__step + .enq__step {
+      margin-top: clamp(2.5rem, 2rem + 2vw, 4rem);
+      padding-top: clamp(2.5rem, 2rem + 2vw, 4rem);
+      border-top: 1px solid var(--color-line);
+    }
+    [data-enhanced] .enq__step + .enq__step {
+      margin-top: 0;
+      padding-top: 0;
+      border-top: 0;
+    }
+    /* Only animate when moving between questions, never on load. */
+    [data-enhanced] [data-moved] .enq__step:not([hidden]) {
+      animation: enq-in 520ms var(--ease-settle);
+    }
+    @keyframes enq-in {
+      from {
+        opacity: 0;
+        translate: 0 10px;
+      }
+    }
+    .enq__q {
+      display: flex;
+      align-items: baseline;
+      gap: 1rem;
+      padding: 0;
+      font-family: var(--font-display);
+      font-size: var(--text-d3);
+      line-height: var(--text-d3--line-height);
+      letter-spacing: var(--text-d3--letter-spacing);
+      font-weight: 380;
+      font-variation-settings: 'opsz' 72;
+    }
+    .enq__q:focus {
+      outline: none;
+    }
+    .enq__q:focus-visible {
+      outline: 2px solid var(--focus-ring);
+    }
+    .enq__qnum {
+      flex: none;
+      font-family: var(--font-sans);
+      font-size: var(--text-micro);
+      letter-spacing: var(--text-micro--letter-spacing);
+      font-weight: 650;
+      color: var(--color-stone);
+      translate: 0 -0.2em;
+    }
+    .enq__help {
+      margin-top: 0.5rem;
+      padding-left: calc(1rem + 1.5ch);
+      color: var(--color-stone);
+      font-size: var(--text-small);
+    }
+
+    /* ---------- 01 needs ---------- */
+    .enq__needs {
+      display: grid;
+      gap: 1.75rem var(--gap-x);
+      margin-top: 1.75rem;
+    }
+    @media (min-width: 768px) {
+      .enq__needs {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: start;
+      }
+      /* Grow (three services) holds the left column; Trade (one) and "Not sure yet" share
+         the right, so the register has no hole beside it. Build closes the left column. */
+      .enq__group--grow {
+        grid-column: 1;
+        grid-row: 1 / span 2;
+      }
+      .enq__group--trade {
+        grid-column: 2;
+        grid-row: 1;
+      }
+      .enq__group--unsure {
+        grid-column: 2;
+        grid-row: 2;
+      }
+      .enq__group--build {
+        grid-column: 1;
+        grid-row: 3;
+      }
+    }
+    .enq__group {
+      display: grid;
+      align-content: start;
+      border-top: 1px solid var(--color-ink);
+    }
+    .enq__group-label {
+      padding-block: 0.75rem 0.25rem;
+      color: var(--color-stone);
+    }
+    .enq__group--unsure {
+      border-top-style: dashed;
+      border-top-color: var(--color-stone);
+    }
+    .enq__opt {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1.25rem minmax(0, 1fr);
+      column-gap: 0.875rem;
+      align-items: center;
+      min-height: 52px;
+      padding-block: 0.625rem;
+      border-bottom: 1px solid var(--color-line);
+      cursor: pointer;
+      transition: color 240ms var(--ease-quiet);
+    }
+    .enq__opt:hover {
+      color: var(--color-royal);
+    }
+    .enq__radio {
+      position: absolute;
+      opacity: 0;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      cursor: pointer;
+    }
+    .enq__tick {
+      position: relative;
+      width: 1.125rem;
+      height: 1.125rem;
+      border: 1px solid var(--color-stone);
+      border-radius: 50%;
+      transition: border-color 240ms var(--ease-quiet);
+    }
+    .enq__tick::after {
+      content: '';
+      position: absolute;
+      inset: 3px;
+      border-radius: 50%;
+      background: var(--color-ink);
+      transform: scale(0);
+      transition: transform 360ms var(--ease-settle);
+    }
+    .enq__radio:checked ~ .enq__tick {
+      border-color: var(--color-ink);
+    }
+    .enq__radio:checked ~ .enq__tick::after {
+      transform: scale(1);
+    }
+    .enq__radio:checked ~ .enq__opt-title {
+      font-weight: 620;
+    }
+    .enq__radio:focus-visible ~ .enq__tick {
+      outline: 2px solid var(--focus-ring);
+      outline-offset: 3px;
+    }
+    .enq__radio[aria-invalid='true'] ~ .enq__tick {
+      border-color: var(--color-royal);
+    }
+    .enq__opt-title {
+      font-size: var(--text-body);
+      line-height: 1.35;
+    }
+    .enq__opt-line {
+      grid-column: 2;
+      font-size: var(--text-small);
+      line-height: var(--text-small--line-height);
+      color: var(--color-stone);
+    }
+    .enq__opt--unsure {
+      border-bottom: 0;
+      align-items: start;
+    }
+    .enq__opt--unsure .enq__tick {
+      margin-top: 0.2rem;
+    }
+
+    /* ---------- fields ---------- */
+    .enq__field {
+      display: grid;
+      gap: 0.5rem;
+      min-width: 0;
+      margin: 0;
+      padding: 0;
+      border: 0;
+    }
+    .enq__step[data-panel='1'] .enq__field {
+      margin-top: 1.75rem;
+    }
+    .enq__label {
+      color: var(--color-stone);
+      padding: 0;
+    }
+    .enq__input {
+      width: 100%;
+      min-height: 52px;
+      padding: 0.625rem 0;
+      background: transparent;
+      border: 0;
+      border-bottom: 1px solid var(--color-ink);
+      border-radius: 0;
+      font-family: var(--font-display);
+      font-size: var(--text-d4);
+      line-height: 1.4;
+      font-variation-settings: 'opsz' 36;
+      color: var(--color-ink);
+      transition: border-color 240ms var(--ease-quiet);
+    }
+    .enq__input::placeholder {
+      color: var(--color-stone);
+      font-style: italic;
+      opacity: 1;
+    }
+    .enq__input:hover {
+      border-bottom-color: var(--color-royal);
+    }
+    .enq__input:focus-visible {
+      outline: 2px solid var(--focus-ring);
+      outline-offset: 4px;
+      border-bottom-color: var(--color-royal);
+    }
+    .enq__input[aria-invalid='true'] {
+      border-bottom: 2px solid var(--color-royal);
+    }
+    .enq__textarea {
+      min-height: 9rem;
+      resize: vertical;
+      background-image: repeating-linear-gradient(
+        to bottom,
+        transparent 0,
+        transparent calc(1.4em - 1px),
+        var(--color-line) calc(1.4em - 1px),
+        var(--color-line) 1.4em
+      );
+      background-attachment: local;
+      background-position: 0 0.625rem;
+    }
+    .enq__hint {
+      font-size: var(--text-small);
+      color: var(--color-stone);
+    }
+    .enq__error {
+      display: flex;
+      gap: 0.5rem;
+      font-size: var(--text-small);
+      line-height: var(--text-small--line-height);
+      font-weight: 620;
+      color: var(--color-royal);
+    }
+    .enq__error::before {
+      content: '—';
+      color: var(--color-gold);
+      font-weight: 400;
+    }
+    .enq__error[hidden] {
+      display: none;
+    }
+    .enq__step > .enq__error {
+      margin-top: 1rem;
+    }
+
+    /* ---------- 03 reach ---------- */
+    .enq__reach {
+      display: grid;
+      gap: 2rem var(--gap-x);
+      margin-top: 1.75rem;
+    }
+    @media (min-width: 768px) {
+      .enq__reach {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .enq__channels,
+      .enq__consent {
+        grid-column: 1 / -1;
+      }
+      /* Without JS both fields show; with JS only one, so it spans the row. */
+      [data-enhanced] .enq__reach > [data-for-channel] {
+        grid-column: 1 / -1;
+      }
+      [data-enhanced] .enq__reach > .enq__field:first-child {
+        grid-column: 1 / -1;
+      }
+    }
+    .enq__seg {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .enq__segopt {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      min-height: 44px;
+      padding-inline: 1rem;
+      border: 1px solid color-mix(in srgb, var(--color-ink) 28%, transparent);
+      border-radius: var(--radius-xs);
+      font-size: var(--text-small);
+      font-weight: 620;
+      cursor: pointer;
+      transition:
+        background-color 280ms var(--ease-quiet),
+        color 280ms var(--ease-quiet),
+        border-color 280ms var(--ease-quiet);
+    }
+    .enq__segopt input {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+    .enq__segopt:hover {
+      border-color: var(--color-ink);
+    }
+    .enq__segopt:has(input:checked) {
+      background: var(--color-ink);
+      border-color: var(--color-ink);
+      color: var(--color-ivory);
+    }
+    .enq__segopt:has(input:focus-visible) {
+      outline: 2px solid var(--focus-ring);
+      outline-offset: 3px;
+    }
+
+    .enq__check {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1.5rem minmax(0, 1fr);
+      gap: 0.875rem;
+      align-items: start;
+      font-size: var(--text-small);
+      line-height: var(--text-small--line-height);
+      cursor: pointer;
+    }
+    .enq__check input {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 1.5rem;
+      height: 1.5rem;
+      margin: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+    .enq__box {
+      display: grid;
+      place-items: center;
+      width: 1.5rem;
+      height: 1.5rem;
+      border: 1px solid var(--color-ink);
+      border-radius: var(--radius-xs);
+      color: transparent;
+      transition:
+        background-color 240ms var(--ease-quiet),
+        color 240ms var(--ease-quiet);
+    }
+    .enq__check input:checked + .enq__box {
+      background: var(--color-ink);
+      color: var(--color-gold-soft);
+    }
+    .enq__check input:focus-visible + .enq__box {
+      outline: 2px solid var(--focus-ring);
+      outline-offset: 3px;
+    }
+    .enq__check input[aria-invalid='true'] + .enq__box {
+      border: 2px solid var(--color-royal);
+    }
+    .enq__consent .enq__error {
+      margin-top: 0.5rem;
+      padding-left: calc(1.5rem + 0.875rem);
+    }
+
+    /* ---------- nav ---------- */
+    .enq__nav {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 0.75rem 2rem;
+      margin-top: clamp(2rem, 1.5rem + 1.5vw, 2.75rem);
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--color-line);
+    }
+    .enq__nav[hidden] {
+      display: none;
+    }
+    .enq__nav :global([data-back]) {
+      margin-inline-end: auto;
+    }
+    @media (max-width: 639.98px) {
+      .enq__nav :global([data-next]),
+      .enq__nav :global([data-submit]) {
+        flex: 1;
+      }
+    }
+
+    .enq__alert {
+      display: grid;
+      gap: 0.5rem;
+      margin-top: 1.5rem;
+      padding: 1rem 1.25rem;
+      border-left: 2px solid var(--color-royal);
+      background: var(--color-paper);
+      font-size: var(--text-small);
+    }
+    .enq__alert p {
+      font-weight: 620;
+    }
+
+    /* ---------- receipt ---------- */
+    .enq__done {
+      margin-top: clamp(2rem, 1.5rem + 2vw, 3rem);
+      padding-top: 1.5rem;
+      border-top: 2px solid var(--color-ink);
+      animation: enq-in 620ms var(--ease-settle);
+    }
+    .enq__done-title {
+      display: flex;
+      align-items: center;
+      gap: 0.875rem;
+      font-size: var(--text-d2);
+      line-height: var(--text-d2--line-height);
+      letter-spacing: var(--text-d2--letter-spacing);
+      font-weight: 340;
+    }
+    .enq__done-title:focus {
+      outline: none;
+    }
+    .enq__done-title :global(.enq__done-icon) {
+      flex: none;
+      color: var(--color-gold);
+    }
+    .enq__done-body {
+      margin-top: 1rem;
+      font-size: var(--text-lead);
+      line-height: var(--text-lead--line-height);
+      color: var(--color-stone);
+    }
+    .enq__receipt {
+      margin-block: 2rem 1.5rem;
+    }
+    .enq__receipt-label {
+      color: var(--color-stone);
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--color-ink);
+    }
+    .enq__receipt-row {
+      display: grid;
+      gap: 0.25rem var(--gap-x);
+      padding-block: 1rem;
+      border-bottom: 1px solid var(--color-line);
+    }
+    @media (min-width: 768px) {
+      .enq__receipt-row {
+        grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+      }
+    }
+    .enq__receipt-row dt {
+      font-size: var(--text-small);
+      color: var(--color-stone);
+    }
+    .enq__receipt-row dd {
+      font-family: var(--font-display);
+      font-size: 1.125rem;
+      line-height: 1.45;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+  }
+</style>

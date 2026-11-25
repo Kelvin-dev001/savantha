@@ -1,0 +1,269 @@
+---
+/**
+ * /contact. WhatsApp first (most clients start there), then the plain ways to reach us
+ * (call, email, hours, office and map placeholder) in a sticky column, beside the
+ * three-question enquiry form. "What happens next" closes the page.
+ */
+import { getEntry } from 'astro:content';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PageHero from '@/components/sections/PageHero.astro';
+import EnquiryForm from '@/components/sections/EnquiryForm.astro';
+import NextSteps from '@/components/sections/NextSteps.astro';
+import Button from '@/components/ui/Button.astro';
+import Icon from '@/components/ui/Icon.astro';
+import Ph from '@/components/ui/Ph.astro';
+import PlaceholderImage from '@/components/ui/PlaceholderImage.astro';
+import SectionLabel from '@/components/ui/SectionLabel.astro';
+import { site, isPlaceholder } from '@/config/site';
+import { whatsappLink, telLink, mailLink } from '@/lib/contact';
+
+const entry = await getEntry('contact', 'contact');
+if (!entry) throw new Error('src/content/contact/contact.yaml is required.');
+const c = entry.data;
+---
+
+<BaseLayout title={c.seoTitle} description={c.seoDescription}>
+  <PageHero
+    eyebrow={c.hero.eyebrow}
+    headline={c.hero.headline}
+    lead={c.hero.lead}
+    proof={c.hero.proof}
+  >
+    <Fragment slot="actions">
+      <span class="magnetic" data-magnetic>
+        <Button
+          href={whatsappLink()}
+          size="lg"
+          icon="whatsapp"
+          data-track="whatsapp_click"
+          data-track-service="general"
+          data-track-location="contact-hero"
+        >
+          {c.ways.whatsapp.cta}
+        </Button>
+      </span>
+      <Button href="#enquiry" variant="text">
+        {c.form.label}
+      </Button>
+    </Fragment>
+  </PageHero>
+
+  <div class="shell contact section-y">
+    <aside class="contact__ways" aria-labelledby="ways-title">
+      <div class="contact__sticky">
+        <SectionLabel number="01">{c.ways.label}</SectionLabel>
+
+        <div class="wa">
+          <h2 id="ways-title" class="wa__title">
+            {c.ways.whatsapp.heading}
+          </h2>
+          <p class="wa__body">{c.ways.whatsapp.body}</p>
+          <a
+            href={whatsappLink()}
+            class="wa__link numerals"
+            target="_blank"
+            rel="noopener noreferrer"
+            data-track="whatsapp_click"
+            data-track-service="general"
+            data-track-location="contact-ways"
+          >
+            <Icon name="whatsapp" size={20} />
+            <span>{site.phone.display}</span>
+            <Icon name="arrow-up-right" size={16} class="wa__arrow" />
+            <span class="sr-only"> (WhatsApp, opens in a new tab)</span>
+          </a>
+        </div>
+
+        <dl class="ways">
+          <div class="ways__row">
+            <dt class="eyebrow">{c.ways.call}</dt>
+            <dd>
+              <a href={telLink()} class="ways__link numerals" data-track="call_click">
+                {site.phone.display}
+              </a>
+            </dd>
+          </div>
+          <div class="ways__row">
+            <dt class="eyebrow">{c.ways.email}</dt>
+            <dd>
+              <a href={mailLink()} class="ways__link" data-track="email_click">
+                {site.email}
+              </a>
+            </dd>
+          </div>
+          <div class="ways__row">
+            <dt class="eyebrow">{c.ways.hours}</dt>
+            <dd>
+              <ul class="ways__hours">
+                {site.hours.map((h) => (
+                  <li>
+                    <span>{h.days}</span>
+                    <span class="numerals">
+                      {isPlaceholder(h.time) ? <Ph>{h.time}</Ph> : h.time}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </dd>
+          </div>
+          <div class="ways__row">
+            <dt class="eyebrow">{c.ways.office}</dt>
+            <dd>
+              <address class="not-italic">
+                {site.address.lines.map((l) =>
+                  isPlaceholder(l) ? <Ph>{l}</Ph> : <span>{l}</span>,
+                )}
+                <br />
+                {isPlaceholder(site.address.city) ? (
+                  <Ph>{site.address.city}</Ph>
+                ) : (
+                  site.address.city
+                )}
+                , {site.address.country}
+              </address>
+            </dd>
+          </div>
+        </dl>
+
+        <figure class="contact__map">
+          <PlaceholderImage
+            width={800}
+            height={500}
+            caption={c.ways.mapCaption}
+            alt={c.ways.mapAlt}
+          />
+        </figure>
+      </div>
+    </aside>
+
+    <div class="contact__form">
+      <EnquiryForm number="02" />
+    </div>
+  </div>
+
+  <div class="shell contact__next">
+    <NextSteps />
+  </div>
+</BaseLayout>
+
+<style>
+  /* Layered so Tailwind utilities on the same element still win. */
+  @layer components {
+    .contact {
+      display: grid;
+      gap: clamp(4rem, 3rem + 4vw, 6rem) var(--gap-x);
+    }
+    @media (min-width: 1024px) {
+      .contact {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        align-items: start;
+      }
+      .contact__ways {
+        grid-column: 1 / span 4;
+        align-self: stretch;
+      }
+      .contact__form {
+        grid-column: 6 / span 7;
+      }
+      .contact__sticky {
+        position: sticky;
+        top: calc(var(--header-h) + 1.5rem);
+      }
+    }
+
+    .wa {
+      margin-top: 2rem;
+    }
+    .wa__title {
+      font-size: var(--text-d3);
+      line-height: var(--text-d3--line-height);
+      letter-spacing: var(--text-d3--letter-spacing);
+      font-weight: 360;
+    }
+    .wa__body {
+      margin-top: 0.75rem;
+      color: var(--color-stone);
+      font-size: var(--text-small);
+      line-height: var(--text-small--line-height);
+      max-width: 38ch;
+    }
+    .wa__link {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      min-height: 64px;
+      margin-top: 1.25rem;
+      padding-inline: 1.25rem;
+      background: var(--color-ink);
+      color: var(--color-ivory);
+      border-radius: var(--radius-xs);
+      font-family: var(--font-display);
+      font-size: 1.375rem;
+      font-variation-settings: 'opsz' 36;
+      --focus-ring: var(--color-royal);
+      transition: background-color 320ms var(--ease-quiet);
+    }
+    .wa__link:hover {
+      background: var(--color-ink-700);
+    }
+    .wa__link :global(.icon:first-child) {
+      color: var(--color-gold-soft);
+    }
+    .wa__link :global(.wa__arrow) {
+      margin-inline-start: auto;
+      color: var(--color-gold-soft);
+      transition: transform 420ms var(--ease-settle);
+    }
+    .wa__link:hover :global(.wa__arrow) {
+      transform: translate(2px, -2px);
+    }
+
+    .ways {
+      margin-top: 2.5rem;
+      border-top: 1px solid var(--color-ink);
+    }
+    .ways__row {
+      display: grid;
+      grid-template-columns: 7.5rem minmax(0, 1fr);
+      gap: 1rem;
+      padding-block: 0.875rem;
+      border-bottom: 1px solid var(--color-line);
+      font-size: var(--text-small);
+      line-height: var(--text-small--line-height);
+    }
+    .ways__row dt {
+      color: var(--color-stone);
+      padding-top: 0.2rem;
+    }
+    .ways__link {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      font-weight: 620;
+      text-decoration: underline;
+      text-decoration-color: var(--color-gold);
+      text-underline-offset: 4px;
+      overflow-wrap: anywhere;
+    }
+    .ways__link:hover {
+      color: var(--color-royal);
+      text-decoration-color: currentColor;
+    }
+    .ways__hours li {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 0 1rem;
+    }
+    .ways__hours li > span:first-child {
+      color: var(--color-stone);
+    }
+
+    .contact__map {
+      margin-top: 2rem;
+    }
+    .contact__next {
+      padding-bottom: var(--section-y);
+    }
+  }
+</style>

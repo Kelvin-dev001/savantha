@@ -1,0 +1,206 @@
+---
+/**
+ * 404. The lattice draws in behind a large ruled "404", like a missing entry in a register;
+ * the headline admits it plainly and the four places most people were heading are set as
+ * ledger lines. Not indexed.
+ */
+import { getEntry } from 'astro:content';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Headline from '@/components/ui/Headline.astro';
+import Lattice from '@/components/ui/Lattice.astro';
+import Button from '@/components/ui/Button.astro';
+import Icon from '@/components/ui/Icon.astro';
+import { whatsappLink } from '@/lib/contact';
+
+const n = (await getEntry('pages', 'pages'))!.data.notFound;
+---
+
+<BaseLayout title={n.seoTitle} description={n.lead} noindex>
+  <section class="nf" aria-labelledby="nf-title">
+    <Lattice
+      animate
+      density="regular"
+      detail
+      opacity={0.4}
+      origin={[78, 40]}
+      align="right"
+      spread={900}
+      class="nf__lattice"
+    />
+
+    <div class="shell nf__inner">
+      <div class="nf__main">
+        <p class="nf__eyebrow eyebrow numerals">
+          <span class="nf__rule" aria-hidden="true"></span>
+          <span>{n.eyebrow}</span>
+        </p>
+        <h1 id="nf-title" class="nf__title">
+          <Headline lines={n.headline} />
+        </h1>
+        <p class="nf__lead text-lead">{n.lead}</p>
+        <div class="nf__cta">
+          <Button
+            href={whatsappLink()}
+            size="lg"
+            icon="whatsapp"
+            data-track="whatsapp_click"
+            data-track-service="general"
+            data-track-location="404"
+          >
+            {n.cta}
+          </Button>
+        </div>
+      </div>
+
+      <p class="nf__code numerals" aria-hidden="true">
+        404
+      </p>
+
+      <nav class="nf__links" aria-labelledby="nf-links">
+        <h2 id="nf-links" class="eyebrow nf__links-label">
+          {n.linksLabel}
+        </h2>
+        <ul>
+          {n.links.map((l) => (
+            <li>
+              <a href={l.href} class="nf__link">
+                <span class="nf__link-label">{l.label}</span>
+                <span class="nf__link-line">{l.line}</span>
+                <Icon name="arrow-right" size={16} class="nf__arrow" />
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  /* Layered so Tailwind utilities on the same element still win. */
+  @layer components {
+    .nf {
+      position: relative;
+      isolation: isolate;
+      overflow: hidden;
+      min-height: calc(100dvh - var(--header-h));
+    }
+    .nf :global(.nf__lattice) {
+      z-index: -1;
+      mask-image: radial-gradient(
+        ellipse 55% 70% at 78% 40%,
+        #000 0%,
+        rgb(0 0 0 / 0.35) 50%,
+        transparent 80%
+      );
+    }
+    .nf__inner {
+      display: grid;
+      gap: 3rem var(--gap-x);
+      padding-block: clamp(3rem, 2rem + 5vw, 7rem) var(--section-y);
+    }
+    @media (min-width: 1024px) {
+      .nf__inner {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        align-items: end;
+      }
+      .nf__main {
+        grid-column: 1 / span 7;
+        grid-row: 1;
+      }
+      .nf__code {
+        grid-column: 8 / span 5;
+        grid-row: 1;
+        justify-self: end;
+      }
+      .nf__links {
+        grid-column: 1 / -1;
+      }
+    }
+    .nf__eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      color: var(--color-stone);
+    }
+    .nf__rule {
+      width: 2.5rem;
+      height: 1px;
+      background: var(--color-gold);
+    }
+    .nf__title {
+      margin-top: clamp(1.25rem, 1rem + 1.5vw, 2.5rem);
+      font-size: clamp(2.625rem, 1.5rem + 4.4vw, 5.75rem);
+      line-height: 1.02;
+      letter-spacing: -0.03em;
+      font-weight: 330;
+      font-variation-settings: 'opsz' 144;
+      text-wrap: initial;
+    }
+    .nf__lead {
+      margin-top: clamp(1.5rem, 1rem + 1.5vw, 2.5rem);
+      color: var(--color-stone);
+      max-width: 44ch;
+    }
+    .nf__cta {
+      margin-top: 2rem;
+    }
+    .nf__code {
+      font-family: var(--font-display);
+      font-size: clamp(6rem, 3rem + 14vw, 16rem);
+      line-height: 0.85;
+      letter-spacing: -0.05em;
+      font-weight: 250;
+      font-style: italic;
+      font-variation-settings: 'opsz' 144;
+      color: transparent;
+      -webkit-text-stroke: 1px var(--color-ink);
+      padding-bottom: 0.5rem;
+      border-bottom: 4px double var(--color-ink);
+    }
+    .nf__links-label {
+      color: var(--color-stone);
+      padding-bottom: 1rem;
+    }
+    .nf__links ul {
+      display: grid;
+      border-top: 1px solid var(--color-ink);
+    }
+    @media (min-width: 768px) {
+      .nf__links ul {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        column-gap: var(--gap-x);
+      }
+    }
+    .nf__link {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 0.25rem 1rem;
+      padding-block: 1.25rem;
+      border-bottom: 1px solid var(--color-line);
+      transition: color 240ms var(--ease-quiet);
+    }
+    .nf__link:hover {
+      color: var(--color-royal);
+    }
+    .nf__link-label {
+      font-family: var(--font-display);
+      font-size: var(--text-d4);
+      font-weight: 400;
+    }
+    .nf__link-line {
+      grid-row: 2;
+      font-size: var(--text-small);
+      color: var(--color-stone);
+    }
+    .nf__link :global(.nf__arrow) {
+      grid-row: 1;
+      grid-column: 2;
+      align-self: center;
+      transition: transform 420ms var(--ease-settle);
+    }
+    .nf__link:hover :global(.nf__arrow) {
+      transform: translateX(3px);
+    }
+  }
+</style>

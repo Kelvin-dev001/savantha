@@ -1,0 +1,139 @@
+---
+/**
+ * About · 02 What we hold ourselves to. The four values written as the articles of a short
+ * charter: article number, the value, what it means, and the practice that proves it.
+ * (The homepage sets the same values as statement lines; here they get room to explain.)
+ */
+import type { CollectionEntry } from 'astro:content';
+import SectionLabel from '@/components/ui/SectionLabel.astro';
+
+interface Props {
+  number: string;
+  values: CollectionEntry<'about'>['data']['values'];
+}
+const { number, values: v } = Astro.props;
+const roman = ['I', 'II', 'III', 'IV'];
+---
+
+<section class="art shell section-y" aria-labelledby="art-title">
+  <SectionLabel number={number}>{v.label}</SectionLabel>
+
+  <div class="art__head">
+    <h2 id="art-title" class="art__title" data-reveal="mask">
+      {v.heading}
+    </h2>
+    <p class="art__lead" data-reveal="fade">
+      {v.lead}
+    </p>
+  </div>
+
+  <ol class="art__list" data-reveal="stagger">
+    {v.items.map((item, i) => (
+      <li class="art__item">
+        <p class="art__num eyebrow numerals">
+          {v.articleLabel} {roman[i]}
+        </p>
+        <h3 class="art__value">{item.value}</h3>
+        <p class="art__means">{item.means}</p>
+        <div class="art__practice">
+          <p class="eyebrow art__practice-label">{v.practiceLabel}</p>
+          <p>{item.practice}</p>
+        </div>
+      </li>
+    ))}
+  </ol>
+</section>
+
+<style>
+  /* Layered so Tailwind utilities on the same element still win. */
+  @layer components {
+    .art__head {
+      display: grid;
+      gap: 1.75rem var(--gap-x);
+      margin-top: clamp(3rem, 2rem + 4vw, 6rem);
+    }
+    @media (min-width: 1024px) {
+      .art__head {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        align-items: end;
+      }
+      .art__title {
+        grid-column: 1 / span 7;
+      }
+      .art__lead {
+        grid-column: 8 / span 5;
+      }
+    }
+    .art__title {
+      font-size: var(--text-d1);
+      line-height: var(--text-d1--line-height);
+      letter-spacing: var(--text-d1--letter-spacing);
+      font-weight: 340;
+      max-width: 16ch;
+    }
+    .art__lead {
+      color: var(--color-stone);
+      max-width: 44ch;
+    }
+
+    .art__list {
+      display: grid;
+      margin-top: clamp(3rem, 2rem + 3vw, 5rem);
+      border-top: 1px solid var(--color-ink);
+    }
+    @media (min-width: 768px) {
+      .art__list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+    .art__item {
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      gap: 0.75rem;
+      padding: clamp(1.75rem, 1.25rem + 2vw, 3rem) 0;
+      border-bottom: 1px solid var(--color-line);
+    }
+    @media (min-width: 768px) {
+      .art__item {
+        padding-inline: 0 clamp(1.5rem, 1rem + 3vw, 4rem);
+      }
+      .art__item:nth-child(even) {
+        padding-inline: clamp(1.5rem, 1rem + 3vw, 4rem) 0;
+        border-left: 1px solid var(--color-line);
+      }
+    }
+    .art__num {
+      color: var(--color-stone);
+    }
+    .art__value {
+      font-size: var(--text-d2);
+      line-height: var(--text-d2--line-height);
+      letter-spacing: var(--text-d2--letter-spacing);
+      font-weight: 320;
+      font-style: italic;
+      font-variation-settings: 'opsz' 144;
+    }
+    .art__means {
+      font-family: var(--font-display);
+      font-size: var(--text-d4);
+      line-height: var(--text-d4--line-height);
+      font-weight: 400;
+      font-variation-settings: 'opsz' 36;
+      max-width: 30ch;
+    }
+    .art__practice {
+      display: grid;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--color-line);
+      color: var(--color-stone);
+      font-size: var(--text-small);
+      line-height: var(--text-small--line-height);
+      max-width: 52ch;
+    }
+    .art__practice-label {
+      color: var(--color-ink);
+    }
+  }
+</style>

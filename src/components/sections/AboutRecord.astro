@@ -1,0 +1,142 @@
+---
+/**
+ * About · 03 On the record. Registration and credentials as a company register: one ruled
+ * line per fact. Values marked `from` are read from src/config/site.ts or the services
+ * collection, so a fact supplied once appears everywhere. Unsupplied facts stay visible as
+ * [[PLACEHOLDERS]] rather than being left out.
+ */
+import { getEntry, type CollectionEntry } from 'astro:content';
+import { site, isPlaceholder } from '@/config/site';
+import Ph from '@/components/ui/Ph.astro';
+import Button from '@/components/ui/Button.astro';
+import SectionLabel from '@/components/ui/SectionLabel.astro';
+
+interface Props {
+  number: string;
+  record: CollectionEntry<'about'>['data']['record'];
+}
+const { number, record: r } = Astro.props;
+
+const shariah = await getEntry('services', 'shariah-compliant-finance');
+const sources = {
+  legalName: site.legalName,
+  registration: site.registration,
+  address: [...site.address.lines, `${site.address.city}, ${site.address.country}`].join(', '),
+  shariahReviewer: shariah?.data.principles?.reviewer ?? '[[NAME, CREDENTIALS]]',
+};
+const rows = r.rows.map((row) => ({
+  ...row,
+  value: row.from ? sources[row.from] : (row.value ?? ''),
+}));
+
+/** Render a value, wrapping each [[PLACEHOLDER]] run in <Ph>. */
+const parts = (v: string) => v.split(/(\[\[.+?\]\])/).filter(Boolean);
+---
+
+<section class="rec surface-paper" aria-labelledby="rec-title">
+  <div class="shell section-y">
+    <SectionLabel number={number}>{r.label}</SectionLabel>
+
+    <div class="rec__grid">
+      <div class="rec__head">
+        <h2 id="rec-title" class="rec__title" data-reveal="mask">
+          {r.heading}
+        </h2>
+        <p class="rec__lead" data-reveal="fade">
+          {r.lead}
+        </p>
+      </div>
+
+      <dl class="rec__dl" data-reveal="stagger">
+        {rows.map((row) => (
+          <div class="rec__row">
+            <dt class="eyebrow">{row.term}</dt>
+            <dd>
+              <p class="rec__value">
+                {parts(row.value).map((p) => (isPlaceholder(p) ? <Ph>{p}</Ph> : p))}
+              </p>
+              {row.note && <p class="rec__note">{row.note}</p>}
+              {row.link && (
+                <Button href={row.link.href} variant="text" class="rec__link">
+                  {row.link.label}
+                </Button>
+              )}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Layered so Tailwind utilities on the same element still win. */
+  @layer components {
+    .rec__grid {
+      display: grid;
+      gap: 3rem var(--gap-x);
+      margin-top: clamp(3rem, 2rem + 4vw, 6rem);
+    }
+    @media (min-width: 1024px) {
+      .rec__grid {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        align-items: start;
+      }
+      .rec__head {
+        grid-column: 1 / span 4;
+        position: sticky;
+        top: calc(var(--header-h) + 2rem);
+      }
+      .rec__dl {
+        grid-column: 6 / span 7;
+      }
+    }
+    .rec__title {
+      font-size: var(--text-d2);
+      line-height: var(--text-d2--line-height);
+      letter-spacing: var(--text-d2--letter-spacing);
+      font-weight: 340;
+      max-width: 14ch;
+    }
+    .rec__lead {
+      margin-top: 1.25rem;
+      color: var(--color-stone);
+      max-width: 40ch;
+    }
+    .rec__dl {
+      border-top: 1px solid var(--color-ink);
+    }
+    .rec__row {
+      display: grid;
+      gap: 0.5rem var(--gap-x);
+      padding-block: 1.25rem;
+      border-bottom: 1px solid var(--color-line);
+    }
+    @media (min-width: 640px) {
+      .rec__row {
+        grid-template-columns: 11rem minmax(0, 1fr);
+      }
+    }
+    .rec__row dt {
+      color: var(--color-stone);
+      padding-top: 0.3rem;
+    }
+    .rec__value {
+      font-family: var(--font-display);
+      font-size: 1.1875rem;
+      line-height: 1.45;
+      font-weight: 400;
+      font-variation-settings: 'opsz' 24;
+      max-width: 52ch;
+    }
+    .rec__note {
+      margin-top: 0.25rem;
+      font-size: var(--text-small);
+      color: var(--color-stone);
+    }
+    .rec__row :global(.rec__link) {
+      margin-top: 0.25rem;
+      font-size: var(--text-small);
+    }
+  }
+</style>

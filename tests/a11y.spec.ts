@@ -2,9 +2,10 @@ import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { readdirSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
+import { settle } from './support/settle';
 
-/** Every route = every index.html in the build output. */
-function routes(dir = 'dist', root = 'dist'): string[] {
+/** Every route = every index.html in the static build output (dist/client with the adapter). */
+function routes(dir = 'dist/client', root = 'dist/client'): string[] {
   let out: string[] = [];
   for (const name of readdirSync(dir)) {
     const full = join(dir, name);
@@ -22,6 +23,7 @@ const all = routes();
 for (const route of all) {
   test(`axe: ${route}`, async ({ page }) => {
     await page.goto(route);
+    await settle(page);
     const results = await new AxeBuilder({ page })
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
       .analyze();

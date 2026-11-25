@@ -1,0 +1,24 @@
+---
+/** Where the enquiry form lands after a successful send without JavaScript. Not indexed. */
+import { getEntry } from 'astro:content';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PageHero from '@/components/sections/PageHero.astro';
+import NextSteps from '@/components/sections/NextSteps.astro';
+import Button from '@/components/ui/Button.astro';
+
+const t = (await getEntry('contact', 'contact'))!.data.thankYou;
+---
+
+<BaseLayout title={t.seoTitle} description={t.body} noindex>
+  <PageHero eyebrow={t.eyebrow} headline={[{ text: t.heading }]} lead={t.body} size="page">
+    <Fragment slot="actions">
+      <Button href={t.home.href} variant="text">
+        {t.home.label}
+      </Button>
+    </Fragment>
+    <Fragment slot="foot">
+      <NextSteps />
+    </Fragment>
+  </PageHero>
+  <div class="section-y" aria-hidden="true"></div>
+</BaseLayout>

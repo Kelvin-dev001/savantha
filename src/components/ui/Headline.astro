@@ -1,0 +1,45 @@
+---
+/**
+ * Renders a content `headline` (one to three lines, each with an optional `emphasis` phrase
+ * set in italic). Lines after the first can be indented on wide screens, like the hub hero.
+ */
+interface Props {
+  lines: { text: string; emphasis?: string }[];
+  indent?: boolean;
+}
+const { lines, indent = false } = Astro.props;
+---
+
+{lines.map((line, i) => (
+  <span class:list={['hl__line', { 'hl__line--indent': indent && i > 0 }]}>
+    {line.emphasis
+      ? line.text.split(line.emphasis).map((part, j, arr) => (
+          <>
+            {part}
+            {j < arr.length - 1 && <em>{line.emphasis}</em>}
+          </>
+        ))
+      : line.text}{' '}
+  </span>
+))}
+
+<style>
+  /* Layered so Tailwind utilities on the same element still win. */
+  @layer components {
+    .hl__line {
+      display: block;
+      text-wrap: balance;
+    }
+    @media (min-width: 1280px) {
+      .hl__line--indent {
+        padding-inline-start: 1.2em;
+      }
+    }
+    .hl__line :global(em),
+    .hl__line em {
+      font-style: italic;
+      font-weight: 300;
+      letter-spacing: -0.015em;
+    }
+  }
+</style>

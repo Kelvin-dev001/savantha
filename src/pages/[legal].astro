@@ -1,0 +1,355 @@
+---
+/**
+ * /privacy, /terms, /disclaimer: one document template. Text lives in src/content/legal/
+ * so an advocate can review it in one place.
+ *
+ * The head carries the document's dates and reviewer as a ruled ledger; while the reviewer
+ * is still a [[PLACEHOLDER]] the page says plainly that it is a draft. The body is a reading
+ * column with numbered clauses, beside a sticky contents list built from its headings.
+ * /disclaimer opens with the site-wide statement (disclaimer.md, the same text as the footer).
+ */
+import type { GetStaticPaths } from 'astro';
+import { getEntry, render } from 'astro:content';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PageHero from '@/components/sections/PageHero.astro';
+import NextSteps from '@/components/sections/NextSteps.astro';
+import Button from '@/components/ui/Button.astro';
+import Ph from '@/components/ui/Ph.astro';
+import { site, isPlaceholder } from '@/config/site';
+import { ui } from '@/config/navigation';
+import { whatsappLink, mailLink } from '@/lib/contact';
+
+/** Route → entry in src/content/legal/. */
+export const getStaticPaths = (() => [
+  { params: { legal: 'privacy' }, props: { entry: 'privacy' } },
+  { params: { legal: 'terms' }, props: { entry: 'terms' } },
+  { params: { legal: 'disclaimer' }, props: { entry: 'disclaimer-details' } },
+]) satisfies GetStaticPaths;
+
+interface Props {
+  entry: string;
+}
+const route = Astro.params.legal!;
+const doc = await getEntry('legal', Astro.props.entry);
+if (!doc) throw new Error(`src/content/legal/${Astro.props.entry}.md is required.`);
+const { Content, headings } = await render(doc);
+const toc = headings.filter((h) => h.depth === 2);
+
+const statement = route === 'disclaimer' ? await getEntry('legal', 'disclaimer') : undefined;
+const Statement = statement ? (await render(statement)).Content : undefined;
+
+const copy = (await getEntry('pages', 'pages'))!.data.legal;
+const d = doc.data;
+const reviewer = d.reviewedBy ?? '';
+const draft = !reviewer || isPlaceholder(reviewer);
+const updated = d.updated?.toLocaleDateString('en-GB', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+});
+---
+
+<BaseLayout title={d.title} description={d.summary ?? d.title}>
+  <PageHero eyebrow={copy.breadcrumb} headline={[{ text: d.title }]} lead={d.summary} size="doc">
+    <Fragment slot="aside">
+      <dl class="lmeta">
+        {updated && (
+          <div class="lmeta__row">
+            <dt class="eyebrow">{copy.updatedLabel}</dt>
+            <dd class="numerals">
+              <time datetime={d.updated!.toISOString().slice(0, 10)}>{updated}</time>
+            </dd>
+          </div>
+        )}
+        <div class="lmeta__row">
+          <dt class="eyebrow">{copy.reviewedLabel}</dt>
+          <dd>{isPlaceholder(reviewer) ? <Ph>{reviewer}</Ph> : reviewer}</dd>
+        </div>
+      </dl>
+      {draft && <p class="lmeta__draft">{copy.draftNote}</p>}
+    </Fragment>
+  </PageHero>
+
+  {Statement && (
+    <div class="shell">
+      <aside class="lstate" aria-labelledby="lstate-label">
+        <p id="lstate-label" class="eyebrow lstate__label">
+          {copy.statementLabel}
+        </p>
+        <div class="lstate__body">
+          <Statement />
+        </div>
+      </aside>
+    </div>
+  )}
+
+  <div class="shell ldoc">
+    <nav class="ldoc__toc" aria-labelledby="ltoc-label">
+      <div class="ldoc__sticky">
+        <h2 id="ltoc-label" class="eyebrow ldoc__toc-label">
+          {copy.contentsLabel}
+        </h2>
+        <ol class="ldoc__toc-list">
+          {toc.map((h, i) => (
+            <li>
+              <a href={`#${h.slug}`} class="ldoc__toc-link">
+                <span class="numerals" aria-hidden="true">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <span>{h.text}</span>
+              </a>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </nav>
+
+    <article class="prose" aria-labelledby="phero-title">
+      <Content />
+
+      <section class="lask" aria-labelledby="lask-title">
+        <h2 id="lask-title">{copy.questions.heading}</h2>
+        <p>{copy.questions.body}</p>
+        <div class="lask__actions">
+          <Button
+            href={whatsappLink()}
+            icon="whatsapp"
+            data-track="whatsapp_click"
+            data-track-service="general"
+            data-track-location={`legal-${route}`}
+          >
+            {ui.whatsappLabel}
+          </Button>
+          <Button href={mailLink(d.title)} variant="text" icon="mail" data-track="email_click">
+            {site.email}
+          </Button>
+        </div>
+      </section>
+    </article>
+  </div>
+
+  <div class="shell lnext">
+    <NextSteps />
+  </div>
+</BaseLayout>
+
+<style>
+  /* Layered so Tailwind utilities on the same element still win. */
+  @layer components {
+    /* ---------- head ledger ---------- */
+    .lmeta {
+      border-top: 1px solid var(--color-ink);
+    }
+    .lmeta__row {
+      display: grid;
+      grid-template-columns: 8rem minmax(0, 1fr);
+      gap: 1rem;
+      padding-block: 0.875rem;
+      border-bottom: 1px solid var(--color-line);
+      font-size: var(--text-small);
+    }
+    .lmeta__row dt {
+      color: var(--color-stone);
+      padding-top: 0.2rem;
+    }
+    .lmeta__draft {
+      margin-top: 1rem;
+      padding-left: 1rem;
+      border-left: 1px solid var(--color-gold);
+      font-size: var(--text-small);
+      line-height: var(--text-small--line-height);
+      color: var(--color-stone);
+    }
+
+    /* ---------- the short version (disclaimer) ---------- */
+    .lstate {
+      display: grid;
+      gap: 1rem var(--gap-x);
+      margin-top: clamp(3rem, 2rem + 3vw, 5rem);
+      padding: clamp(1.5rem, 1rem + 2vw, 2.5rem) 0;
+      border-top: 2px solid var(--color-ink);
+      border-bottom: 1px solid var(--color-line);
+    }
+    @media (min-width: 1024px) {
+      .lstate {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+      }
+      .lstate__label {
+        grid-column: 1 / span 3;
+        padding-top: 0.5rem;
+      }
+      .lstate__body {
+        grid-column: 4 / span 8;
+      }
+    }
+    .lstate__label {
+      color: var(--color-stone);
+    }
+    .lstate__body {
+      font-family: var(--font-display);
+      font-size: var(--text-d4);
+      line-height: 1.45;
+      font-weight: 380;
+      font-variation-settings: 'opsz' 36;
+    }
+
+    /* ---------- document ---------- */
+    .ldoc {
+      display: grid;
+      gap: 3rem var(--gap-x);
+      padding-top: clamp(3rem, 2rem + 4vw, 6rem);
+    }
+    @media (min-width: 1024px) {
+      .ldoc {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        align-items: start;
+      }
+      .ldoc__toc {
+        grid-column: 1 / span 3;
+        align-self: stretch;
+      }
+      .ldoc__sticky {
+        position: sticky;
+        top: calc(var(--header-h) + 2rem);
+      }
+      .prose {
+        grid-column: 4 / span 8;
+      }
+    }
+    .ldoc__toc-label {
+      color: var(--color-stone);
+      padding-bottom: 0.75rem;
+    }
+    .ldoc__toc-list {
+      border-top: 1px solid var(--color-ink);
+    }
+    .ldoc__toc-link {
+      display: grid;
+      grid-template-columns: 2rem minmax(0, 1fr);
+      align-items: baseline;
+      min-height: 40px;
+      padding-block: 0.5rem;
+      border-bottom: 1px solid var(--color-line);
+      font-size: var(--text-small);
+      line-height: 1.4;
+      transition: color 240ms var(--ease-quiet);
+    }
+    .ldoc__toc-link > span:first-child {
+      font-size: var(--text-micro);
+      font-weight: 650;
+      letter-spacing: var(--text-micro--letter-spacing);
+      color: var(--color-stone);
+    }
+    .ldoc__toc-link:hover {
+      color: var(--color-royal);
+    }
+    @media (max-width: 1023.98px) {
+      .ldoc__toc-list {
+        columns: 2 14rem;
+        column-gap: var(--gap-x);
+      }
+      .ldoc__toc-list li {
+        break-inside: avoid;
+      }
+    }
+
+    /* Prose: numbered clauses */
+    .prose {
+      counter-reset: clause;
+      max-width: 68ch;
+    }
+    .prose :global(h2) {
+      counter-increment: clause;
+      display: flex;
+      align-items: baseline;
+      gap: 1rem;
+      margin-top: clamp(2.5rem, 2rem + 2vw, 3.5rem);
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--color-line);
+      font-size: var(--text-d3);
+      line-height: var(--text-d3--line-height);
+      letter-spacing: var(--text-d3--letter-spacing);
+      font-weight: 380;
+      scroll-margin-top: calc(var(--header-h) + 1.5rem);
+    }
+    .prose :global(h2::before) {
+      content: counter(clause, decimal-leading-zero);
+      flex: none;
+      font-family: var(--font-sans);
+      font-size: var(--text-micro);
+      letter-spacing: var(--text-micro--letter-spacing);
+      font-weight: 650;
+      color: var(--color-stone);
+      font-variant-numeric: tabular-nums;
+      translate: 0 -0.25em;
+    }
+    .prose > :global(h2:first-child) {
+      margin-top: 0;
+      border-top-color: var(--color-ink);
+    }
+    .prose :global(p),
+    .prose :global(ul),
+    .prose :global(ol) {
+      margin-top: 1rem;
+    }
+    .prose :global(ul) {
+      display: grid;
+      gap: 0.5rem;
+    }
+    .prose :global(ul > li) {
+      position: relative;
+      padding-left: 1.5rem;
+    }
+    .prose :global(ul > li::before) {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0.8em;
+      width: 0.75rem;
+      height: 1px;
+      background: var(--color-gold);
+    }
+    .prose :global(strong) {
+      font-weight: 650;
+    }
+    .prose :global(a:not(.btn)) {
+      color: var(--color-royal);
+      text-decoration: underline;
+      text-decoration-thickness: 1px;
+      text-underline-offset: 0.22em;
+      text-decoration-color: var(--color-gold);
+    }
+    .prose :global(a:not(.btn):hover) {
+      text-decoration-color: currentColor;
+    }
+
+    .lask {
+      margin-top: clamp(3rem, 2rem + 3vw, 5rem);
+      padding: clamp(1.5rem, 1rem + 2vw, 2.25rem);
+      background: var(--color-paper);
+      border-top: 1px solid var(--color-ink);
+    }
+    .lask :global(h2) {
+      margin-top: 0;
+      padding-top: 0;
+      border-top: 0;
+      font-size: var(--text-d4);
+    }
+    .lask :global(h2) {
+      counter-increment: none;
+    }
+    .lask :global(h2::before) {
+      content: none;
+    }
+    .lask__actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem 2rem;
+      margin-top: 1.5rem;
+    }
+    .lnext {
+      padding-block: var(--section-y);
+    }
+  }
+</style>
