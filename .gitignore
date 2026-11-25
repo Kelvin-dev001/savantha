@@ -1,0 +1,24 @@
+# build
+dist/
+.astro/
+.vercel/
+
+# deps
+node_modules/
+
+# env
+.env
+.env.*
+!.env.example
+
+# test + review output
+playwright-report/
+test-results/
+screenshots/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+~$*
+*.log
+.claude/settings.local.json

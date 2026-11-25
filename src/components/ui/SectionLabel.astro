@@ -1,0 +1,53 @@
+---
+/**
+ * Numbered section label that reads like a line in a financial statement:
+ *   01 — HOW WE WORK ─────────────────────────────
+ * The number is decorative context; the label text is the readable part.
+ */
+interface Props {
+  number: string;
+  /** Show the trailing gold hairline. */
+  rule?: boolean;
+  class?: string;
+}
+const { number, rule = true, class: className = '' } = Astro.props;
+---
+
+<div class:list={['section-label', className]}>
+  <span class="eyebrow numerals section-label__num">{number}</span>
+  <span class="section-label__dash" aria-hidden="true"></span>
+  <span class="eyebrow section-label__text">
+    <slot />
+  </span>
+  {rule && <span class="section-label__rule" aria-hidden="true"></span>}
+</div>
+
+<style>
+  /* Layered so Tailwind utilities on the same element still win. */
+  @layer components {
+    .section-label {
+      display: flex;
+      align-items: center;
+      gap: 0.875rem;
+      color: var(--surface-text);
+    }
+    .section-label__num {
+      color: var(--surface-text);
+    }
+    .section-label__dash {
+      width: 1.25rem;
+      height: 1px;
+      background: currentColor;
+      opacity: 0.5;
+    }
+    .section-label__text {
+      color: var(--surface-muted);
+    }
+    .section-label__rule {
+      flex: 1;
+      height: 1px;
+      background: var(--color-line);
+      margin-left: 0.5rem;
+    }
+  }
+</style>

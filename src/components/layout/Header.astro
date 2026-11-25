@@ -1,0 +1,476 @@
+---
+/**
+ * Site header.
+ * - `overlay`: transparent over a hero, turns ivory with a hairline after 80 px.
+ * - Hides on scroll down, returns on scroll up (and whenever focus enters it).
+ * - Services mega-menu (disclosure pattern) on ≥1024 px; full-height sheet below.
+ * Vanilla JS, ~1.5 KB. No library.
+ */
+import { site } from '@/config/site';
+import { pillars, primaryNav, ui } from '@/config/navigation';
+import { whatsappLink } from '@/lib/contact';
+import Monogram from '@/components/ui/Monogram.astro';
+import Button from '@/components/ui/Button.astro';
+import Icon from '@/components/ui/Icon.astro';
+
+interface Props {
+  overlay?: boolean;
+  /** Colour of the transparent state (over a dark hero use "dark"). */
+  tone?: 'light' | 'dark';
+}
+const { overlay = false, tone = 'light' } = Astro.props;
+const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`);
+---
+
+<header
+  class="site-header"
+  data-overlay={overlay ? 'true' : 'false'}
+  data-tone={tone}
+  data-scrolled={overlay ? 'false' : 'true'}
+  data-hidden="false"
+  data-open="none"
+>
+  <div class="shell flex h-[var(--header-h)] items-center justify-between gap-6">
+    <a href="/" class="brand">
+      <Monogram size={30} />
+      <span class="brand__word">{site.shortName}</span>
+      <span class="sr-only">{ui.homeLinkSuffix}</span>
+    </a>
+
+    <nav aria-label={ui.mainNavLabel} class="hidden lg:block">
+      <ul class="flex items-center gap-1">
+        <li>
+          <button
+            type="button"
+            class="nav-link"
+            aria-expanded="false"
+            aria-controls="mega-services"
+            data-mega-toggle
+            aria-current={isCurrent('/services') ? 'page' : undefined}
+          >
+            {ui.services}
+            <Icon name="chevron-down" size={14} class="nav-chevron" />
+          </button>
+        </li>
+        {primaryNav.map((item) => (
+          <li>
+            <a
+              href={item.href}
+              class="nav-link"
+              aria-current={isCurrent(item.href) ? 'page' : undefined}
+            >
+              {item.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+
+    <div class="flex items-center gap-2">
+      <Button
+        href={whatsappLink()}
+        size="sm"
+        icon="whatsapp"
+        class="header-cta hidden sm:inline-flex"
+        data-track="whatsapp_click"
+        data-track-service="general"
+        data-track-location="header"
+      >
+        {ui.talkToUs}
+      </Button>
+      <button
+        type="button"
+        class="menu-toggle lg:hidden"
+        aria-expanded="false"
+        aria-controls="mobile-menu"
+        data-menu-toggle
+      >
+        <span class="menu-toggle__label" data-label-open={ui.menu} data-label-close={ui.close}>
+          {ui.menu}
+        </span>
+        <span class="menu-toggle__bars" aria-hidden="true">
+          <i></i>
+          <i></i>
+        </span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Services mega-menu (desktop) -->
+  <div id="mega-services" class="mega surface-paper" hidden data-mega>
+    <div class="shell grid-12 py-12">
+      <div class="col-span-3 flex flex-col justify-between gap-8 pr-6">
+        <div>
+          <p class="eyebrow text-muted">{ui.services}</p>
+          <p class="text-small text-muted mt-4 max-w-[28ch]">{ui.megaNote}</p>
+        </div>
+        <Button href="/services" variant="text" class="self-start">
+          {ui.allServices}
+        </Button>
+      </div>
+      {pillars.map((p) => (
+        <div class="mega__pillar col-span-3">
+          <p class="eyebrow numerals text-muted">
+            {ui.pillar} {p.numeral}
+          </p>
+          <p class="text-d4 display mt-3">{p.title}</p>
+          <p class="text-small text-muted mt-2 max-w-[30ch]">{p.line}</p>
+          <ul class="mt-6">
+            {p.services.map((s) => (
+              <li>
+                <a href={s.href} class="mega__link">
+                  <span>{s.title}</span>
+                  <Icon name="arrow-right" size={14} />
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  </div>
+
+  <!-- Mobile / tablet sheet -->
+  <div id="mobile-menu" class="sheet surface-ivory" hidden data-sheet>
+    <nav aria-label={ui.mainNavLabel} class="shell flex min-h-full flex-col py-8">
+      <p class="eyebrow text-muted">{ui.services}</p>
+      <ul class="mt-4">
+        {pillars.map((p) => (
+          <li class="sheet__group">
+            <p class="eyebrow numerals text-muted pt-5">
+              {p.numeral} <span aria-hidden="true">—</span> {p.title}
+            </p>
+            <ul class="mt-2">
+              {p.services.map((s) => (
+                <li>
+                  <a href={s.href} class="sheet__link">
+                    {s.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </li>
+        ))}
+      </ul>
+      <ul class="mt-8 border-t hairline pt-4">
+        {primaryNav.map((item) => (
+          <li>
+            <a
+              href={item.href}
+              class="sheet__link sheet__link--lg"
+              aria-current={isCurrent(item.href) ? 'page' : undefined}
+            >
+              {item.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+      <div class="mt-auto pt-10">
+        <Button
+          href={whatsappLink()}
+          icon="whatsapp"
+          class="w-full"
+          data-track="whatsapp_click"
+          data-track-service="general"
+          data-track-location="menu"
+        >
+          {ui.talkToUs}
+        </Button>
+        <p class="text-small text-muted mt-4 text-center">
+          <a href={`tel:${site.phone.e164}`} class="underline decoration-gold underline-offset-4">
+            {site.phone.display}
+          </a>
+          <span aria-hidden="true"> · </span>
+          <a href={`mailto:${site.email}`} class="underline decoration-gold underline-offset-4">
+            {site.email}
+          </a>
+        </p>
+      </div>
+    </nav>
+  </div>
+</header>
+{!overlay && <div class="h-[var(--header-h)]" aria-hidden="true"></div>}
+
+<style>
+  /* Layered so Tailwind utilities on the same element still win. */
+  @layer components {
+    .site-header {
+      position: fixed;
+      inset: 0 0 auto 0;
+      z-index: 50;
+      color: var(--color-ink);
+      transition:
+        transform 480ms var(--ease-settle),
+        background-color 360ms var(--ease-quiet),
+        box-shadow 360ms var(--ease-quiet);
+    }
+    .site-header[data-scrolled='true'],
+    .site-header[data-open]:not([data-open='none']) {
+      background-color: var(--color-ivory);
+      box-shadow: inset 0 -1px 0 var(--color-line);
+    }
+    .site-header[data-tone='dark'][data-scrolled='false'][data-open='none'] {
+      color: var(--color-ivory);
+      --focus-ring: var(--color-gold-soft);
+    }
+    .site-header[data-hidden='true'] {
+      transform: translateY(-100%);
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      min-height: 44px;
+    }
+    .brand__word {
+      text-transform: uppercase;
+      font-family: var(--font-display);
+      font-variation-settings: 'opsz' 24;
+      font-weight: 480;
+      font-size: 1.0625rem;
+      letter-spacing: 0.28em;
+      margin-right: -0.28em;
+    }
+
+    .nav-link {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+      min-height: 44px;
+      padding-inline: 0.875rem;
+      font-size: 0.9375rem;
+      font-weight: 560;
+      cursor: pointer;
+    }
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      left: 0.875rem;
+      right: 0.875rem;
+      bottom: 8px;
+      height: 1px;
+      background: var(--color-gold);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 420ms var(--ease-settle);
+    }
+    .nav-link:hover::after,
+    .nav-link[aria-current='page']::after,
+    .nav-link[aria-expanded='true']::after {
+      transform: scaleX(1);
+    }
+    .nav-link :global(.nav-chevron) {
+      transition: transform 320ms var(--ease-quiet);
+    }
+    .nav-link[aria-expanded='true'] :global(.nav-chevron) {
+      transform: rotate(180deg);
+    }
+
+    .site-header[data-tone='dark'][data-scrolled='false'][data-open='none'] :global(.header-cta) {
+      --btn-bg: var(--color-ivory);
+      --btn-fg: var(--color-ink);
+      --btn-border: var(--color-ivory);
+    }
+
+    .mega {
+      position: absolute;
+      inset: 100% 0 auto 0;
+      border-top: 1px solid var(--color-line);
+      box-shadow: inset 0 -1px 0 var(--color-line);
+    }
+    .mega__pillar {
+      border-left: 1px solid var(--color-line);
+      padding-left: var(--gap-x);
+    }
+    .mega__link {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      min-height: 48px;
+      border-top: 1px solid var(--color-line);
+      font-size: 0.9375rem;
+      font-weight: 560;
+      transition:
+        color 240ms var(--ease-quiet),
+        padding 420ms var(--ease-settle);
+    }
+    .mega__link :global(.icon) {
+      color: var(--color-gold);
+      opacity: 0;
+      transform: translateX(-6px);
+      transition:
+        opacity 240ms var(--ease-quiet),
+        transform 420ms var(--ease-settle);
+    }
+    .mega__link:hover,
+    .mega__link:focus-visible {
+      color: var(--color-royal);
+    }
+    .mega__link:hover :global(.icon),
+    .mega__link:focus-visible :global(.icon) {
+      opacity: 1;
+      transform: none;
+    }
+
+    .menu-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      min-height: 44px;
+      min-width: 44px;
+      padding-inline: 0.75rem;
+      margin-right: -0.75rem;
+      font-size: 0.875rem;
+      font-weight: 620;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+    }
+    .menu-toggle__bars {
+      position: relative;
+      width: 20px;
+      height: 10px;
+    }
+    .menu-toggle__bars i {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 1.5px;
+      background: currentColor;
+      transition:
+        transform 420ms var(--ease-settle),
+        top 420ms var(--ease-settle);
+    }
+    .menu-toggle__bars i:first-child {
+      top: 0;
+    }
+    .menu-toggle__bars i:last-child {
+      top: 8.5px;
+    }
+    .menu-toggle[aria-expanded='true'] .menu-toggle__bars i:first-child {
+      top: 4.25px;
+      transform: rotate(45deg);
+    }
+    .menu-toggle[aria-expanded='true'] .menu-toggle__bars i:last-child {
+      top: 4.25px;
+      transform: rotate(-45deg);
+    }
+
+    .sheet {
+      position: fixed;
+      inset: var(--header-h) 0 0 0;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      border-top: 1px solid var(--color-line);
+    }
+    .sheet__link {
+      display: flex;
+      align-items: center;
+      min-height: 48px;
+      font-size: 1.0625rem;
+      font-weight: 560;
+      border-bottom: 1px solid var(--color-line);
+    }
+    .sheet__link--lg {
+      font-family: var(--font-display);
+      font-weight: 400;
+      font-size: 1.625rem;
+      min-height: 60px;
+    }
+    .sheet__link[aria-current='page'] {
+      color: var(--color-royal);
+    }
+  }
+</style>
+
+<script>
+  const header = document.querySelector<HTMLElement>('.site-header');
+  if (header) {
+    const overlay = header.dataset.overlay === 'true';
+    const megaBtn = header.querySelector<HTMLButtonElement>('[data-mega-toggle]');
+    const mega = header.querySelector<HTMLElement>('[data-mega]');
+    const menuBtn = header.querySelector<HTMLButtonElement>('[data-menu-toggle]');
+    const sheet = header.querySelector<HTMLElement>('[data-sheet]');
+    const label = menuBtn?.querySelector<HTMLElement>('.menu-toggle__label');
+    const outside = () =>
+      Array.from(document.body.children).filter(
+        (el): el is HTMLElement =>
+          el instanceof HTMLElement && !el.contains(header) && el.tagName !== 'SCRIPT',
+      );
+
+    // Scroll state
+    let lastY = window.scrollY;
+    let ticking = false;
+    const update = () => {
+      const y = window.scrollY;
+      if (overlay) header.dataset.scrolled = y > 80 ? 'true' : 'false';
+      if (header.dataset.open === 'none') {
+        if (y > lastY + 4 && y > 160) header.dataset.hidden = 'true';
+        else if (y < lastY - 4 || y <= 160) header.dataset.hidden = 'false';
+      }
+      lastY = y;
+      ticking = false;
+    };
+    window.addEventListener(
+      'scroll',
+      () => {
+        if (!ticking) {
+          requestAnimationFrame(update);
+          ticking = true;
+        }
+      },
+      { passive: true },
+    );
+    update();
+    header.addEventListener('focusin', () => (header.dataset.hidden = 'false'));
+
+    // Mega-menu
+    const setMega = (open: boolean, focusBack = false) => {
+      if (!megaBtn || !mega) return;
+      megaBtn.setAttribute('aria-expanded', String(open));
+      mega.hidden = !open;
+      header.dataset.open = open ? 'mega' : 'none';
+      if (!open && focusBack) megaBtn.focus();
+    };
+    megaBtn?.addEventListener('click', () =>
+      setMega(megaBtn.getAttribute('aria-expanded') !== 'true'),
+    );
+    mega?.addEventListener('focusout', (e) => {
+      const next = e.relatedTarget as Node | null;
+      if (next && !mega.contains(next) && next !== megaBtn) setMega(false);
+    });
+    document.addEventListener('click', (e) => {
+      if (header.dataset.open === 'mega' && !header.contains(e.target as Node)) setMega(false);
+    });
+
+    // Mobile sheet
+    const setSheet = (open: boolean) => {
+      if (!menuBtn || !sheet) return;
+      menuBtn.setAttribute('aria-expanded', String(open));
+      sheet.hidden = !open;
+      header.dataset.open = open ? 'sheet' : 'none';
+      header.dataset.hidden = 'false';
+      document.documentElement.style.overflow = open ? 'hidden' : '';
+      outside().forEach((el) => (el.inert = open));
+      if (label)
+        label.textContent = (open ? label.dataset.labelClose : label.dataset.labelOpen) ?? '';
+      if (open) sheet.querySelector<HTMLElement>('a')?.focus();
+      else menuBtn.focus();
+    };
+    menuBtn?.addEventListener('click', () =>
+      setSheet(menuBtn.getAttribute('aria-expanded') !== 'true'),
+    );
+    window.matchMedia('(min-width: 1024px)').addEventListener('change', (e) => {
+      if (e.matches && header.dataset.open === 'sheet') setSheet(false);
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') return;
+      if (header.dataset.open === 'mega') setMega(false, true);
+      if (header.dataset.open === 'sheet') setSheet(false);
+    });
+  }
+</script>

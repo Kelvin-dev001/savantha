@@ -1,0 +1,51 @@
+---
+/** Small, deliberate icon set. Decorative by default (aria-hidden). */
+interface Props {
+  name:
+    | 'arrow-right'
+    | 'arrow-up-right'
+    | 'whatsapp'
+    | 'phone'
+    | 'mail'
+    | 'chevron-down'
+    | 'close'
+    | 'menu';
+  size?: number;
+  class?: string;
+}
+const { name, size = 16, class: className = '' } = Astro.props;
+---
+
+<svg
+  class:list={['icon shrink-0', className]}
+  width={size}
+  height={size}
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="square"
+  aria-hidden="true"
+  focusable="false"
+>
+  {name === 'arrow-right' && <path d="M3 12h17M14 6l6 6-6 6" />}
+  {name === 'arrow-up-right' && <path d="M7 17 17 7M8 7h9v9" />}
+  {name === 'chevron-down' && <path d="m6 9 6 6 6-6" />}
+  {name === 'close' && <path d="M6 6l12 12M18 6 6 18" />}
+  {name === 'menu' && <path d="M3 8h18M3 16h18" />}
+  {name === 'phone' && (
+    <path d="M5 3.5h3.2l1.6 4.3-2.1 1.3a11 11 0 0 0 7.2 7.2l1.3-2.1 4.3 1.6V19a1.5 1.5 0 0 1-1.6 1.5A16.5 16.5 0 0 1 3.5 5.1 1.5 1.5 0 0 1 5 3.5Z" />
+  )}
+  {name === 'mail' && (
+    <g>
+      <rect x="3" y="5.5" width="18" height="13" />
+      <path d="m3 6 9 7 9-7" />
+    </g>
+  )}
+  {name === 'whatsapp' && (
+    <g stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3.6 20.4 5 15.9A8.6 8.6 0 1 1 8.2 19l-4.6 1.4Z" />
+      <path d="M9.1 8.4c.2-.4.4-.5.7-.5h.5c.2 0 .4.1.5.4l.7 1.7c.1.2 0 .4-.1.6l-.5.6c-.1.1-.1.3 0 .5a6 6 0 0 0 2.9 2.6c.2.1.4 0 .5-.1l.6-.7c.2-.2.4-.2.6-.1l1.6.8c.2.1.3.3.3.5v.4c0 .7-.7 1.4-1.5 1.5-.9.1-2.6-.2-4.5-1.8-2-1.7-2.7-3.4-2.8-4.4 0-.8.3-1.5.5-1.9Z" />
+    </g>
+  )}
+</svg>

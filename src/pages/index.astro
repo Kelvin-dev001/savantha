@@ -1,0 +1,32 @@
+---
+/**
+ * Temporary holding page for Phase 1. The real homepage lands in Phases 2–3.
+ */
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import SectionLabel from '@/components/ui/SectionLabel.astro';
+import Button from '@/components/ui/Button.astro';
+import Lattice from '@/components/ui/Lattice.astro';
+import { site } from '@/config/site';
+import { whatsappLink } from '@/lib/contact';
+---
+
+<BaseLayout title={site.name} description={site.positioning}>
+  <section class="relative isolate overflow-hidden">
+    <Lattice density="regular" opacity={0.22} fade="right" class="-z-10" />
+    <div class="shell section-y">
+      <SectionLabel number="00">{site.tagline}</SectionLabel>
+      <h1 class="text-hero display mt-16 max-w-[14ch]">
+        Clarity for your money. Legacy for your family.
+      </h1>
+      <p class="text-lead text-muted measure mt-8">{site.positioning}</p>
+      <div class="mt-12 flex flex-wrap items-center gap-6">
+        <Button href={whatsappLink()} icon="whatsapp" data-track="whatsapp_click">
+          Book a free discovery call
+        </Button>
+        <Button href="/styleguide" variant="text">
+          View the styleguide
+        </Button>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

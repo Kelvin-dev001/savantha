@@ -1,0 +1,142 @@
+---
+/**
+ * <Lattice /> — Savantho's signature motif.
+ * A star-and-cross tessellation built from eight-point (khatam) stars: 1 px strokes, low opacity.
+ * Always decorative (aria-hidden). Fills its positioned parent.
+ *
+ * Static:   an SVG <pattern> (a few hundred bytes, any size, true 1 px lines).
+ * Animated: explicit <use> tiles in a 1440×900 slice viewBox that line-draw from `origin`
+ *           via stroke-dashoffset (CSS only — no JS, final state shown under reduced motion).
+ */
+interface Props {
+  density?: 'sparse' | 'regular' | 'dense';
+  opacity?: number;
+  animate?: boolean;
+  tone?: 'gold' | 'gold-soft' | 'ink' | 'ivory';
+  /** Mask: the named side is where the lattice stays strongest (it fades away from it). */
+  fade?: 'none' | 'radial' | 'edges' | 'top' | 'bottom' | 'left' | 'right';
+  /** Draw a fine octagon inside each star. */
+  detail?: boolean;
+  /** Animated only — where the draw starts, as [x%, y%]. */
+  origin?: [number, number];
+  /** Animated only — spread of the stagger in ms (draw ≈ spread + 820 ms). */
+  spread?: number;
+  class?: string;
+}
+
+const {
+  density = 'regular',
+  opacity = 0.18,
+  animate = false,
+  tone = 'gold',
+  fade = 'none',
+  detail = false,
+  origin = [50, 50],
+  spread = 780,
+  class: className = '',
+} = Astro.props;
+
+const TILE = { sparse: 168, regular: 112, dense: 72 }[density];
+const STROKE = {
+  gold: 'var(--color-gold)',
+  'gold-soft': 'var(--color-gold-soft)',
+  ink: 'var(--color-ink)',
+  ivory: 'var(--color-ivory)',
+}[tone];
+
+// Eight-point star outline (two interlaced squares, outline only), centred in a tile.
+// Outer points at R = tile/2 touch the tile edges, so neighbouring stars meet point-to-point
+// and the gaps between them resolve into crosses: the classic star-and-cross lattice.
+const r = (n: number) => Math.round(n * 100) / 100;
+function starPath(size: number) {
+  const c = size / 2;
+  const R = size / 2;
+  const inner = R * (Math.SQRT1_2 / Math.cos(Math.PI / 8)); // ≈ 0.765 R
+  const pts: string[] = [];
+  for (let i = 0; i < 16; i++) {
+    const a = (i * Math.PI) / 8 - Math.PI / 2;
+    const rad = i % 2 === 0 ? R : inner;
+    pts.push(`${r(c + rad * Math.cos(a))} ${r(c + rad * Math.sin(a))}`);
+  }
+  return `M${pts.join('L')}Z`;
+}
+function octagonPath(size: number) {
+  const c = size / 2;
+  const rad = (size / 2) * 0.42;
+  const pts: string[] = [];
+  for (let i = 0; i < 8; i++) {
+    const a = (i * Math.PI) / 4 + Math.PI / 8 - Math.PI / 2;
+    pts.push(`${r(c + rad * Math.cos(a))} ${r(c + rad * Math.sin(a))}`);
+  }
+  return `M${pts.join('L')}Z`;
+}
+
+const uid = `lt${Math.random().toString(36).slice(2, 8)}`;
+const star = starPath(TILE);
+const oct = detail ? octagonPath(TILE) : '';
+
+// Animated tile grid
+const VW = 1440;
+const VH = 900;
+const tiles: { x: number; y: number; d: number }[] = [];
+if (animate) {
+  const cols = Math.ceil(VW / TILE) + 1;
+  const rows = Math.ceil(VH / TILE) + 1;
+  const offX = (VW - cols * TILE) / 2;
+  const offY = (VH - rows * TILE) / 2;
+  const ox = (origin[0] / 100) * VW;
+  const oy = (origin[1] / 100) * VH;
+  const dists: number[] = [];
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < cols; col++) {
+      const x = offX + col * TILE;
+      const y = offY + row * TILE;
+      const dist = Math.hypot(x + TILE / 2 - ox, y + TILE / 2 - oy);
+      tiles.push({ x: r(x), y: r(y), d: dist });
+      dists.push(dist);
+    }
+  }
+  const max = Math.max(...dists) || 1;
+  for (const t of tiles) t.d = Math.round((t.d / max) * spread);
+}
+---
+
+<div
+  class:list={['lattice', className]}
+  data-fade={fade}
+  data-animate={animate ? 'true' : 'false'}
+  aria-hidden="true"
+>
+  {animate ? (
+    <svg
+      viewBox={`0 0 ${VW} ${VH}`}
+      preserveAspectRatio="xMidYMid slice"
+      focusable="false"
+      fill="none"
+      stroke={STROKE}
+      stroke-width="1"
+      stroke-linejoin="miter"
+      style={`opacity:${opacity}`}
+    >
+      <defs>
+        <path id={`${uid}-s`} d={star} pathLength="1" />
+        {detail && <path id={`${uid}-o`} d={oct} pathLength="1" />}
+      </defs>
+      {tiles.map((t) => (
+        <use href={`#${uid}-s`} x={t.x} y={t.y} style={`--d:${t.d}`} />
+      ))}
+      {detail &&
+        tiles.map((t) => <use href={`#${uid}-o`} x={t.x} y={t.y} style={`--d:${t.d + 240}`} />)}
+    </svg>
+  ) : (
+    <svg focusable="false" style={`opacity:${opacity}`}>
+      <defs>
+        <pattern id={uid} width={TILE} height={TILE} patternUnits="userSpaceOnUse">
+          <path d={star} fill="none" stroke={STROKE} stroke-width="1" />
+          {detail && <path d={oct} fill="none" stroke={STROKE} stroke-width="1" />}
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill={`url(#${uid})`} />
+    </svg>
+  )}
+</div>

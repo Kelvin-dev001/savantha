@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- PLACEHOLDER favicon (monogram star) until Savantho supplies vectors -->
+  <rect width="64" height="64" rx="6" fill="#0B1530"/>
+  <path d="M32.00 6.00L39.62 13.62L50.38 13.62L50.38 24.38L58.00 32.00L50.38 39.62L50.38 50.38L39.62 50.38L32.00 58.00L24.38 50.38L13.62 50.38L13.62 39.62L6.00 32.00L13.62 24.38L13.62 13.62L24.38 13.62Z" fill="none" stroke="#C9A24B" stroke-width="2.4"/>
+  <text x="32" y="33" text-anchor="middle" dominant-baseline="central" font-family="Georgia, serif" font-style="italic" font-size="26" fill="#F6F1E7">S</text>
+</svg>

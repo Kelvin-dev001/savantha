@@ -1,0 +1,88 @@
+---
+import '@fontsource-variable/fraunces/opsz.css';
+import '@fontsource-variable/fraunces/opsz-italic.css';
+import '@fontsource-variable/manrope/wght.css';
+import '@/styles/global.css';
+import frauncesLatin from '@fontsource-variable/fraunces/files/fraunces-latin-opsz-normal.woff2?url';
+import manropeLatin from '@fontsource-variable/manrope/files/manrope-latin-wght-normal.woff2?url';
+
+import { site } from '@/config/site';
+import { ui } from '@/config/navigation';
+import Header from '@/components/layout/Header.astro';
+import Footer from '@/components/layout/Footer.astro';
+
+interface Props {
+  title: string;
+  description: string;
+  /** Header floats transparently over the first section. */
+  overlayHeader?: boolean;
+  headerTone?: 'light' | 'dark';
+  noindex?: boolean;
+}
+
+const {
+  title,
+  description,
+  overlayHeader = false,
+  headerTone = 'light',
+  noindex = false,
+} = Astro.props;
+const fullTitle = title === site.name ? title : `${title} | ${site.name}`;
+const canonical = new URL(Astro.url.pathname, site.url).href;
+const showPlaceholders = import.meta.env.PUBLIC_SHOW_PLACEHOLDERS === 'true';
+---
+
+<!doctype html>
+<html lang="en-KE" data-show-placeholders={showPlaceholders ? 'true' : 'false'}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+    <meta name="theme-color" content={site.themeColor} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preload" href={frauncesLatin} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={manropeLatin} as="font" type="font/woff2" crossorigin />
+    <meta name="generator" content={Astro.generator} />
+    <slot name="head" />
+  </head>
+  <body>
+    <a href="#main" class="skip-link">
+      {ui.skipLink}
+    </a>
+    <Header overlay={overlayHeader} tone={headerTone} />
+    <main id="main" tabindex="-1">
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>
+
+<style>
+  /* Layered so Tailwind utilities on the same element still win. */
+  @layer components {
+    .skip-link {
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      z-index: 100;
+      padding: 0.875rem 1.25rem;
+      background: var(--color-ink);
+      color: var(--color-ivory);
+      font-weight: 620;
+      font-size: 0.9375rem;
+      border-radius: var(--radius-xs);
+      transform: translateY(-160%);
+      transition: transform 240ms var(--ease-quiet);
+    }
+    .skip-link:focus-visible {
+      transform: none;
+      outline-color: var(--color-gold-soft);
+    }
+    main:focus {
+      outline: none;
+    }
+  }
+</style>

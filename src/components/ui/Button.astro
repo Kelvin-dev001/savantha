@@ -1,0 +1,193 @@
+---
+/**
+ * Button / link-button. Renders <a> when `href` is set, otherwise <button>.
+ * Copy comes in via the default slot. Extra attributes (data-track, aria-*) pass through.
+ */
+import type { HTMLAttributes } from 'astro/types';
+import Icon from './Icon.astro';
+
+type Variant = 'primary' | 'secondary' | 'text';
+interface Props extends Omit<HTMLAttributes<'a'>, 'type'> {
+  href?: string;
+  variant?: Variant;
+  /** Surface the button sits on. */
+  tone?: 'light' | 'dark';
+  size?: 'sm' | 'md' | 'lg';
+  icon?: 'arrow-right' | 'arrow-up-right' | 'whatsapp' | 'phone' | 'mail' | 'none';
+  iconPosition?: 'start' | 'end';
+  type?: 'button' | 'submit' | 'reset';
+  external?: boolean;
+  disabled?: boolean;
+  class?: string;
+}
+
+const {
+  href,
+  variant = 'primary',
+  tone = 'light',
+  size = 'md',
+  icon = variant === 'text' ? 'arrow-right' : 'none',
+  iconPosition = icon === 'whatsapp' || icon === 'phone' || icon === 'mail' ? 'start' : 'end',
+  type = 'button',
+  external = href?.startsWith('http') ?? false,
+  class: className = '',
+  ...rest
+} = Astro.props;
+
+const Tag = href ? 'a' : 'button';
+const linkAttrs = href
+  ? { href, ...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {}) }
+  : { type };
+---
+
+<Tag
+  class:list={['btn', `btn--${variant}`, `btn--${size}`, `btn--on-${tone}`, className]}
+  {...linkAttrs}
+  {...rest}
+>
+  {icon !== 'none' && iconPosition === 'start' && <Icon name={icon} size={18} class="btn__icon" />}
+  <span class="btn__label">
+    <slot />
+  </span>
+  {icon !== 'none' && iconPosition === 'end' && (
+    <Icon name={icon} size={16} class="btn__icon btn__icon--end" />
+  )}
+  {external && <span class="sr-only"> (opens in a new tab)</span>}
+</Tag>
+
+<style>
+  /* Layered so Tailwind utilities on the same element still win. */
+  @layer components {
+    .btn {
+      --btn-bg: var(--color-ink);
+      --btn-fg: var(--color-ivory);
+      --btn-border: var(--color-ink);
+      --btn-hover-bg: var(--color-ink-700);
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      font-family: var(--font-sans);
+      font-weight: 620;
+      letter-spacing: 0.01em;
+      line-height: 1;
+      white-space: nowrap;
+      border-radius: var(--radius-xs);
+      border: 1px solid var(--btn-border);
+      background: var(--btn-bg);
+      color: var(--btn-fg);
+      cursor: pointer;
+      isolation: isolate;
+      overflow: hidden;
+      transition:
+        background-color 320ms var(--ease-quiet),
+        border-color 320ms var(--ease-quiet),
+        color 320ms var(--ease-quiet);
+    }
+    .btn:disabled,
+    .btn[aria-disabled='true'] {
+      cursor: not-allowed;
+      opacity: 0.42;
+      pointer-events: none;
+    }
+    .btn--sm {
+      min-height: 44px;
+      padding-inline: 1.125rem;
+      font-size: 0.875rem;
+    }
+    .btn--md {
+      min-height: 52px;
+      padding-inline: 1.5rem;
+      font-size: 0.9375rem;
+    }
+    .btn--lg {
+      min-height: 60px;
+      padding-inline: 2rem;
+      font-size: 1rem;
+    }
+
+    /* Gold hairline that draws in along the bottom edge — a ledger underline. */
+    .btn--primary::after {
+      content: '';
+      position: absolute;
+      inset: auto 0 0 0;
+      height: 1px;
+      background: var(--color-gold);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 520ms var(--ease-settle);
+    }
+    .btn--primary:hover::after,
+    .btn--primary:focus-visible::after {
+      transform: scaleX(1);
+    }
+    .btn--primary:hover {
+      background: var(--btn-hover-bg);
+    }
+
+    .btn--primary.btn--on-dark {
+      --btn-bg: var(--color-ivory);
+      --btn-fg: var(--color-ink);
+      --btn-border: var(--color-ivory);
+      --btn-hover-bg: var(--color-paper);
+    }
+
+    .btn--secondary {
+      --btn-bg: transparent;
+      --btn-fg: var(--color-ink);
+      --btn-border: color-mix(in srgb, var(--color-ink) 32%, transparent);
+    }
+    .btn--secondary:hover {
+      --btn-border: var(--color-ink);
+      background: color-mix(in srgb, var(--color-ink) 4%, transparent);
+    }
+    .btn--secondary.btn--on-dark {
+      --btn-fg: var(--color-ivory);
+      --btn-border: color-mix(in srgb, var(--color-ivory) 36%, transparent);
+    }
+    .btn--secondary.btn--on-dark:hover {
+      --btn-border: var(--color-gold-soft);
+      background: color-mix(in srgb, var(--color-ivory) 5%, transparent);
+    }
+
+    /* Text link with arrow and a hairline that draws */
+    .btn--text {
+      --btn-bg: transparent;
+      --btn-border: transparent;
+      --btn-fg: var(--color-ink);
+      min-height: 44px;
+      padding-inline: 0;
+      gap: 0.625rem;
+      overflow: visible;
+    }
+    .btn--text .btn__label {
+      position: relative;
+      padding-block: 0.25rem;
+    }
+    .btn--text .btn__label::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 1px;
+      background: var(--color-gold);
+      transform-origin: right;
+      transition: transform 520ms var(--ease-settle);
+    }
+    .btn--text:hover .btn__label::after {
+      transform: scaleX(0.35);
+    }
+    .btn--text.btn--on-dark {
+      --btn-fg: var(--color-ivory);
+    }
+
+    .btn__icon--end {
+      transition: transform 420ms var(--ease-settle);
+    }
+    .btn:hover .btn__icon--end {
+      transform: translateX(3px);
+    }
+  }
+</style>

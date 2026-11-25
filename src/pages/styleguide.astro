@@ -1,0 +1,1232 @@
+---
+/**
+ * /styleguide — Phase 1 checkpoint. Internal reference (noindex).
+ * Colours and contrast ratios are computed from global.css at build time.
+ */
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import SectionLabel from '@/components/ui/SectionLabel.astro';
+import Eyebrow from '@/components/ui/Eyebrow.astro';
+import Button from '@/components/ui/Button.astro';
+import Lattice from '@/components/ui/Lattice.astro';
+import Monogram from '@/components/ui/Monogram.astro';
+import Ph from '@/components/ui/Ph.astro';
+import PlaceholderImage from '@/components/ui/PlaceholderImage.astro';
+import { site } from '@/config/site';
+import { whatsappLink } from '@/lib/contact';
+import { readColorTokens, contrast, over, toHex } from '@/lib/tokens';
+
+const tokens = readColorTokens();
+const t = Object.fromEntries(tokens.map((x) => [x.name, x]));
+
+const roles: Record<string, string> = {
+  ink: 'Base. Dark sections, body text on light.',
+  'ink-800': 'Raised surfaces on ink.',
+  'ink-700': 'Hover on ink, image vignettes.',
+  royal: 'Links, focus, interactive states.',
+  gold: 'Rules, icons, large numerals. Never body text on ivory.',
+  'gold-soft': 'Labels and accents on ink.',
+  ivory: 'Reading surface. The default page.',
+  paper: 'Lifted panels on ivory.',
+  stone: 'Secondary text on ivory and paper.',
+  line: 'Ledger hairlines. Gold at 28%.',
+};
+
+type Pair = {
+  fg: string;
+  bg: string;
+  fgAlpha?: number;
+  use: string;
+  large?: boolean;
+  ui?: boolean;
+};
+const pairs: Pair[] = [
+  { fg: 'ink', bg: 'ivory', use: 'Body text, headings' },
+  { fg: 'ink', bg: 'paper', use: 'Body text on panels' },
+  { fg: 'stone', bg: 'ivory', use: 'Secondary text' },
+  { fg: 'stone', bg: 'paper', use: 'Secondary text on panels' },
+  { fg: 'royal', bg: 'ivory', use: 'Links, focus ring' },
+  { fg: 'ivory', bg: 'ink', use: 'Text on ink' },
+  { fg: 'ivory', bg: 'ink', fgAlpha: 0.72, use: 'Secondary text on ink' },
+  { fg: 'gold-soft', bg: 'ink', use: 'Labels, focus ring on ink' },
+  { fg: 'gold', bg: 'ink', use: 'Accents, numerals on ink' },
+  { fg: 'ivory', bg: 'royal', use: 'Text on royal' },
+  { fg: 'royal', bg: 'ink', use: 'Not for focus on ink', ui: true },
+  { fg: 'gold', bg: 'ivory', use: 'Rules, icons, numerals ≥ 32 px bold only', large: true },
+];
+const rows = pairs.map((p) => {
+  const fg = t[p.fg];
+  const bg = t[p.bg];
+  const fgRgb = p.fgAlpha ? over(fg.rgb, p.fgAlpha, bg.rgb) : fg.rgb;
+  const ratio = contrast(fgRgb, bg.rgb);
+  return {
+    ...p,
+    label: `${p.fg}${p.fgAlpha ? ` ${Math.round(p.fgAlpha * 100)}%` : ''} on ${p.bg}`,
+    fgHex: toHex(fgRgb),
+    ratio,
+    aa: ratio >= 4.5,
+    aaLarge: ratio >= 3,
+    aaa: ratio >= 7,
+  };
+});
+
+const typeScale = [
+  {
+    token: 'text-hero',
+    cls: 'text-hero display',
+    family: 'Fraunces',
+    spec: '44 → 112 px · 380 · −0.02em · 1.03',
+    sample: 'Clarity for your money.',
+  },
+  {
+    token: 'text-d1',
+    cls: 'text-d1 display',
+    family: 'Fraunces',
+    spec: '36 → 72 px · 380 · −0.02em · 1.05',
+    sample: site.tagline,
+  },
+  {
+    token: 'text-d2',
+    cls: 'text-d2 display',
+    family: 'Fraunces',
+    spec: '30 → 52 px · 380 · −0.015em · 1.08',
+    sample: 'We explain every fee, product and risk in writing.',
+  },
+  {
+    token: 'text-d3',
+    cls: 'text-d3 display',
+    family: 'Fraunces',
+    spec: '24 → 34 px · 380 · −0.01em · 1.15',
+    sample: 'How Shariah-compliant finance works in Kenya',
+  },
+  {
+    token: 'text-d4',
+    cls: 'text-d4 display',
+    family: 'Fraunces',
+    spec: '20 → 24 px · 380 · 1.25',
+    sample: 'Letters of credit explained for Kenyan importers',
+  },
+  {
+    token: 'text-lead',
+    cls: 'text-lead',
+    family: 'Manrope',
+    spec: '19 → 23 px · 400 · 1.5',
+    sample:
+      'From a first household budget to the structure your children inherit, we help you understand the risks before you commit.',
+  },
+  {
+    token: 'text-body',
+    cls: 'text-body measure',
+    family: 'Manrope',
+    spec: '17 → 18 px · 400 · 1.6 · 68ch',
+    sample:
+      'Every engagement starts with a conversation, not a product. We listen first, then analyse where you are, structure a plan you can follow, and review it with you as life changes. You will always know what we charge, and why.',
+  },
+  {
+    token: 'text-small',
+    cls: 'text-small text-muted',
+    family: 'Manrope',
+    spec: '15 px · 400 · 1.55',
+    sample: 'We reply within one business day. The first call is free and lasts twenty minutes.',
+  },
+  {
+    token: 'eyebrow',
+    cls: 'eyebrow',
+    family: 'Manrope',
+    spec: '12 px · 650 · +0.14em · uppercase',
+    sample: '01 — How we work',
+  },
+];
+
+const sections = [
+  {
+    n: '01',
+    id: 'colour',
+    title: 'Colour',
+    note: 'Ten tokens and their contrast, computed from source.',
+  },
+  { n: '02', id: 'type', title: 'Typography', note: 'Fraunces and Manrope on one fluid scale.' },
+  { n: '03', id: 'controls', title: 'Buttons & links', note: 'Three variants on two surfaces.' },
+  { n: '04', id: 'lattice', title: 'The lattice', note: 'The signature motif and its settings.' },
+  {
+    n: '05',
+    id: 'ledger',
+    title: 'Rules & ledger rows',
+    note: 'The statement-like structure of every page.',
+  },
+  {
+    n: '06',
+    id: 'placeholders',
+    title: 'Placeholders',
+    note: 'How missing client assets are shown.',
+  },
+];
+
+const fmt = (r: number) => r.toFixed(2);
+---
+
+<BaseLayout
+  title="Styleguide"
+  description="The Savantho design system: colour, type, controls and the lattice."
+  noindex
+>
+  <!-- Cover -->
+  <section
+    class="shell pt-[clamp(3rem,2rem+4vw,6rem)] pb-[var(--section-y)]"
+    aria-labelledby="sg-title"
+  >
+    <div class="grid-12 items-end gap-y-14">
+      <div class="col-span-12 lg:col-span-7">
+        <SectionLabel number="00">Styleguide</SectionLabel>
+        <h1 id="sg-title" class="text-hero display mt-[clamp(2.5rem,1.5rem+4vw,5rem)]">
+          A system for <em class="sg-em">quiet</em> confidence.
+        </h1>
+        <p class="text-lead text-muted measure mt-8">
+          The working rules behind the new savantho.net. Every colour, size and line on this page
+          comes from one set of tokens, so a change made once is made everywhere.
+        </p>
+        <dl class="sg-meta mt-12">
+          <div>
+            <dt class="eyebrow text-muted">Version</dt>
+            <dd class="numerals">0.1</dd>
+          </div>
+          <div>
+            <dt class="eyebrow text-muted">Phase</dt>
+            <dd>1 · Foundation</dd>
+          </div>
+          <div>
+            <dt class="eyebrow text-muted">Updated</dt>
+            <dd class="numerals">25 Nov 2026</dd>
+          </div>
+          <div>
+            <dt class="eyebrow text-muted">Built with</dt>
+            <dd>Astro 5 · Tailwind 4</dd>
+          </div>
+        </dl>
+      </div>
+      <div class="col-span-12 lg:col-span-5">
+        <figure class="sg-plate surface-ink">
+          <Lattice animate density="regular" opacity={0.42} origin={[50, 46]} fade="edges" detail />
+          <div class="relative flex h-full flex-col items-center justify-center gap-6 text-center">
+            <Monogram size={96} />
+            <p class="display text-d4">{site.shortName}</p>
+          </div>
+          <figcaption class="eyebrow sg-plate__cap">{site.tagline}</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contents -->
+  <nav aria-label="Styleguide contents" class="shell pb-[var(--section-y)]">
+    <ol class="sg-index">
+      {sections.map((s) => (
+        <li>
+          <a href={`#${s.id}`} class="sg-index__row">
+            <span class="eyebrow numerals text-muted">{s.n}</span>
+            <span class="text-d3 display">{s.title}</span>
+            <span class="text-small text-muted hidden md:block">{s.note}</span>
+            <span class="sg-index__arrow" aria-hidden="true">
+              →
+            </span>
+          </a>
+        </li>
+      ))}
+    </ol>
+  </nav>
+
+  <!-- 01 Colour -->
+  <section id="colour" class="sg-section surface-paper" aria-labelledby="colour-h">
+    <div class="shell">
+      <SectionLabel number="01">Colour</SectionLabel>
+      <div class="grid-12 mt-12 gap-y-6">
+        <h2 id="colour-h" class="text-d1 display col-span-12 lg:col-span-6">
+          One palette, held to account.
+        </h2>
+        <p class="text-muted col-span-12 lg:col-span-5 lg:col-start-8 lg:self-end">
+          Ink carries the weight, ivory gives room to read, and gold is spent like money: on rules,
+          icons and the occasional large numeral. It never covers more than about 8% of a screen.
+        </p>
+      </div>
+
+      <!-- Proportion -->
+      <figure class="mt-16">
+        <div
+          class="sg-proportion"
+          role="img"
+          aria-label="Intended share of a typical screen: ivory and paper about 62%, ink about 28%, stone and royal about 4%, gold 8% at most."
+        >
+          <span style="flex: 62; background: var(--color-ivory)"></span>
+          <span style="flex: 28; background: var(--color-ink)"></span>
+          <span style="flex: 4; background: var(--color-stone)"></span>
+          <span style="flex: 2; background: var(--color-royal)"></span>
+          <span style="flex: 4; background: var(--color-gold)"></span>
+        </div>
+        <figcaption class="sg-proportion__legend text-small text-muted numerals mt-4">
+          <span>Ivory & paper ~62%</span>
+          <span>Ink ~28%</span>
+          <span>Stone ~4%</span>
+          <span>Royal ~2%</span>
+          <span>Gold ≤ 8%</span>
+        </figcaption>
+      </figure>
+
+      <!-- Swatches -->
+      <ul class="sg-swatches mt-16">
+        {tokens.map((c) => (
+          <li class={`sg-swatch sg-swatch--${c.name}`}>
+            <span class="sg-swatch__chip" style={`background: var(--color-${c.name})`} />
+            <span class="sg-swatch__meta">
+              <span class="text-d4 display">{c.name.replace('-', ' ')}</span>
+              <span class="text-small numerals">
+                <code>--color-{c.name}</code>
+                <span class="text-muted"> · {c.value.toUpperCase().replace('RGB', 'rgb')}</span>
+              </span>
+              <span class="text-small text-muted">{roles[c.name] ?? c.comment}</span>
+            </span>
+          </li>
+        ))}
+      </ul>
+
+      <!-- Contrast ledger -->
+      <div class="mt-24">
+        <h3 class="text-d3 display">Contrast ledger</h3>
+        <p class="text-muted measure mt-3">
+          WCAG 2.2 AA asks for 4.5:1 for body text and 3:1 for large text, icons and focus rings.
+          Ratios below are computed from the token values at build time.
+        </p>
+        <table class="sg-table mt-10">
+          <caption class="sr-only">Colour pairings and their WCAG contrast ratios</caption>
+          <thead>
+            <tr>
+              <th scope="col" class="eyebrow">
+                Pairing
+              </th>
+              <th scope="col" class="eyebrow">
+                Sample
+              </th>
+              <th scope="col" class="eyebrow text-right">
+                Ratio
+              </th>
+              <th scope="col" class="eyebrow">
+                Text AA
+              </th>
+              <th scope="col" class="eyebrow">
+                Large / UI
+              </th>
+              <th scope="col" class="eyebrow">
+                Use
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr>
+                <th scope="row" class="font-semibold">
+                  {row.label}
+                </th>
+                <td data-label="Sample">
+                  <span
+                    class="sg-sample"
+                    aria-hidden="true"
+                    style={`color: ${row.fgAlpha ? `color-mix(in srgb, var(--color-${row.fg}) ${row.fgAlpha * 100}%, transparent)` : `var(--color-${row.fg})`}; background: var(--color-${row.bg});`}
+                  ></span>
+                </td>
+                <td data-label="Ratio" class="numerals text-right font-semibold">
+                  {fmt(row.ratio)}:1
+                </td>
+                <td data-label="Text AA">
+                  <span class:list={['sg-verdict', row.aa ? 'is-pass' : 'is-fail']}>
+                    {row.aa ? (row.aaa ? 'Pass · AAA' : 'Pass') : 'Fail'}
+                  </span>
+                </td>
+                <td data-label="Large / UI">
+                  <span class:list={['sg-verdict', row.aaLarge ? 'is-pass' : 'is-fail']}>
+                    {row.aaLarge ? 'Pass' : 'Fail'}
+                  </span>
+                </td>
+                <td data-label="Use" class="text-muted">
+                  {row.use}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 Type -->
+  <section id="type" class="sg-section" aria-labelledby="type-h">
+    <div class="shell">
+      <SectionLabel number="02">Typography</SectionLabel>
+      <div class="grid-12 mt-12 gap-y-6">
+        <h2 id="type-h" class="text-d1 display col-span-12 lg:col-span-7">
+          Two voices. One scale.
+        </h2>
+        <p class="text-muted col-span-12 lg:col-span-4 lg:col-start-9 lg:self-end">
+          Fraunces speaks for the firm: considered, a little literary. Manrope does the work: clear
+          at 15 px on a phone in the sun. Sizes are fluid between 360 and 1440 px.
+        </p>
+      </div>
+
+      <div class="sg-faces mt-16">
+        <div class="sg-face">
+          <span class="sg-face__glyph display" aria-hidden="true">
+            Aa<em>g</em>
+          </span>
+          <div>
+            <p class="text-d4 display">Fraunces</p>
+            <p class="text-small text-muted">
+              Display · variable, optical size 9–144 · roman & italic
+            </p>
+          </div>
+        </div>
+        <div class="sg-face">
+          <span class="sg-face__glyph sg-face__glyph--sans" aria-hidden="true">
+            Aa
+          </span>
+          <div>
+            <p class="text-d4 display">Manrope</p>
+            <p class="text-small text-muted">Body & interface · variable, weight 200–800</p>
+          </div>
+        </div>
+        <div class="sg-face">
+          <span class="sg-face__glyph sg-face__glyph--sans numerals" aria-hidden="true">
+            0123
+          </span>
+          <div>
+            <p class="text-d4 display">Figures</p>
+            <p class="text-small text-muted">
+              Tabular lining numerals for every list, date and table
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <ol class="sg-scale mt-20">
+        {typeScale.map((s) => (
+          <li class="sg-scale__row">
+            <div class="sg-scale__meta">
+              <code class="text-small font-semibold">{s.token}</code>
+              <span class="text-small text-muted">{s.family}</span>
+              <span class="text-small text-muted numerals">{s.spec}</span>
+            </div>
+            <p class={s.cls}>{s.sample}</p>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <!-- 03 Controls -->
+  <section id="controls" class="sg-section surface-paper" aria-labelledby="controls-h">
+    <div class="shell">
+      <SectionLabel number="03">Buttons & links</SectionLabel>
+      <div class="grid-12 mt-12 gap-y-6">
+        <h2 id="controls-h" class="text-d1 display col-span-12 lg:col-span-7">
+          Few controls, each with a job.
+        </h2>
+        <p class="text-muted col-span-12 lg:col-span-4 lg:col-start-9 lg:self-end">
+          One primary action per view, usually WhatsApp. Radius 2 px. Targets 44 px and up. A gold
+          hairline draws in on hover; focus is a 2 px royal ring, or gold-soft on ink.
+        </p>
+      </div>
+
+      <div class="sg-controls mt-16">
+        <div class="sg-controls__panel surface-ivory">
+          <Eyebrow>On ivory</Eyebrow>
+          <div class="sg-controls__row">
+            <Button href={whatsappLink()} icon="whatsapp">
+              Book a free discovery call
+            </Button>
+            <Button href="/services" variant="secondary">
+              Explore services
+            </Button>
+          </div>
+          <div class="sg-controls__row">
+            <Button href="/services" variant="text">
+              All services
+            </Button>
+            <Button size="sm">Small</Button>
+            <Button size="lg" icon="arrow-right">
+              Large
+            </Button>
+          </div>
+          <div class="sg-controls__row">
+            <span class="sg-focus-demo">
+              <Button variant="secondary" tabindex="-1">
+                Focus state
+              </Button>
+            </span>
+            <Button variant="secondary" disabled>
+              Disabled
+            </Button>
+          </div>
+          <p class="text-body measure">
+            Inline links look like{' '}
+            <a class="link" href="/about">
+              this, in royal with a gold underline
+            </a>
+            , and sit comfortably inside a sentence.
+          </p>
+        </div>
+        <div class="sg-controls__panel surface-ink">
+          <Lattice density="sparse" opacity={0.12} fade="right" />
+          <Eyebrow class="relative">On ink</Eyebrow>
+          <div class="sg-controls__row relative">
+            <Button href={whatsappLink()} icon="whatsapp" tone="dark">
+              Book a free discovery call
+            </Button>
+            <Button href="/services" variant="secondary" tone="dark">
+              Explore services
+            </Button>
+          </div>
+          <div class="sg-controls__row relative">
+            <Button href="/services" variant="text" tone="dark">
+              All services
+            </Button>
+            <span class="sg-focus-demo sg-focus-demo--dark">
+              <Button variant="secondary" tone="dark" tabindex="-1">
+                Focus state
+              </Button>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 Lattice -->
+  <section id="lattice" class="sg-section" aria-labelledby="lattice-h">
+    <div class="shell">
+      <SectionLabel number="04">The lattice</SectionLabel>
+      <div class="grid-12 mt-12 gap-y-6">
+        <h2 id="lattice-h" class="text-d1 display col-span-12 lg:col-span-6">
+          Structure, not ornament.
+        </h2>
+        <p class="text-muted col-span-12 lg:col-span-5 lg:col-start-8 lg:self-end">
+          A star-and-cross tessellation built from the eight-point star of Islamic geometry, a
+          pattern long familiar along the Kenyan coast. It works like the ruling on a ledger page:
+          always there, never loud. One-pixel lines, low opacity, decorative only.
+        </p>
+      </div>
+
+      <figure class="sg-lattice-hero surface-ink mt-16" data-replay-target>
+        <Lattice animate density="regular" opacity={0.5} origin={[18, 40]} fade="left" />
+        <figcaption class="relative flex h-full flex-col justify-between p-[clamp(1.5rem,1rem+2vw,3rem)]">
+          <Eyebrow as="span" class="relative">
+            animate · origin [18, 40] · fade "left"
+          </Eyebrow>
+          <span class="flex flex-wrap items-end justify-between gap-6">
+            <span class="text-d2 display max-w-[16ch]">Line-draws once on load, about 1.6 s.</span>
+            <Button variant="secondary" tone="dark" size="sm" data-replay>
+              Replay the draw
+            </Button>
+          </span>
+        </figcaption>
+      </figure>
+
+      <ul class="sg-lattice-grid mt-6">
+        <li class="sg-lattice-card surface-ink">
+          <Lattice density="sparse" opacity={0.3} />
+          <span class="sg-lattice-card__label">density="sparse" · 168 px</span>
+        </li>
+        <li class="sg-lattice-card surface-ink">
+          <Lattice density="regular" opacity={0.3} />
+          <span class="sg-lattice-card__label">density="regular" · 112 px</span>
+        </li>
+        <li class="sg-lattice-card surface-ink">
+          <Lattice density="dense" opacity={0.3} detail />
+          <span class="sg-lattice-card__label">density="dense" · detail</span>
+        </li>
+        <li class="sg-lattice-card">
+          <Lattice density="regular" opacity={0.18} fade="radial" />
+          <span class="sg-lattice-card__label sg-lattice-card__label--light">
+            On ivory · 0.18 · radial
+          </span>
+        </li>
+        <li class="sg-lattice-card">
+          <Lattice density="regular" opacity={0.3} tone="ink" fade="edges" />
+          <span class="sg-lattice-card__label sg-lattice-card__label--light">
+            tone="ink" · 0.30 · edges
+          </span>
+        </li>
+        <li class="sg-lattice-card surface-ink">
+          <Lattice density="regular" opacity={0.22} tone="gold-soft" fade="top" />
+          <span class="sg-lattice-card__label">tone="gold-soft" · top</span>
+        </li>
+      </ul>
+
+      <div class="grid-12 mt-16 gap-y-10">
+        <div class="col-span-12 md:col-span-6">
+          <Eyebrow>Use it</Eyebrow>
+          <ul class="sg-rules mt-4">
+            <li>Hero (draws once), section dividers, the footer, the Shariah page watermark.</li>
+            <li>Opacity 0.08–0.30 on ivory, up to 0.50 on ink where nothing sits on top.</li>
+            <li>Fade it out toward where people read.</li>
+          </ul>
+        </div>
+        <div class="col-span-12 md:col-span-6">
+          <Eyebrow>Never</Eyebrow>
+          <ul class="sg-rules sg-rules--never mt-4">
+            <li>Behind running body text at full strength.</li>
+            <li>As a filled shape, an icon, or a religious emblem.</li>
+            <li>Looping, spinning, or reacting to the cursor.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 05 Ledger -->
+  <section id="ledger" class="sg-section surface-paper" aria-labelledby="ledger-h">
+    <div class="shell">
+      <SectionLabel number="05">Rules & ledger rows</SectionLabel>
+      <div class="grid-12 mt-12 gap-y-6">
+        <h2 id="ledger-h" class="text-d1 display col-span-12 lg:col-span-7">
+          Pages that read like a well-kept statement.
+        </h2>
+        <p class="text-muted col-span-12 lg:col-span-4 lg:col-start-9 lg:self-end">
+          Numbered sections, gold hairlines and tabular rows replace cards and shadows. The
+          structure says "we keep good books" before a word is read.
+        </p>
+      </div>
+
+      <div class="grid-12 mt-16 gap-y-12">
+        <div class="col-span-12 lg:col-span-4">
+          <Eyebrow>Section label</Eyebrow>
+          <SectionLabel number="02" class="mt-5">
+            How we work
+          </SectionLabel>
+          <Eyebrow class="mt-12">Hairline</Eyebrow>
+          <hr class="mt-5 border-0 border-t hairline" />
+          <Eyebrow class="mt-12">Total rule</Eyebrow>
+          <div class="sg-total mt-5" role="presentation"></div>
+        </div>
+        <div class="col-span-12 lg:col-span-7 lg:col-start-6">
+          <Eyebrow>Ledger rows · sample copy</Eyebrow>
+          <dl class="sg-ledger mt-5">
+            <div class="sg-ledger__row">
+              <dt class="eyebrow numerals text-muted">01</dt>
+              <dt class="text-d3 display">Integrity</dt>
+              <dd class="text-muted">We explain every fee, product and risk in writing.</dd>
+            </div>
+            <div class="sg-ledger__row">
+              <dt class="eyebrow numerals text-muted">02</dt>
+              <dt class="text-d3 display">Resilience</dt>
+              <dd class="text-muted">Plans built for a hard year, not only a good one.</dd>
+            </div>
+            <div class="sg-ledger__row">
+              <dt class="eyebrow numerals text-muted">03</dt>
+              <dt class="text-d3 display">Innovation</dt>
+              <dd class="text-muted">Modern tools, explained plainly, so you stay in control.</dd>
+            </div>
+            <div class="sg-ledger__row">
+              <dt class="eyebrow numerals text-muted">04</dt>
+              <dt class="text-d3 display">Legacy</dt>
+              <dd class="text-muted">
+                We plan past the next decade, to who inherits what, and how.
+              </dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 06 Placeholders -->
+  <section id="placeholders" class="sg-section" aria-labelledby="ph-h">
+    <div class="shell">
+      <SectionLabel number="06">Placeholders</SectionLabel>
+      <div class="grid-12 mt-12 gap-y-6">
+        <h2 id="ph-h" class="text-d1 display col-span-12 lg:col-span-6">
+          Honest about what is missing.
+        </h2>
+        <p class="text-muted col-span-12 lg:col-span-5 lg:col-start-8 lg:self-end">
+          Until Savantho supplies real assets, gaps are marked, never faked. Text uses
+          <Ph>[[SQUARE BRACKETS]]</Ph>; elements carry <code>data-placeholder</code> and show a
+          dashed outline while <code>PUBLIC_SHOW_PLACEHOLDERS=true</code>. Every one is listed in
+          PLACEHOLDERS.md.
+        </p>
+      </div>
+
+      <dl class="sg-ph-text mt-12">
+        <div>
+          <dt class="eyebrow text-muted">Founder</dt>
+          <dd class="text-d4 display">
+            <Ph>[[FOUNDER NAME]]</Ph>
+          </dd>
+        </div>
+        <div>
+          <dt class="eyebrow text-muted">Registration</dt>
+          <dd class="text-d4 display">
+            <Ph>{site.registration}</Ph>
+          </dd>
+        </div>
+        <div>
+          <dt class="eyebrow text-muted">Shariah reviewer</dt>
+          <dd class="text-d4 display">
+            <Ph>[[NAME, CREDENTIALS]]</Ph>
+          </dd>
+        </div>
+      </dl>
+
+      <div class="sg-ph-grid mt-12">
+        <figure class="sg-ph-a">
+          <PlaceholderImage
+            width={800}
+            height={1000}
+            caption="Mombasa Old Town door"
+            alt="Placeholder for a photograph of a carved door in Mombasa Old Town."
+          />
+          <figcaption class="text-small text-muted mt-3">
+            Portrait · 4:5 · hero companion
+          </figcaption>
+        </figure>
+        <figure class="sg-ph-b">
+          <PlaceholderImage
+            width={1200}
+            height={800}
+            caption="Port of Mombasa at dawn"
+            alt="Placeholder for a photograph of the port of Mombasa at dawn."
+          />
+          <figcaption class="text-small text-muted mt-3">Landscape · 3:2 · Trade pillar</figcaption>
+        </figure>
+        <figure class="sg-ph-c">
+          <PlaceholderImage
+            width={1600}
+            height={900}
+            caption="Nairobi skyline at dusk"
+            alt="Placeholder for a photograph of the Nairobi skyline at dusk."
+          />
+          <figcaption class="text-small text-muted mt-3">Wide · 16:9 · section break</figcaption>
+        </figure>
+        <figure class="sg-ph-d">
+          <PlaceholderImage
+            width={900}
+            height={900}
+            caption="Hands on a ledger"
+            alt="Placeholder for a close photograph of hands working on a paper ledger."
+          />
+          <figcaption class="text-small text-muted mt-3">Square · 1:1 · insights</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  /* Layered so Tailwind utilities on the same element still win. */
+  @layer components {
+    .sg-em {
+      font-style: italic;
+      font-variation-settings: 'opsz' 144;
+      font-weight: 340;
+    }
+    .sg-meta {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      border-top: 1px solid var(--color-line);
+    }
+    @media (min-width: 640px) {
+      .sg-meta {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+    }
+    .sg-meta > div {
+      padding: 1rem 1rem 1rem 0;
+      border-bottom: 1px solid var(--color-line);
+    }
+    .sg-meta dd {
+      margin-top: 0.375rem;
+      font-size: var(--text-small);
+      font-weight: 560;
+    }
+
+    .sg-plate {
+      position: relative;
+      aspect-ratio: 4 / 5;
+      margin: 0;
+      overflow: hidden;
+      border-radius: var(--radius-xs);
+    }
+    .sg-plate :global(.monogram) {
+      color: var(--color-ivory);
+    }
+    .sg-plate__cap {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 1.75rem;
+      text-align: center;
+      color: var(--color-gold-soft);
+    }
+
+    .sg-index {
+      border-top: 1px solid var(--color-ink);
+    }
+    .sg-index__row {
+      display: grid;
+      grid-template-columns: 3rem 1fr auto;
+      align-items: baseline;
+      gap: var(--gap-x);
+      padding-block: 1.25rem;
+      border-bottom: 1px solid var(--color-line);
+      transition: padding 480ms var(--ease-settle);
+    }
+    @media (min-width: 768px) {
+      .sg-index__row {
+        grid-template-columns: 4rem 5fr 6fr auto;
+      }
+    }
+    .sg-index__row:hover {
+      padding-left: 0.75rem;
+    }
+    .sg-index__arrow {
+      color: var(--color-gold);
+      transition: transform 420ms var(--ease-settle);
+    }
+    .sg-index__row:hover .sg-index__arrow {
+      transform: translateX(4px);
+    }
+
+    .sg-section {
+      padding-block: var(--section-y);
+    }
+
+    .sg-proportion {
+      display: flex;
+      height: 56px;
+      border: 1px solid var(--color-line);
+      border-radius: var(--radius-xs);
+      overflow: hidden;
+    }
+    .sg-proportion__legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 1.5rem;
+    }
+
+    .sg-swatches {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--gap-x);
+    }
+    .sg-swatch {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .sg-swatch--ink {
+      grid-column: span 2;
+    }
+    /* Desktop: ink anchors the left half; inks + royal, then golds + line on the right;
+       the light surfaces and stone share the bottom row. */
+    @media (min-width: 1024px) {
+      .sg-swatches {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        row-gap: 3rem;
+      }
+      .sg-swatch {
+        grid-column: span 2;
+      }
+      .sg-swatch--ink {
+        grid-column: 1 / span 6;
+        grid-row: 1 / span 2;
+      }
+      .sg-swatch--ink .sg-swatch__chip {
+        flex: 1;
+      }
+      .sg-swatch--ink-800 {
+        grid-area: 1 / 7 / auto / span 2;
+      }
+      .sg-swatch--ink-700 {
+        grid-area: 1 / 9 / auto / span 2;
+      }
+      .sg-swatch--royal {
+        grid-area: 1 / 11 / auto / span 2;
+      }
+      .sg-swatch--gold {
+        grid-area: 2 / 7 / auto / span 2;
+      }
+      .sg-swatch--gold-soft {
+        grid-area: 2 / 9 / auto / span 2;
+      }
+      .sg-swatch--line {
+        grid-area: 2 / 11 / auto / span 2;
+      }
+      .sg-swatch--ivory {
+        grid-area: 3 / 1 / auto / span 4;
+      }
+      .sg-swatch--paper {
+        grid-area: 3 / 5 / auto / span 4;
+      }
+      .sg-swatch--stone {
+        grid-area: 3 / 9 / auto / span 4;
+      }
+    }
+    .sg-swatch__chip {
+      display: block;
+      min-height: 120px;
+      border: 1px solid var(--color-line);
+      border-radius: var(--radius-xs);
+    }
+    .sg-swatch__meta {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--color-line);
+    }
+    .sg-swatch__meta .display {
+      text-transform: capitalize;
+    }
+    code {
+      font-family: var(--font-sans);
+      font-weight: 600;
+      font-size: 0.92em;
+      font-variant-numeric: tabular-nums;
+      font-variant-ligatures: none;
+      font-feature-settings:
+        'calt' 0,
+        'liga' 0;
+    }
+
+    .sg-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: var(--text-small);
+    }
+    .sg-table thead th {
+      text-align: left;
+      padding: 0 1rem 0.875rem 0;
+      color: var(--surface-muted);
+      border-bottom: 1px solid var(--color-ink);
+      font-weight: 650;
+    }
+    .sg-table tbody th,
+    .sg-table td {
+      padding: 0.875rem 1rem 0.875rem 0;
+      border-bottom: 1px solid var(--color-line);
+      text-align: left;
+      vertical-align: middle;
+    }
+    .sg-table .text-right {
+      text-align: right;
+    }
+    .sg-sample::before {
+      /* Generated content: an illustration of the pairing, not page text. */
+      content: 'Aa 01';
+    }
+    .sg-sample {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.375rem 0.75rem;
+      border-radius: var(--radius-xs);
+      border: 1px solid var(--color-line);
+      font-family: var(--font-display);
+      font-size: 1.125rem;
+    }
+    .sg-verdict {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 600;
+    }
+    .sg-verdict::before {
+      content: '';
+      width: 7px;
+      height: 7px;
+      transform: rotate(45deg);
+      background: currentColor;
+    }
+    .sg-verdict.is-pass {
+      color: var(--color-ink);
+    }
+    .sg-verdict.is-pass::before {
+      background: var(--color-gold);
+    }
+    .sg-verdict.is-fail {
+      color: var(--color-stone);
+    }
+    .sg-verdict.is-fail::before {
+      background: transparent;
+      border: 1px solid var(--color-stone);
+    }
+    @media (max-width: 767px) {
+      .sg-table thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+      }
+      .sg-table tr {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 0.25rem 1rem;
+        padding-block: 1rem;
+        border-bottom: 1px solid var(--color-line);
+      }
+      .sg-table tbody th,
+      .sg-table td {
+        border: 0;
+        padding: 0;
+      }
+      .sg-table tbody th {
+        grid-column: 1;
+      }
+      .sg-table td[data-label='Sample'] {
+        grid-column: 2;
+        grid-row: 1 / span 2;
+        align-self: center;
+      }
+      .sg-table td[data-label='Ratio'] {
+        text-align: left;
+      }
+      .sg-table td[data-label='Text AA']::before,
+      .sg-table td[data-label='Large / UI']::before {
+        content: attr(data-label) ': ';
+        color: var(--color-stone);
+        font-weight: 500;
+      }
+      .sg-table td[data-label='Use'] {
+        grid-column: 1 / -1;
+      }
+    }
+
+    .sg-faces {
+      display: grid;
+      gap: var(--gap-x);
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 768px) {
+      .sg-faces {
+        grid-template-columns: 5fr 4fr 3fr;
+      }
+    }
+    .sg-face {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 2rem;
+      min-height: 260px;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--color-ink);
+    }
+    .sg-face__glyph {
+      font-size: clamp(5rem, 3rem + 7vw, 10rem);
+      line-height: 0.9;
+      letter-spacing: -0.04em;
+    }
+    .sg-face__glyph em {
+      font-style: italic;
+      color: var(--color-royal);
+    }
+    .sg-face__glyph--sans {
+      font-family: var(--font-sans);
+      font-weight: 300;
+      letter-spacing: -0.05em;
+    }
+
+    .sg-scale__row {
+      display: grid;
+      gap: 1rem var(--gap-x);
+      padding-block: clamp(1.5rem, 1rem + 1.5vw, 2.5rem);
+      border-top: 1px solid var(--color-line);
+    }
+    @media (min-width: 1024px) {
+      .sg-scale__row {
+        grid-template-columns: 3fr 9fr;
+        align-items: baseline;
+      }
+    }
+    .sg-scale__meta {
+      display: flex;
+      flex-direction: column;
+      gap: 0.125rem;
+    }
+
+    .sg-controls {
+      display: grid;
+      gap: var(--gap-x);
+    }
+    @media (min-width: 1024px) {
+      .sg-controls {
+        grid-template-columns: 7fr 5fr;
+      }
+    }
+    .sg-controls__panel {
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+      padding: clamp(1.5rem, 1rem + 2vw, 3rem);
+      border: 1px solid var(--color-line);
+      border-radius: var(--radius-xs);
+    }
+    .sg-controls__row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 1rem 1.25rem;
+    }
+    .sg-controls__row :global(.btn) {
+      white-space: normal;
+      text-align: left;
+    }
+    .sg-focus-demo :global(.btn) {
+      outline: 2px solid var(--color-royal);
+      outline-offset: 3px;
+    }
+    .sg-focus-demo--dark :global(.btn) {
+      outline-color: var(--color-gold-soft);
+    }
+
+    .sg-lattice-hero {
+      position: relative;
+      aspect-ratio: 4 / 5;
+      overflow: hidden;
+      border-radius: var(--radius-xs);
+    }
+    @media (min-width: 768px) {
+      .sg-lattice-hero {
+        aspect-ratio: 16 / 9;
+      }
+    }
+    .sg-lattice-grid {
+      display: grid;
+      gap: var(--gap-x);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    @media (min-width: 1024px) {
+      .sg-lattice-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+    .sg-lattice-card {
+      position: relative;
+      aspect-ratio: 4 / 3;
+      overflow: hidden;
+      border: 1px solid var(--color-line);
+      border-radius: var(--radius-xs);
+      background-color: var(--color-paper);
+    }
+    .sg-lattice-card.surface-ink {
+      background-color: var(--color-ink);
+    }
+    .sg-lattice-card__label {
+      position: absolute;
+      left: 1rem;
+      bottom: 0.875rem;
+      right: 1rem;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--color-gold-soft);
+    }
+    .sg-lattice-card__label--light {
+      color: var(--color-ink);
+    }
+    .sg-rules li {
+      display: flex;
+      gap: 0.875rem;
+      padding-block: 0.875rem;
+      border-bottom: 1px solid var(--color-line);
+    }
+    .sg-rules li::before {
+      content: '';
+      flex: none;
+      width: 7px;
+      height: 7px;
+      margin-top: 0.65em;
+      transform: rotate(45deg);
+      background: var(--color-gold);
+    }
+    .sg-rules--never li::before {
+      background: transparent;
+      border: 1px solid var(--color-stone);
+    }
+
+    .sg-total {
+      height: 4px;
+      border-top: 1px solid var(--color-ink);
+      border-bottom: 1px solid var(--color-ink);
+    }
+    .sg-ledger {
+      border-top: 1px solid var(--color-ink);
+    }
+    .sg-ledger__row {
+      display: grid;
+      grid-template-columns: 2.5rem 1fr;
+      gap: 0.25rem var(--gap-x);
+      padding-block: 1.5rem;
+      border-bottom: 1px solid var(--color-line);
+      align-items: baseline;
+    }
+    .sg-ledger__row dd {
+      grid-column: 2;
+    }
+    @media (min-width: 768px) {
+      .sg-ledger__row {
+        grid-template-columns: 3rem 5fr 7fr;
+      }
+      .sg-ledger__row dd {
+        grid-column: 3;
+      }
+    }
+
+    .sg-ph-text {
+      display: grid;
+      gap: 1.5rem var(--gap-x);
+      grid-template-columns: 1fr;
+      border-top: 1px solid var(--color-line);
+      padding-top: 1.5rem;
+    }
+    @media (min-width: 768px) {
+      .sg-ph-text {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+    .sg-ph-text dd {
+      margin-top: 0.5rem;
+    }
+    .sg-ph-grid {
+      display: grid;
+      gap: 2.5rem var(--gap-x);
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+    }
+    .sg-ph-grid figure {
+      margin: 0;
+      grid-column: span 12;
+    }
+    @media (min-width: 768px) {
+      .sg-ph-a {
+        grid-column: span 5 !important;
+      }
+      .sg-ph-b {
+        grid-column: 7 / span 6 !important;
+        align-self: end;
+      }
+      .sg-ph-c {
+        grid-column: span 8 !important;
+      }
+      .sg-ph-d {
+        grid-column: 10 / span 3 !important;
+        align-self: end;
+      }
+    }
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('[data-replay]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const fig = btn.closest('[data-replay-target]');
+      const svg = fig?.querySelector('.lattice svg');
+      if (!svg) return;
+      const fresh = svg.cloneNode(true);
+      svg.replaceWith(fresh);
+    });
+  });
+</script>
