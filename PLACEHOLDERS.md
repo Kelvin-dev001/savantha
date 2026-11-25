@@ -2,7 +2,7 @@
 
 Every placeholder on the site is listed here. Text placeholders use `[[SQUARE BRACKETS]]`; elements carry `data-placeholder="true"` and show a dashed outline while `PUBLIC_SHOW_PLACEHOLDERS=true`.
 
-Last updated: 2026-11-25 (Phase 5)
+Last updated: 2026-11-25 (Phase 6)
 
 ## Identity and registration
 
@@ -37,7 +37,8 @@ Last updated: 2026-11-25 (Phase 5)
 | Mombasa Old Town door | 4:5 | Hero companion | Photograph, warm desaturated grade, ≥ 1600 px tall |
 | Port of Mombasa at dawn | 3:2 | Trade pillar | Photograph, ≥ 2400 px wide |
 | Nairobi skyline at dusk | 16:9 | Section break | Photograph, ≥ 2560 px wide |
-| Hands on a ledger | 4:3 | Homepage insights teaser, lead article (`src/components/sections/HomeInsights.astro`); later per-article images | Photograph, ≥ 1600 px wide |
+| Hands on a ledger | 4:3 and 2:1 | Cover of the budgeting guide (`cover` in its frontmatter): homepage teaser and /insights spread at 4:3, article head at 2:1 | Photograph, ≥ 1600 px wide, composed so both crops work |
+| Guide covers | 4:3 and 2:1 | Shariah guide: Mombasa Old Town door. Letters of credit: Port of Mombasa at dawn. Each guide sets its caption and alt text in `cover` | One photograph per guide, same grade; both crops must work. Swap `PlaceholderImage` for `astro:assets` in `InsightFeature.astro`, `HomeInsights.astro` and `insights/[slug].astro` |
 
 No stock handshakes, laptops or men in suits.
 
@@ -77,7 +78,21 @@ The six services are in `src/content/services/*.md` (one file each, frontmatter 
 | Collection | Where | What we need |
 |---|---|---|
 | Client stories | `src/content/stories/` (format in `_README.md`) | Stories clients agree to in writing (`consent: true` + date). About the process and experience, never returns. Until then the homepage shows an empty register explaining why |
-| Insights | `src/content/insights/*.mdx` | Three seeded drafts (`draft: true`, bodies are `[[DRAFT]]`), written in Phase 6. The homepage lists them as "In preparation", unlinked |
+| Insights | `src/content/insights/*.mdx` | Three guides written in Phase 6, still `draft: true` until reviewed (see "Content to confirm (Insights, Phase 6)"). New guides: one `.mdx` per article; the frontmatter schema is in `src/content.config.ts` |
+
+## Content to confirm (Insights, Phase 6)
+
+The three guides are in `src/content/insights/*.mdx`; list, category and article labels are in `src/content/pages/pages.yaml` → `insights`. All three are financial education and compliance-sensitive: include them in the advocate's review. Each is `draft: true`: built and linked so it can be reviewed in place, but it shows a "Draft, awaiting review" notice and carries `noindex`. **To publish:** set `draft: false` and `publishedAt: YYYY-MM-DD` in the frontmatter (the build refuses a published guide without a date). The notice and `noindex` then go, and the date replaces "In review" on the list and the homepage.
+
+| Item | Where | What we need |
+|---|---|---|
+| Reviewers | each guide → `reviewedBy` (shown as "To be reviewed by" while a draft) | Shariah guide: `[[NAME, CREDENTIALS]]` (Shariah reviewer) and `[[ADVOCATE NAME]]`. Letters of credit and budgeting: `[[ADVOCATE NAME]]`. Confirm who signs off each guide |
+| Shariah guide: facts | `how-shariah-compliant-finance-works-in-kenya.mdx` | Shariah reviewer to confirm the five principles, the description of murabaha, ijara, diminishing musharaka, mudaraba/wakala, takaful and sukuk, and the line on late-payment charges and early-settlement rebates. Confirm the regulator table (CBK, IRA, CMA, RBA, SASRA) and that each provider's own Shariah board approves its products |
+| Letters of credit guide: facts | `letters-of-credit-explained-for-kenyan-importers.mdx` | Confirm the UCP 600 points (five banking days to examine; presentation within 21 days of shipment), that "many banks" ask for the IDF reference via KenTrade before issuing, the KEBS PVoC Certificate of Conformity line, and the EAC/COMESA certificate-of-origin line |
+| Budgeting guide: figures | `a-family-budgeting-framework-that-actually-holds.mdx` | Confirm the reserve targets (start with one month of essentials, build to three to six) and that the five-line order matches how Savantho works with households |
+| WhatsApp messages | each guide → `whatsappMessage` | Approve the prefilled messages ("Hello Savantho, I've read your guide to …") |
+| Search titles | each guide → `seoTitle`, `seoDescription`; `pages.yaml` → `insights` (list and per-subject descriptions) | Approve |
+| Business finance | `pages.yaml` → `insights.categories` | The subject is defined but has no guides, so it is not listed and has no page. Write a first guide, or remove the subject |
 
 ## Content to confirm (About, Contact, legal, Phase 5)
 

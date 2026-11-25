@@ -1,0 +1,22 @@
+---
+/**
+ * /insights/category/[category]: the guides on one subject. Only subjects with at least one
+ * guide get a page; the subject index in the hero leaves the others out.
+ */
+import type { GetStaticPaths } from 'astro';
+import InsightsListing from '@/components/sections/InsightsListing.astro';
+import { getInsights, type CategoryKey } from '@/lib/insights';
+
+export const getStaticPaths = (async () => {
+  const { categories } = await getInsights();
+  return categories
+    .filter((c) => c.count > 0)
+    .map((c) => ({ params: { category: c.key }, props: { category: c.key } }));
+}) satisfies GetStaticPaths;
+
+interface Props {
+  category: CategoryKey;
+}
+---
+
+<InsightsListing category={Astro.props.category} />

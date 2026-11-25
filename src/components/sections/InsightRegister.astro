@@ -1,0 +1,196 @@
+---
+/**
+ * Insights as a register: one ruled line per guide, set like the services hub.
+ *   No. · subject · title and standfirst · reading time and date · arrow
+ * The whole line is the link (stretched from the title's anchor). Hover and keyboard focus
+ * draw a gold rule along the top, turn the title royal and bring the arrow forward.
+ * Drafts read "In review" where a published guide shows its date.
+ */
+import Icon from '@/components/ui/Icon.astro';
+import { formatDate, isoDate, type Insight, type InsightsCopy } from '@/lib/insights';
+
+interface Props {
+  items: Insight[];
+  copy: InsightsCopy;
+  /** Number of the first line (01 by default). */
+  start?: number;
+  as?: 'h2' | 'h3';
+  class?: string;
+}
+const { items, copy, start = 1, as: Heading = 'h3', class: className = '' } = Astro.props;
+---
+
+<ol class:list={['ireg', className]} data-reveal="stagger">
+  {items.map((a, i) => (
+    <li class="ireg__item">
+      <article class="irow" aria-labelledby={`irow-${a.id}`}>
+        <span class="irow__rule" aria-hidden="true" />
+        <span class="irow__idx eyebrow numerals" aria-hidden="true">
+          {String(start + i).padStart(2, '0')}
+        </span>
+        <p class="irow__cat eyebrow">{a.category.title}</p>
+        <div class="irow__main">
+          <Heading id={`irow-${a.id}`} class="irow__title">
+            <a href={a.href} class="irow__link">
+              {a.title}
+            </a>
+          </Heading>
+          <p class="irow__summary">{a.summary}</p>
+        </div>
+        <p class="irow__meta eyebrow numerals">
+          <span>{`${a.minutes} ${copy.minutes}`}</span>
+          {a.draft || !a.publishedAt ? (
+            <span>{copy.draftLabel}</span>
+          ) : (
+            <time datetime={isoDate(a.publishedAt)}>{formatDate(a.publishedAt)}</time>
+          )}
+        </p>
+        <Icon name="arrow-right" size={20} class="irow__arrow" />
+      </article>
+    </li>
+  ))}
+</ol>
+
+<style>
+  /* Layered so Tailwind utilities on the same element still win. */
+  @layer components {
+    .ireg {
+      border-top: 1px solid var(--color-ink);
+    }
+    .ireg__item {
+      border-bottom: 1px solid var(--color-line);
+    }
+    .irow {
+      position: relative;
+      display: grid;
+      grid-template-columns: 2.5rem minmax(0, 1fr) auto;
+      grid-template-areas:
+        'idx cat arrow'
+        'main main main'
+        'meta meta meta';
+      gap: 0.75rem var(--gap-x);
+      align-items: baseline;
+      padding-block: clamp(1.5rem, 1rem + 1.2vw, 2.25rem);
+    }
+    @media (min-width: 1024px) {
+      .irow {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        grid-template-areas: none;
+        align-items: start;
+      }
+      .irow__idx {
+        grid-column: 1;
+      }
+      .irow__cat {
+        grid-column: 2 / span 2;
+      }
+      .irow__main {
+        grid-column: 4 / span 6;
+      }
+      .irow__meta {
+        grid-column: 10 / span 2;
+      }
+      .irow :global(.irow__arrow) {
+        grid-column: 12;
+        justify-self: end;
+      }
+      .irow__idx,
+      .irow__cat,
+      .irow__meta {
+        padding-top: 0.6rem;
+      }
+    }
+    @media (max-width: 1023.98px) {
+      .irow__idx {
+        grid-area: idx;
+      }
+      .irow__cat {
+        grid-area: cat;
+      }
+      .irow__main {
+        grid-area: main;
+      }
+      .irow__meta {
+        grid-area: meta;
+      }
+      .irow :global(.irow__arrow) {
+        grid-area: arrow;
+        align-self: center;
+      }
+    }
+
+    .irow__rule {
+      position: absolute;
+      inset: -1px 0 auto 0;
+      height: 1px;
+      background: var(--color-gold);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 620ms var(--ease-settle);
+    }
+    .irow__idx {
+      color: var(--color-ink);
+    }
+    .irow__cat,
+    .irow__meta {
+      color: var(--color-stone);
+    }
+    .irow__meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem 1.25rem;
+    }
+    @media (min-width: 1024px) {
+      .irow__meta {
+        flex-direction: column;
+      }
+    }
+    .irow__title {
+      font-size: var(--text-d3);
+      line-height: var(--text-d3--line-height);
+      letter-spacing: var(--text-d3--letter-spacing);
+      font-weight: 380;
+      max-width: 26ch;
+    }
+    .irow__link {
+      transition: color 280ms var(--ease-quiet);
+    }
+    /* Stretch the title's link over the whole line */
+    .irow__link::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+    }
+    .irow__link:focus-visible {
+      outline: none;
+    }
+    .irow:has(.irow__link:focus-visible) {
+      outline: 2px solid var(--focus-ring);
+      outline-offset: 4px;
+      border-radius: var(--radius-xs);
+    }
+    .irow__summary {
+      margin-top: 0.75rem;
+      color: var(--color-stone);
+      font-size: var(--text-small);
+      line-height: var(--text-small--line-height);
+      max-width: 54ch;
+    }
+    .irow :global(.irow__arrow) {
+      color: var(--color-ink);
+      transition:
+        transform 520ms var(--ease-settle),
+        color 280ms var(--ease-quiet);
+    }
+    .irow:is(:hover, :focus-within) .irow__rule {
+      transform: scaleX(1);
+    }
+    .irow:is(:hover, :focus-within) .irow__link {
+      color: var(--color-royal);
+    }
+    .irow:is(:hover, :focus-within) :global(.irow__arrow) {
+      transform: translateX(4px);
+      color: var(--color-royal);
+    }
+  }
+</style>

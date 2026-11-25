@@ -42,6 +42,91 @@ legal:
     heading: Questions about this page?
     body: Write to us and we will answer in plain language.
 
+# /insights (the list), /insights/category/[category], and the article template.
+# The articles themselves are in src/content/insights/*.mdx.
+insights:
+  seoTitle: Insights
+  seoDescription: >-
+    Plain-language guides for Kenyan families and businesses: Shariah-compliant finance,
+    letters of credit, household budgets. Answer first, then the working.
+  eyebrow: Insights
+  headline:
+    - text: Read first,
+    - text: then decide.
+      emphasis: decide.
+  lead: >-
+    Plain-language guides to the money decisions Kenyan families and businesses face most
+    often. Each one starts with the answer, then shows the working.
+  proof: Written to explain, never to sell. No guide recommends a product or a provider.
+  indexLabel: Browse by subject
+  allLabel: All subjects
+  countLabel: { one: guide, many: guides }
+  categories:
+    - key: ethical-finance
+      title: Ethical finance
+      line: Shariah-compliant and asset-backed finance, explained structure by structure.
+      seoDescription: >-
+        Guides to Shariah-compliant and ethical finance in Kenya: how screening works, the
+        structures you will meet, and the questions to ask before you commit.
+    - key: trade-finance
+      title: Trade finance
+      line: Paying suppliers and getting paid, with the risk in the right place.
+      seoDescription: >-
+        Guides to trade finance for Kenyan importers and exporters: letters of credit,
+        documentary collections, and what your bank will ask for.
+    - key: family-finance
+      title: Family finance
+      line: Budgets, reserves and plans that survive a real Kenyan year.
+      seoDescription: >-
+        Guides to household money in Kenya: budgets that hold through a bad month, an
+        emergency reserve, school fees and family commitments.
+    - key: business-finance
+      title: Business finance
+      line: Cash flow, credit and structure for owner-run businesses.
+      seoDescription: >-
+        Guides to business finance for Kenyan SMEs: cash flow, credit and structure, in plain
+        language.
+  featureLabel: Latest
+  briefLabel: In brief
+  readLabel: Read the guide
+  registerLabel: Every guide
+  registerHeading: Newest first, in one register.
+  categoryRegisterHeading: Every guide on {subject}, newest first.
+  draftLabel: In review
+  minutes: min read
+  empty:
+    heading: Nothing here yet.
+    body: We are writing the first guides on this subject. Ask us the question in the meantime.
+  article:
+    breadcrumb: Insights
+    meta:
+      category: Subject
+      reading: Reading time
+      published: Published
+      updated: Updated
+      status: Status
+      reviewedBy: To be reviewed by
+    draftStatus: Draft, awaiting review
+    draftNote: >-
+      This guide is a draft awaiting review. It may change before it is published, and search
+      engines are asked not to list it until then.
+    contentsLabel: In this guide
+    educationNote: >-
+      This guide is general financial education. It does not take your circumstances into
+      account, so treat it as a list of good questions, not as a decision.
+    disclaimerLabel: Please note
+    talk:
+      label: Your situation
+      heading: Want to talk it through for your own situation?
+      body: >-
+        Tell us what you are weighing up. The first call is free, takes about 20 minutes and
+        comes with no obligation.
+      cta: Ask us on WhatsApp
+      serviceLabel: The service behind this guide
+    next:
+      label: Read next
+      heading: More from Insights.
+
 notFound:
   seoTitle: Page not found
   eyebrow: Error 404

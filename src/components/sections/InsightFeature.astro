@@ -1,0 +1,197 @@
+---
+/**
+ * The newest guide as a spread: cover on the left (7 columns), the title, standfirst and
+ * the guide's own "In brief" points on the right, so a reader gets the answer before
+ * deciding to read on. The whole spread is one link (stretched from the title). The title
+ * fades rather than mask-reveals: SplitText would cut its link into one anchor per line.
+ */
+import PlaceholderImage from '@/components/ui/PlaceholderImage.astro';
+import Icon from '@/components/ui/Icon.astro';
+import { formatDate, isoDate, type Insight, type InsightsCopy } from '@/lib/insights';
+
+interface Props {
+  insight: Insight;
+  copy: InsightsCopy;
+}
+const { insight: a, copy } = Astro.props;
+const { cover } = a.entry.data;
+---
+
+<article class="ifeat" aria-labelledby="ifeat-title">
+  <div class="ifeat__media">
+    <div class="ifeat__media-inner" data-parallax="16">
+      <PlaceholderImage width={1400} height={1050} caption={cover.caption} alt={cover.alt} />
+    </div>
+  </div>
+
+  <div class="ifeat__body">
+    <p class="ifeat__meta eyebrow numerals">
+      <span class="ifeat__cat">{a.category.title}</span>
+      <span>{`${a.minutes} ${copy.minutes}`}</span>
+      {a.draft || !a.publishedAt ? (
+        <span>{copy.draftLabel}</span>
+      ) : (
+        <time datetime={isoDate(a.publishedAt)}>{formatDate(a.publishedAt)}</time>
+      )}
+    </p>
+    <h2 id="ifeat-title" class="ifeat__title" data-reveal="fade">
+      <a href={a.href} class="ifeat__link">
+        {a.title}
+      </a>
+    </h2>
+    <p class="ifeat__summary" data-reveal="fade">
+      {a.summary}
+    </p>
+
+    <div class="ifeat__brief">
+      <p class="eyebrow ifeat__brief-label">{copy.briefLabel}</p>
+      <ol class="ifeat__points">
+        {a.keyPoints.map((p, i) => (
+          <li class="ifeat__point">
+            <span class="eyebrow numerals" aria-hidden="true">
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            <span>{p}</span>
+          </li>
+        ))}
+      </ol>
+    </div>
+
+    <span class="ifeat__cue" aria-hidden="true">
+      <span class="ifeat__cue-label">{copy.readLabel}</span>
+      <Icon name="arrow-right" size={16} class="ifeat__cue-arrow" />
+    </span>
+  </div>
+</article>
+
+<style>
+  /* Layered so Tailwind utilities on the same element still win. */
+  @layer components {
+    .ifeat {
+      position: relative;
+      display: grid;
+      gap: 2rem var(--gap-x);
+    }
+    @media (min-width: 1024px) {
+      .ifeat {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        align-items: start;
+      }
+      .ifeat__media {
+        grid-column: 1 / span 7;
+      }
+      .ifeat__body {
+        grid-column: 8 / span 5;
+        padding-top: 0.25rem;
+      }
+    }
+    .ifeat__media {
+      overflow: hidden;
+      border-radius: var(--radius-xs);
+    }
+    /* Slightly oversized so the parallax drift never shows an edge */
+    .ifeat__media-inner {
+      scale: 1.05;
+      transition: scale 1200ms var(--ease-settle);
+    }
+    .ifeat:is(:hover, :focus-within) .ifeat__media-inner {
+      scale: 1.08;
+    }
+
+    .ifeat__meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem 1.25rem;
+      color: var(--color-stone);
+    }
+    .ifeat__cat {
+      color: var(--color-ink);
+    }
+    .ifeat__title {
+      margin-top: 1.25rem;
+      font-size: var(--text-d2);
+      line-height: var(--text-d2--line-height);
+      letter-spacing: var(--text-d2--letter-spacing);
+      font-weight: 340;
+      font-variation-settings: 'opsz' 144;
+    }
+    .ifeat__link {
+      text-decoration-line: underline;
+      text-decoration-thickness: 1px;
+      text-underline-offset: 0.18em;
+      text-decoration-color: transparent;
+      transition:
+        text-decoration-color 320ms var(--ease-quiet),
+        color 320ms var(--ease-quiet);
+    }
+    .ifeat__link::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+    }
+    .ifeat__link:focus-visible {
+      outline: none;
+    }
+    .ifeat:has(.ifeat__link:focus-visible) {
+      outline: 2px solid var(--focus-ring);
+      outline-offset: 6px;
+      border-radius: var(--radius-xs);
+    }
+    .ifeat:is(:hover, :focus-within) .ifeat__link {
+      text-decoration-color: var(--color-gold);
+    }
+    .ifeat__summary {
+      margin-top: 1.25rem;
+      color: var(--color-stone);
+      max-width: 44ch;
+    }
+
+    .ifeat__brief {
+      margin-top: 2rem;
+      border-top: 1px solid var(--color-ink);
+      padding-top: 1rem;
+    }
+    .ifeat__brief-label {
+      color: var(--color-stone);
+    }
+    .ifeat__points {
+      margin-top: 0.5rem;
+    }
+    .ifeat__point {
+      display: grid;
+      grid-template-columns: 2.25rem minmax(0, 1fr);
+      padding-block: 0.75rem;
+      border-bottom: 1px solid var(--color-line);
+      font-size: var(--text-small);
+      line-height: var(--text-small--line-height);
+    }
+    .ifeat__point > .eyebrow {
+      padding-top: 0.2rem;
+    }
+
+    .ifeat__cue {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.625rem;
+      min-height: 44px;
+      margin-top: 1.5rem;
+      font-weight: 620;
+      font-size: 0.9375rem;
+    }
+    .ifeat__cue-label {
+      padding-block: 0.25rem;
+      background: linear-gradient(var(--color-gold), var(--color-gold)) left bottom / 100% 1px
+        no-repeat;
+      transition: background-size 520ms var(--ease-settle);
+    }
+    .ifeat:is(:hover, :focus-within) .ifeat__cue-label {
+      background-size: 35% 1px;
+    }
+    .ifeat__cue :global(.ifeat__cue-arrow) {
+      transition: transform 420ms var(--ease-settle);
+    }
+    .ifeat:is(:hover, :focus-within) .ifeat__cue :global(.ifeat__cue-arrow) {
+      transform: translateX(3px);
+    }
+  }
+</style>

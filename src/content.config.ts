@@ -136,19 +136,53 @@ const stories = defineCollection({
   }),
 });
 
-/** Insights (MDX). Phase 6 adds the list, the article template and the full articles. */
+/** Insight categories (routes under /insights/category). Titles and lines live in pages.yaml. */
+export const insightCategories = [
+  'ethical-finance',
+  'trade-finance',
+  'family-finance',
+  'business-finance',
+] as const;
+
+/**
+ * Insights: MDX articles, financial education only. Compliance-sensitive copy: the same
+ * banned phrases apply (npm run lint:copy), and no article recommends a product, provider
+ * or security.
+ *
+ * `draft: true` means written but not yet reviewed. Drafts are built so they can be
+ * reviewed in place, but carry a visible "awaiting review" note and `noindex`. To publish,
+ * set `draft: false` and `publishedAt`.
+ */
 const insights = defineCollection({
   loader: glob({ pattern: '**/[^_]*.{md,mdx}', base: './src/content/insights' }),
-  schema: z.object({
-    title: z.string().max(90),
-    summary: z.string().max(200),
-    category: z.enum(['Ethical finance', 'Trade finance', 'Family finance', 'Business finance']),
-    publishedAt: z.coerce.date().optional(),
-    draft: z.boolean().default(false),
-    readingMinutes: z.number().int().positive().optional(),
-    seoTitle: z.string().max(60).optional(),
-    seoDescription: z.string().max(155).optional(),
-  }),
+  schema: z
+    .object({
+      title: z.string().max(90),
+      /** The standfirst: one sentence that says what the reader will be able to do. */
+      summary: z.string().max(200),
+      category: z.enum(insightCategories),
+      publishedAt: z.coerce.date().optional(),
+      updatedAt: z.coerce.date().optional(),
+      draft: z.boolean().default(false),
+      /** Tie-break for undated drafts, lowest first. */
+      order: z.number().int().default(0),
+      /** Overrides the reading time computed from the body. */
+      readingMinutes: z.number().int().positive().optional(),
+      /** "In brief": the answer first, before the article. */
+      keyPoints: z.array(z.string().max(220)).min(3).max(4),
+      /** Who must review the text before it is published (rendered while a draft). */
+      reviewedBy: z.string().optional(),
+      /** Services the article leads to; the first is the closing call to action. */
+      services: z.array(serviceSlug).min(1).max(2),
+      whatsappMessage: z.string().startsWith('Hello Savantho'),
+      /** Art direction for the cover until photography exists (see PLACEHOLDERS.md). */
+      cover: z.object({ caption: z.string(), alt: z.string() }),
+      seoTitle: z.string().max(60 - ' | Savantho Consultancy'.length),
+      seoDescription: z.string().max(155),
+    })
+    .refine((a) => a.draft || a.publishedAt, {
+      message: 'A published insight (draft: false) needs a publishedAt date.',
+    }),
 });
 
 /** Answer-first FAQ answers: 40–60 words each (brief §4). */
@@ -471,6 +505,60 @@ const pages = defineCollection({
       statementLabel: label,
       draftNote: z.string(),
       questions: z.object({ heading: z.string(), body: z.string() }),
+    }),
+    /** /insights, /insights/category/[category] and the article template. */
+    insights: z.object({
+      ...seo,
+      eyebrow: label,
+      headline,
+      lead: z.string(),
+      proof: z.string(),
+      indexLabel: label,
+      allLabel: label,
+      countLabel: z.object({ one: z.string(), many: z.string() }),
+      categories: z
+        .array(
+          z.object({
+            key: z.enum(insightCategories),
+            title: z.string(),
+            line: z.string(),
+            seoDescription: z.string().max(155),
+          }),
+        )
+        .length(insightCategories.length),
+      featureLabel: label,
+      briefLabel: label,
+      readLabel: label,
+      registerLabel: label,
+      registerHeading: z.string(),
+      categoryRegisterHeading: z.string(),
+      draftLabel: label,
+      minutes: label,
+      empty: z.object({ heading: z.string(), body: z.string() }),
+      article: z.object({
+        breadcrumb: label,
+        meta: z.object({
+          category: label,
+          reading: label,
+          published: label,
+          updated: label,
+          status: label,
+          reviewedBy: label,
+        }),
+        draftStatus: z.string(),
+        draftNote: z.string(),
+        contentsLabel: label,
+        educationNote: z.string(),
+        disclaimerLabel: label,
+        talk: z.object({
+          label,
+          heading: z.string(),
+          body: z.string(),
+          cta: label,
+          serviceLabel: label,
+        }),
+        next: z.object({ label, heading: z.string() }),
+      }),
     }),
     notFound: z.object({
       seoTitle: z.string(),

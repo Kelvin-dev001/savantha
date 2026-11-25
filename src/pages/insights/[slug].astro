@@ -1,0 +1,725 @@
+---
+/**
+ * /insights/[slug]: one page per MDX file in src/content/insights/.
+ *
+ * Set like a briefing note. The head: breadcrumb, subject, headline, standfirst, and a ruled
+ * line of particulars (subject, reading time, date or status, reviewer). Then the cover, and
+ * the reading column beside a sticky contents list whose gold rail fills as you read (CSS
+ * scroll-driven, no JS; a plain rule where unsupported or with reduced motion). The column
+ * opens with "In brief", the answer first; sections are numbered like clauses. After the
+ * text: the education note and the site-wide disclaimer, "talk it through" with the guide's
+ * own WhatsApp message and the service behind it, and what to read next.
+ *
+ * Drafts are built for review but carry a visible notice and `noindex`.
+ */
+import type { GetStaticPaths } from 'astro';
+import { render } from 'astro:content';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Breadcrumb from '@/components/ui/Breadcrumb.astro';
+import PlaceholderImage from '@/components/ui/PlaceholderImage.astro';
+import DisclaimerNote from '@/components/ui/DisclaimerNote.astro';
+import SectionLabel from '@/components/ui/SectionLabel.astro';
+import ServiceRow from '@/components/ui/ServiceRow.astro';
+import Button from '@/components/ui/Button.astro';
+import Ph from '@/components/ui/Ph.astro';
+import NextSteps from '@/components/sections/NextSteps.astro';
+import InsightRegister from '@/components/sections/InsightRegister.astro';
+import Note from '@/components/insights/Note.astro';
+import { isPlaceholder } from '@/config/site';
+import { whatsappLink } from '@/lib/contact';
+import { getServiceIndex } from '@/lib/services';
+import { formatDate, getInsights, getInsightsCopy, isoDate, type Insight } from '@/lib/insights';
+
+export const getStaticPaths = (async () => {
+  const { insights } = await getInsights();
+  return insights.map((insight) => ({ params: { slug: insight.id }, props: { insight } }));
+}) satisfies GetStaticPaths;
+
+interface Props {
+  insight: Insight;
+}
+const { insight: a } = Astro.props;
+const d = a.entry.data;
+const [copy, { insights }, services] = await Promise.all([
+  getInsightsCopy(),
+  getInsights(),
+  getServiceIndex(),
+]);
+const t = copy.article;
+const { Content, headings } = await render(a.entry);
+const toc = headings.filter((h) => h.depth === 2);
+
+const related = d.services.map((slug) => services.get(slug)!);
+const primary = related[0]!;
+// Read next: the same subject first, then the newest of the rest.
+const others = insights.filter((x) => x.id !== a.id);
+const next = [
+  ...others.filter((x) => x.category.key === a.category.key),
+  ...others.filter((x) => x.category.key !== a.category.key),
+].slice(0, 2);
+
+const reviewer = d.reviewedBy ?? '';
+---
+
+<BaseLayout title={d.seoTitle} description={d.seoDescription} noindex={a.draft}>
+  <article class="art" aria-labelledby="art-title">
+    <header class="ahead shell">
+      <Breadcrumb
+        label={t.breadcrumb}
+        items={[
+          { label: t.breadcrumb, href: '/insights' },
+          { label: a.category.title, href: a.category.href },
+          { label: a.title },
+        ]}
+      />
+
+      <div class="ahead__main">
+        <p class="ahead__eyebrow eyebrow">
+          <span class="ahead__rule" aria-hidden="true"></span>
+          <span>{a.category.title}</span>
+        </p>
+        <h1 id="art-title" class="ahead__title" data-reveal="mask">
+          {a.title}
+        </h1>
+        <p class="ahead__standfirst" data-reveal="fade">
+          {a.summary}
+        </p>
+      </div>
+
+      <dl class="ahead__facts">
+        <div class="ahead__fact">
+          <dt class="eyebrow">{t.meta.category}</dt>
+          <dd>
+            <a href={a.category.href} class="link">
+              {a.category.title}
+            </a>
+          </dd>
+        </div>
+        <div class="ahead__fact">
+          <dt class="eyebrow">{t.meta.reading}</dt>
+          <dd class="numerals">{`${a.minutes} ${copy.minutes}`}</dd>
+        </div>
+        {a.draft || !a.publishedAt ? (
+          <div class="ahead__fact">
+            <dt class="eyebrow">{t.meta.status}</dt>
+            <dd>{t.draftStatus}</dd>
+          </div>
+        ) : (
+          <div class="ahead__fact">
+            <dt class="eyebrow">{a.updatedAt ? t.meta.updated : t.meta.published}</dt>
+            <dd class="numerals">
+              <time datetime={isoDate(a.updatedAt ?? a.publishedAt)}>
+                {formatDate(a.updatedAt ?? a.publishedAt, 'long')}
+              </time>
+            </dd>
+          </div>
+        )}
+        {a.draft && reviewer && (
+          <div class="ahead__fact">
+            <dt class="eyebrow">{t.meta.reviewedBy}</dt>
+            <dd>{isPlaceholder(reviewer) ? <Ph>{reviewer}</Ph> : reviewer}</dd>
+          </div>
+        )}
+      </dl>
+      {a.draft && <p class="ahead__draft">{t.draftNote}</p>}
+    </header>
+
+    <figure class="acover shell">
+      <div class="acover__frame">
+        <PlaceholderImage width={1600} height={800} caption={d.cover.caption} alt={d.cover.alt} />
+      </div>
+    </figure>
+
+    <div class="adoc shell">
+      {toc.length > 1 && (
+        <nav class="atoc" aria-labelledby="atoc-label">
+          <div class="atoc__sticky">
+            <h2 id="atoc-label" class="eyebrow atoc__label">
+              {t.contentsLabel}
+            </h2>
+            <div class="atoc__wrap">
+              <span class="atoc__rail" aria-hidden="true">
+                <span class="atoc__fill"></span>
+              </span>
+              <ol class="atoc__list">
+                {toc.map((h, i) => (
+                  <li>
+                    <a href={`#${h.slug}`} class="atoc__link">
+                      <span class="numerals" aria-hidden="true">
+                        {String(i + 1).padStart(2, '0')}
+                      </span>
+                      <span>{h.text}</span>
+                    </a>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </div>
+        </nav>
+      )}
+
+      <div class="aprose">
+        <section class="abrief" aria-labelledby="abrief-label">
+          <h2 id="abrief-label" class="eyebrow abrief__label">
+            {copy.briefLabel}
+          </h2>
+          <ol class="abrief__list">
+            {a.keyPoints.map((p, i) => (
+              <li class="abrief__item">
+                <span class="abrief__num numerals" aria-hidden="true">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <span>{p}</span>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        <div class="aprose__body">
+          <Content components={{ Note }} />
+        </div>
+
+        <p class="aprose__edu">{t.educationNote}</p>
+      </div>
+    </div>
+
+    <div class="shell adisc">
+      <DisclaimerNote label={t.disclaimerLabel} />
+    </div>
+  </article>
+
+  <section class="atalk shell" aria-labelledby="atalk-title">
+    <SectionLabel number="—">{t.talk.label}</SectionLabel>
+    <div class="atalk__grid">
+      <div class="atalk__main">
+        <h2 id="atalk-title" class="atalk__title" data-reveal="mask">
+          {t.talk.heading}
+        </h2>
+        <p class="atalk__body">{t.talk.body}</p>
+        <div class="atalk__actions">
+          <span class="magnetic" data-magnetic>
+            <Button
+              href={whatsappLink(undefined, d.whatsappMessage)}
+              size="lg"
+              icon="whatsapp"
+              data-track="whatsapp_click"
+              data-track-service={primary.slug}
+              data-track-location={`insight-${a.id}`}
+            >
+              {t.talk.cta}
+            </Button>
+          </span>
+        </div>
+      </div>
+      <div class="atalk__side">
+        <p class="eyebrow atalk__label">{t.talk.serviceLabel}</p>
+        <div class="atalk__rows">
+          {related.map((s, i) => (
+            <ServiceRow
+              index={String(i + 1).padStart(2, '0')}
+              title={s.title}
+              href={s.href}
+              summary={s.summary}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+    <NextSteps class="atalk__next" />
+  </section>
+
+  {next.length > 0 && (
+    <section class="anext shell" aria-labelledby="anext-title">
+      <SectionLabel number="—">{t.next.label}</SectionLabel>
+      <h2 id="anext-title" class="anext__title" data-reveal="mask">
+        {t.next.heading}
+      </h2>
+      <div class="anext__list">
+        <InsightRegister items={next} copy={copy} />
+      </div>
+    </section>
+  )}
+</BaseLayout>
+
+<style>
+  /* Layered so Tailwind utilities on the same element still win. */
+  @layer components {
+    /* ---------- head ---------- */
+    .ahead {
+      padding-top: clamp(1.5rem, 1rem + 2vw, 3rem);
+    }
+    .ahead__main {
+      margin-top: clamp(2.5rem, 1.5rem + 4vw, 5.5rem);
+    }
+    .ahead__eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      color: var(--color-stone);
+    }
+    .ahead__rule {
+      width: 2.5rem;
+      height: 1px;
+      background: var(--color-gold);
+    }
+    .ahead__title {
+      margin-top: clamp(1.25rem, 1rem + 1.5vw, 2.5rem);
+      font-size: clamp(2.5rem, 1.45rem + 4.2vw, 5.5rem);
+      line-height: 1.03;
+      letter-spacing: -0.03em;
+      font-weight: 330;
+      font-variation-settings: 'opsz' 144;
+      max-width: 18ch;
+    }
+    .ahead__standfirst {
+      margin-top: clamp(1.5rem, 1rem + 1.5vw, 2.5rem);
+      max-width: 40ch;
+      font-family: var(--font-display);
+      font-size: var(--text-d4);
+      line-height: 1.4;
+      font-weight: 360;
+      font-style: italic;
+      font-variation-settings: 'opsz' 36;
+    }
+
+    .ahead__facts {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0 var(--gap-x);
+      margin-top: clamp(3rem, 2rem + 3vw, 5rem);
+      border-top: 1px solid var(--color-ink);
+    }
+    @media (min-width: 768px) {
+      .ahead__facts {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+    }
+    .ahead__fact {
+      display: flex;
+      flex-direction: column;
+      gap: 0.375rem;
+      padding-block: 1rem;
+      border-bottom: 1px solid var(--color-line);
+      font-size: var(--text-small);
+      line-height: var(--text-small--line-height);
+    }
+    @media (min-width: 768px) {
+      .ahead__fact {
+        border-bottom: 0;
+      }
+    }
+    .ahead__fact dt {
+      color: var(--color-stone);
+    }
+    .ahead__draft {
+      margin-top: 1.25rem;
+      padding-left: 1rem;
+      border-left: 1px solid var(--color-gold);
+      max-width: 72ch;
+      font-size: var(--text-small);
+      line-height: var(--text-small--line-height);
+      color: var(--color-stone);
+    }
+
+    /* ---------- cover ---------- */
+    .acover {
+      margin-top: clamp(2.5rem, 2rem + 2vw, 4rem);
+    }
+    .acover__frame {
+      overflow: hidden;
+      border-radius: var(--radius-xs);
+    }
+
+    /* ---------- document ---------- */
+    .adoc {
+      display: grid;
+      gap: 3rem var(--gap-x);
+      padding-top: clamp(3rem, 2rem + 4vw, 6rem);
+      grid-template-columns: minmax(0, 1fr);
+      timeline-scope: --read;
+    }
+    @media (min-width: 1024px) {
+      .adoc {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        align-items: start;
+      }
+      .atoc {
+        grid-column: 1 / span 3;
+        align-self: stretch;
+      }
+      .atoc__sticky {
+        position: sticky;
+        top: calc(var(--header-h) + 2rem);
+      }
+      .aprose {
+        grid-column: 4 / span 8;
+      }
+    }
+
+    .atoc__label {
+      color: var(--color-stone);
+      padding-bottom: 0.75rem;
+    }
+    .atoc__wrap {
+      position: relative;
+    }
+    .atoc__list {
+      border-top: 1px solid var(--color-ink);
+    }
+    .atoc__link {
+      display: grid;
+      grid-template-columns: 2rem minmax(0, 1fr);
+      align-items: baseline;
+      min-height: 44px;
+      padding-block: 0.625rem;
+      border-bottom: 1px solid var(--color-line);
+      font-size: var(--text-small);
+      line-height: 1.4;
+      transition: color 240ms var(--ease-quiet);
+    }
+    .atoc__link > span:first-child {
+      font-size: var(--text-micro);
+      font-weight: 650;
+      letter-spacing: var(--text-micro--letter-spacing);
+      color: var(--color-stone);
+    }
+    .atoc__link:hover {
+      color: var(--color-royal);
+    }
+    .atoc__rail {
+      display: none;
+    }
+    @media (min-width: 1024px) {
+      /* Reading rail: a hairline beside the contents; gold fills it as the text is read */
+      .atoc__rail {
+        display: block;
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: -1.25rem;
+        width: 1px;
+        background: var(--color-line);
+      }
+      .atoc__fill {
+        display: block;
+        height: 100%;
+        background: var(--color-gold);
+        transform-origin: top;
+        transform: scaleY(0);
+      }
+    }
+    @media (max-width: 1023.98px) {
+      .atoc__list {
+        columns: 2 14rem;
+        column-gap: var(--gap-x);
+      }
+      .atoc__list li {
+        break-inside: avoid;
+      }
+    }
+    /* Without scroll-driven animations (or with reduced motion) the rail stays a plain rule */
+    @supports (animation-timeline: view()) {
+      @media (prefers-reduced-motion: no-preference) {
+        .aprose {
+          view-timeline: --read block;
+        }
+        .atoc__fill {
+          animation: read-fill linear both;
+          animation-timeline: --read;
+          animation-range: contain 0% contain 100%;
+        }
+      }
+    }
+    @keyframes read-fill {
+      from {
+        transform: scaleY(0);
+      }
+      to {
+        transform: scaleY(1);
+      }
+    }
+
+    /* In brief: the answer first */
+    .abrief {
+      padding: clamp(1.25rem, 1rem + 1vw, 1.75rem) clamp(1.25rem, 1rem + 1vw, 2rem);
+      background: var(--color-paper);
+      border-top: 1px solid var(--color-ink);
+    }
+    .abrief__label {
+      color: var(--color-stone);
+    }
+    .abrief__list {
+      margin-top: 0.5rem;
+    }
+    .abrief__item {
+      display: grid;
+      grid-template-columns: 2.5rem minmax(0, 1fr);
+      padding-block: 0.875rem;
+      border-bottom: 1px solid var(--color-line);
+      font-family: var(--font-display);
+      font-size: 1.1875rem;
+      line-height: 1.45;
+      font-weight: 380;
+      font-variation-settings: 'opsz' 24;
+    }
+    .abrief__item:last-child {
+      border-bottom: 0;
+      padding-bottom: 0.25rem;
+    }
+    .abrief__num {
+      padding-top: 0.3rem;
+      font-family: var(--font-sans);
+      font-size: var(--text-micro);
+      letter-spacing: var(--text-micro--letter-spacing);
+      font-weight: 650;
+      color: var(--color-stone);
+    }
+
+    /* Prose: numbered sections, ledger tables, gold-dash lists */
+    .aprose {
+      max-width: 68ch;
+    }
+    .aprose__body {
+      counter-reset: section;
+      margin-top: clamp(2.5rem, 2rem + 2vw, 3.5rem);
+    }
+    .aprose__body > :global(p:first-child) {
+      font-size: var(--text-lead);
+      line-height: var(--text-lead--line-height);
+    }
+    .aprose__body :global(h2) {
+      counter-increment: section;
+      margin-top: clamp(3rem, 2.5rem + 2vw, 4.5rem);
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--color-line);
+      font-size: var(--text-d3);
+      line-height: var(--text-d3--line-height);
+      letter-spacing: var(--text-d3--letter-spacing);
+      font-weight: 380;
+      scroll-margin-top: calc(var(--header-h) + 1.5rem);
+    }
+    .aprose__body :global(h2::before) {
+      content: counter(section, decimal-leading-zero);
+      display: block;
+      margin-bottom: 0.75rem;
+      font-family: var(--font-sans);
+      font-size: var(--text-micro);
+      line-height: var(--text-micro--line-height);
+      letter-spacing: var(--text-micro--letter-spacing);
+      font-weight: 650;
+      color: var(--color-stone);
+      font-variant-numeric: tabular-nums;
+    }
+    .aprose__body :global(h3) {
+      margin-top: 2.25rem;
+      font-size: var(--text-d4);
+      line-height: var(--text-d4--line-height);
+      font-weight: 420;
+      scroll-margin-top: calc(var(--header-h) + 1.5rem);
+    }
+    .aprose__body :global(p),
+    .aprose__body :global(ul),
+    .aprose__body :global(ol),
+    .aprose__body :global(table) {
+      margin-top: 1rem;
+    }
+    .aprose__body :global(h2 + p) {
+      margin-top: 1.25rem;
+    }
+    .aprose__body :global(ul),
+    .aprose__body :global(ol) {
+      display: grid;
+      gap: 0.625rem;
+    }
+    .aprose__body :global(ul > li) {
+      position: relative;
+      padding-left: 1.5rem;
+    }
+    .aprose__body :global(ul > li::before) {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0.8em;
+      width: 0.75rem;
+      height: 1px;
+      background: var(--color-gold);
+    }
+    .aprose__body :global(ol) {
+      counter-reset: step;
+    }
+    .aprose__body :global(ol > li) {
+      counter-increment: step;
+      position: relative;
+      padding-left: 2.5rem;
+    }
+    .aprose__body :global(ol > li::before) {
+      content: counter(step, decimal-leading-zero);
+      position: absolute;
+      left: 0;
+      top: 0.35em;
+      font-size: var(--text-micro);
+      letter-spacing: var(--text-micro--letter-spacing);
+      font-weight: 650;
+      color: var(--color-stone);
+      font-variant-numeric: tabular-nums;
+    }
+    .aprose__body :global(strong) {
+      font-weight: 650;
+    }
+    .aprose__body :global(em) {
+      font-style: italic;
+    }
+    .aprose__body :global(a) {
+      color: var(--color-royal);
+      text-decoration: underline;
+      text-decoration-thickness: 1px;
+      text-underline-offset: 0.22em;
+      text-decoration-color: var(--color-gold);
+    }
+    .aprose__body :global(a:hover) {
+      text-decoration-color: currentColor;
+    }
+
+    /* Tables read as ledgers: ink head rule, hairline rows, no boxes */
+    .aprose__body :global(table) {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      border-collapse: collapse;
+      font-size: var(--text-small);
+      line-height: var(--text-small--line-height);
+    }
+    .aprose__body :global(thead th) {
+      padding: 0.75rem 1rem 0.75rem 0;
+      border-top: 1px solid var(--color-ink);
+      border-bottom: 1px solid var(--color-ink);
+      text-align: left;
+      vertical-align: bottom;
+      font-size: var(--text-micro);
+      letter-spacing: var(--text-micro--letter-spacing);
+      text-transform: uppercase;
+      font-weight: 650;
+      color: var(--color-stone);
+    }
+    .aprose__body :global(tbody td) {
+      padding: 0.875rem 1rem 0.875rem 0;
+      border-bottom: 1px solid var(--color-line);
+      vertical-align: top;
+    }
+    .aprose__body :global(tbody td:first-child) {
+      font-weight: 620;
+    }
+    /* Phones: tighter cells so a four-column ledger still fits the column without scrolling */
+    @media (max-width: 767.98px) {
+      .aprose__body :global(table) {
+        font-size: 0.875rem;
+        overflow-wrap: break-word;
+      }
+      .aprose__body :global(thead th) {
+        letter-spacing: 0.08em;
+      }
+      .aprose__body :global(thead th),
+      .aprose__body :global(tbody td) {
+        padding-right: 0.625rem;
+      }
+    }
+    @media (min-width: 768px) {
+      .aprose__body :global(thead th) {
+        white-space: nowrap;
+      }
+      .aprose__body :global(tbody td) {
+        min-width: 9rem;
+      }
+      .aprose__body :global(tbody td:first-child) {
+        min-width: 8rem;
+      }
+    }
+
+    .aprose__edu {
+      margin-top: clamp(3rem, 2.5rem + 2vw, 4rem);
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--color-ink);
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: var(--text-d4);
+      line-height: 1.45;
+      font-weight: 360;
+      font-variation-settings: 'opsz' 36;
+    }
+
+    .adisc {
+      margin-top: clamp(3rem, 2rem + 3vw, 5rem);
+    }
+
+    /* ---------- talk it through ---------- */
+    .atalk {
+      padding-top: var(--section-y);
+    }
+    .atalk__grid {
+      display: grid;
+      gap: 3rem var(--gap-x);
+      margin-top: clamp(2rem, 1.5rem + 2vw, 3.5rem);
+    }
+    @media (min-width: 1024px) {
+      .atalk__grid {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        align-items: start;
+      }
+      .atalk__main {
+        grid-column: 1 / span 6;
+      }
+      .atalk__side {
+        grid-column: 8 / span 5;
+        padding-top: 0.75rem;
+      }
+    }
+    .atalk__title {
+      font-size: var(--text-d1);
+      line-height: var(--text-d1--line-height);
+      letter-spacing: var(--text-d1--letter-spacing);
+      font-weight: 330;
+      font-variation-settings: 'opsz' 144;
+      max-width: 14ch;
+    }
+    .atalk__body {
+      margin-top: 1.5rem;
+      color: var(--color-stone);
+      max-width: 44ch;
+    }
+    .atalk__actions {
+      margin-top: 2rem;
+    }
+    @media (max-width: 639.98px) {
+      .atalk__actions > .magnetic,
+      .atalk__actions > .magnetic :global(.btn) {
+        width: 100%;
+      }
+    }
+    .atalk__label {
+      color: var(--color-stone);
+      padding-bottom: 1rem;
+    }
+    .atalk__rows {
+      border-top: 1px solid var(--color-ink);
+    }
+    .atalk :global(.atalk__next) {
+      margin-top: clamp(4rem, 3rem + 4vw, 7rem);
+    }
+
+    /* ---------- read next ---------- */
+    .anext {
+      padding-top: clamp(5rem, 3rem + 6vw, 9rem);
+      padding-bottom: var(--section-y);
+    }
+    .anext__title {
+      margin-top: clamp(2rem, 1.5rem + 2vw, 3.5rem);
+      font-size: var(--text-d2);
+      line-height: var(--text-d2--line-height);
+      letter-spacing: var(--text-d2--letter-spacing);
+      font-weight: 340;
+    }
+    .anext__list {
+      margin-top: clamp(2rem, 1.5rem + 2vw, 3.5rem);
+    }
+  }
+</style>

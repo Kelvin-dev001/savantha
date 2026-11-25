@@ -1,0 +1,139 @@
+---
+/**
+ * The Insights list, shared by /insights and /insights/category/[category].
+ *
+ * /insights reads like the contents page of a journal: the hero carries the subject index,
+ * the newest guide opens as a spread (01 — Latest), and every other guide follows as a line
+ * in the register (02 — Every guide). A category page drops the spread and lists all of its
+ * guides in the register. Both close on the ink call to action.
+ */
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PageHero from '@/components/sections/PageHero.astro';
+import NextSteps from '@/components/sections/NextSteps.astro';
+import InsightIndex from '@/components/sections/InsightIndex.astro';
+import InsightFeature from '@/components/sections/InsightFeature.astro';
+import InsightRegister from '@/components/sections/InsightRegister.astro';
+import CtaBand from '@/components/sections/CtaBand.astro';
+import SectionLabel from '@/components/ui/SectionLabel.astro';
+import { getInsights, getInsightsCopy, type CategoryKey } from '@/lib/insights';
+
+interface Props {
+  category?: CategoryKey;
+}
+const { category } = Astro.props;
+
+const [copy, { insights, categories }] = await Promise.all([getInsightsCopy(), getInsights()]);
+const current = category ? categories.find((c) => c.key === category) : undefined;
+if (category && !current) throw new Error(`Unknown insight category "${category}".`);
+
+const list = current ? insights.filter((a) => a.category.key === current.key) : insights;
+// The full list opens with the newest guide as a spread; a category page lists them all.
+const feature = current ? undefined : list[0];
+const register = feature ? list.slice(1) : list;
+
+const title = current ? `${current.title} · ${copy.seoTitle}` : copy.seoTitle;
+const description = current ? current.seoDescription : copy.seoDescription;
+const headline = current ? [{ text: `${current.title}.` }] : copy.headline;
+const lead = current ? current.line : copy.lead;
+const registerHeading = current
+  ? copy.categoryRegisterHeading.replace('{subject}', current.title.toLowerCase())
+  : copy.registerHeading;
+---
+
+<BaseLayout {title} {description}>
+  <PageHero
+    eyebrow={copy.eyebrow}
+    {headline}
+    {lead}
+    proof={copy.proof}
+    size="page"
+    crumbs={
+      current
+        ? {
+            label: copy.article.breadcrumb,
+            items: [
+              { label: copy.article.breadcrumb, href: '/insights' },
+              { label: current.title },
+            ],
+          }
+        : undefined
+    }
+  >
+    <Fragment slot="aside">
+      <InsightIndex
+        copy={copy}
+        categories={categories}
+        total={insights.length}
+        current={current?.key}
+      />
+    </Fragment>
+    <Fragment slot="foot">
+      <NextSteps />
+    </Fragment>
+  </PageHero>
+
+  {feature && (
+    <section class="ilist shell" aria-labelledby="ifeat-title">
+      <SectionLabel number="01">{copy.featureLabel}</SectionLabel>
+      <div class="ilist__body">
+        <InsightFeature insight={feature} copy={copy} />
+      </div>
+    </section>
+  )}
+
+  {register.length > 0 && (
+    <section class="ilist shell" aria-labelledby="ireg-title">
+      <SectionLabel number={feature ? '02' : '01'}>{copy.registerLabel}</SectionLabel>
+      <h2 id="ireg-title" class="ilist__title" data-reveal="mask">
+        {registerHeading}
+      </h2>
+      <div class="ilist__body">
+        <InsightRegister items={register} copy={copy} start={feature ? 2 : 1} />
+      </div>
+    </section>
+  )}
+
+  {list.length === 0 && (
+    <section class="ilist ilist--empty shell" aria-labelledby="iempty-title">
+      <h2 id="iempty-title" class="ilist__title">
+        {copy.empty.heading}
+      </h2>
+      <p class="ilist__empty">{copy.empty.body}</p>
+    </section>
+  )}
+
+  <div class="ilist__end" aria-hidden="true"></div>
+  <CtaBand location={current ? `insights-${current.key}` : 'insights'} />
+</BaseLayout>
+
+<style>
+  /* Layered so Tailwind utilities on the same element still win. */
+  @layer components {
+    .ilist {
+      padding-top: var(--section-y);
+    }
+    .ilist + .ilist {
+      padding-top: clamp(5rem, 3rem + 6vw, 9rem);
+    }
+    .ilist__title {
+      margin-top: clamp(2rem, 1.5rem + 2vw, 3.5rem);
+      font-size: var(--text-d1);
+      line-height: var(--text-d1--line-height);
+      letter-spacing: var(--text-d1--letter-spacing);
+      font-weight: 340;
+      font-variation-settings: 'opsz' 144;
+      max-width: 16ch;
+    }
+    .ilist__body {
+      margin-top: clamp(2.5rem, 2rem + 2.5vw, 4.5rem);
+    }
+    .ilist__empty {
+      margin-top: 1.25rem;
+      color: var(--color-stone);
+      max-width: 48ch;
+    }
+    .ilist__end {
+      height: var(--section-y);
+    }
+  }
+</style>

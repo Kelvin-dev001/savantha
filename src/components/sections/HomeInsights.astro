@@ -2,36 +2,33 @@
 /**
  * 06 — Insights: the three latest, set like a contents page.
  *
- * The newest piece leads with its image; the next two follow as numbered entries.
- * Published articles link to /insights/[slug]. Drafts (the Phase 6 seeds) are listed as
- * "In preparation" and are not links, so nothing points at a page that does not exist yet.
+ * The newest piece leads with its cover; the next two follow as numbered entries. Articles
+ * come from src/lib/insights.ts (published first, newest first, then drafts), the same
+ * order as /insights. Drafts link to their review copy and read "In review" where a
+ * published piece shows its date.
  */
-import { getCollection, getEntry } from 'astro:content';
+import { getEntry } from 'astro:content';
 import SectionLabel from '@/components/ui/SectionLabel.astro';
 import Button from '@/components/ui/Button.astro';
 import PlaceholderImage from '@/components/ui/PlaceholderImage.astro';
 import Icon from '@/components/ui/Icon.astro';
+import { formatDate, getInsights } from '@/lib/insights';
 
 const home = await getEntry('home', 'home');
 if (!home) throw new Error('src/content/home/home.yaml is required.');
 const { insights: copy } = home.data;
 
-const all = await getCollection('insights');
-const time = (d?: Date) => d?.getTime() ?? 0;
-const latest = [
-  ...all
-    .filter((a) => !a.data.draft)
-    .sort((a, b) => time(b.data.publishedAt) - time(a.data.publishedAt)),
-  ...all.filter((a) => a.data.draft),
-]
-  .slice(0, 3)
-  .map((a) => ({ ...a.data, id: a.id, href: a.data.draft ? undefined : `/insights/${a.id}` }));
-
-const dateFmt = new Intl.DateTimeFormat('en-KE', {
-  day: 'numeric',
-  month: 'short',
-  year: 'numeric',
-});
+const { insights } = await getInsights();
+const latest = insights.slice(0, 3).map((a) => ({
+  id: a.id,
+  href: a.href,
+  title: a.title,
+  summary: a.summary,
+  minutes: a.minutes,
+  category: a.category.title,
+  date: a.draft || !a.publishedAt ? copy.pending : formatDate(a.publishedAt),
+  cover: a.entry.data.cover,
+}));
 const [lead, ...rest] = latest;
 ---
 
@@ -61,28 +58,20 @@ const [lead, ...rest] = latest;
               <PlaceholderImage
                 width={1200}
                 height={900}
-                caption="Hands on a ledger"
-                alt="Placeholder for a close photograph of hands working on a paper ledger."
+                caption={lead.cover.caption}
+                alt={lead.cover.alt}
               />
             </div>
           </div>
           <div class="ins__meta eyebrow">
             <span>{lead.category}</span>
-            <span class="numerals">
-              {lead.href && lead.publishedAt ? dateFmt.format(lead.publishedAt) : copy.pending}
-            </span>
-            {lead.readingMinutes && (
-              <span class="numerals">{`${lead.readingMinutes} ${copy.minutes}`}</span>
-            )}
+            <span class="numerals">{lead.date}</span>
+            <span class="numerals">{`${lead.minutes} ${copy.minutes}`}</span>
           </div>
           <h3 id={`ins-${lead.id}`} class="ins__feature-title">
-            {lead.href ? (
-              <a href={lead.href} class="ins__link">
-                {lead.title}
-              </a>
-            ) : (
-              lead.title
-            )}
+            <a href={lead.href} class="ins__link">
+              {lead.title}
+            </a>
           </h3>
           <p class="ins__summary">{lead.summary}</p>
         </article>
@@ -94,19 +83,13 @@ const [lead, ...rest] = latest;
                 <div class="ins__meta eyebrow">
                   <span class="numerals ins__index">{String(i + 2).padStart(2, '0')}</span>
                   <span>{a.category}</span>
-                  <span class="numerals">
-                    {a.href && a.publishedAt ? dateFmt.format(a.publishedAt) : copy.pending}
-                  </span>
+                  <span class="numerals">{a.date}</span>
                 </div>
                 <h3 id={`ins-${a.id}`} class="ins__item-title">
-                  {a.href ? (
-                    <a href={a.href} class="ins__link">
-                      {a.title}
-                      <Icon name="arrow-right" size={16} class="ins__arrow" />
-                    </a>
-                  ) : (
-                    a.title
-                  )}
+                  <a href={a.href} class="ins__link">
+                    {a.title}
+                    <Icon name="arrow-right" size={16} class="ins__arrow" />
+                  </a>
                 </h3>
                 <p class="ins__summary ins__summary--sm">{a.summary}</p>
               </article>

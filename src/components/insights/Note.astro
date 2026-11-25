@@ -1,0 +1,51 @@
+---
+/**
+ * MDX callout for insights: a ruled note set apart from the reading column.
+ *   <Note label="Ask before you commit"> …markdown… </Note>
+ * `tone="key"` is the stronger version (ink rule, paper ground) for the one thing a reader
+ * must not miss in a section. Passed to every article through <Content components>, so the
+ * MDX files need no imports.
+ */
+interface Props {
+  label: string;
+  tone?: 'note' | 'key';
+}
+const { label, tone = 'note' } = Astro.props;
+const uid = `note-${Math.random().toString(36).slice(2, 8)}`;
+---
+
+<aside class:list={['anote', `anote--${tone}`]} aria-labelledby={uid}>
+  <p id={uid} class="anote__label eyebrow">
+    {label}
+  </p>
+  <div class="anote__body">
+    <slot />
+  </div>
+</aside>
+
+<style>
+  /* Layered so Tailwind utilities on the same element still win. */
+  @layer components {
+    .anote {
+      margin-block: 2rem;
+      padding: 1.25rem 0 0.25rem 1.5rem;
+      border-left: 1px solid var(--color-gold);
+    }
+    .anote--key {
+      padding: 1.5rem clamp(1.25rem, 1rem + 1vw, 2rem) 1.5rem;
+      background: var(--color-paper);
+      border-left: 0;
+      border-top: 1px solid var(--color-ink);
+    }
+    .anote__label {
+      color: var(--color-stone);
+    }
+    .anote__body {
+      font-size: var(--text-small);
+      line-height: var(--text-small--line-height);
+    }
+    .anote__body > :global(:first-child) {
+      margin-top: 0.75rem;
+    }
+  }
+</style>
