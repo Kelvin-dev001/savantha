@@ -16,7 +16,7 @@ const [copy, pillars, services] = await Promise.all([getHub(), getPillars(), get
 const { hub, page } = copy;
 ---
 
-<BaseLayout title={hub.seoTitle} description={hub.seoDescription}>
+<BaseLayout title={hub.seoTitle} description={hub.seoDescription} pageType="CollectionPage">
   <HubHero hub={hub} pillars={pillars} />
 
   {pillars.map((p) => (

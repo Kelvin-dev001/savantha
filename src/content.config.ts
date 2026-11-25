@@ -37,6 +37,8 @@ const headline = z
 const home = defineCollection({
   loader: glob({ pattern: '**/*.yaml', base: './src/content/home' }),
   schema: z.object({
+    seoTitle: z.string().max(60 - ' | Savantho Consultancy'.length),
+    seoDescription: z.string().max(155),
     hero: z.object({
       headline,
       lead: z.string(),
@@ -559,6 +561,48 @@ const pages = defineCollection({
         }),
         next: z.object({ label, heading: z.string() }),
       }),
+    }),
+    /** Search, sharing and AI search: OG card eyebrows, /llms.txt prose (Phase 7). */
+    seo: z.object({
+      homeLabel: label,
+      og: z.object({
+        home: label,
+        legal: label,
+        default: label,
+      }),
+      llms: z.object({
+        summary: z.string(),
+        intro: z.array(z.string()).min(1),
+        servicesHeading: label,
+        guidesHeading: label,
+        guidesNote: z.string(),
+        companyHeading: label,
+        contactHeading: label,
+        contactLabels: z.object({
+          whatsapp: label,
+          phone: label,
+          email: label,
+          hours: label,
+          form: label,
+        }),
+        boundariesHeading: label,
+        boundaries: z.array(z.string()).min(2),
+        optionalHeading: label,
+      }),
+    }),
+    /**
+     * Analytics consent banner and the footer link that reopens it. Shown only when an
+     * analytics provider is configured (PUBLIC_ANALYTICS_PROVIDER).
+     */
+    consent: z.object({
+      label,
+      heading: z.string(),
+      body: z.object({ plausible: z.string(), ga4: z.string() }),
+      allow: label,
+      decline: label,
+      privacy: link,
+      saved: z.object({ granted: z.string(), denied: z.string() }),
+      footerLink: label,
     }),
     notFound: z.object({
       seoTitle: z.string(),

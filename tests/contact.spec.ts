@@ -190,11 +190,11 @@ test('faq lists every service question, with FAQPage schema', async ({ page }) =
   await page.goto('/faq');
   const items = await page.locator('.faql__item').count();
   expect(items).toBeGreaterThanOrEqual(4 + 6 * 5);
-  const ld = JSON.parse(
-    (await page.locator('script[type="application/ld+json"]').first().textContent()) ?? '{}',
-  );
-  expect(ld['@type']).toBe('FAQPage');
-  expect(ld.mainEntity).toHaveLength(items);
+  const graph = JSON.parse(
+    (await page.locator('head script[type="application/ld+json"]').textContent()) ?? '{}',
+  )['@graph'] as { '@type': string; mainEntity?: unknown[] }[];
+  const ld = graph.find((n) => n['@type'] === 'FAQPage');
+  expect(ld?.mainEntity).toHaveLength(items);
   for (const key of ['working-with-us', 'grow', 'trade', 'build'])
     await expect(page.locator(`section#${key}`)).toHaveCount(1);
 });

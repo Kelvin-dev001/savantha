@@ -64,7 +64,12 @@ const { cta } = home.data;
         <div class="cta__way">
           <dt class="eyebrow">{cta.callLabel}</dt>
           <dd>
-            <a href={telLink()} class="cta__link numerals" data-track="call_click">
+            <a
+              href={telLink()}
+              class="cta__link numerals"
+              data-track="call_click"
+              data-track-location={location}
+            >
               {site.phone.display}
             </a>
           </dd>
@@ -72,7 +77,12 @@ const { cta } = home.data;
         <div class="cta__way">
           <dt class="eyebrow">{cta.emailLabel}</dt>
           <dd>
-            <a href={mailLink()} class="cta__link" data-track="email_click">
+            <a
+              href={mailLink()}
+              class="cta__link"
+              data-track="email_click"
+              data-track-location={location}
+            >
               {site.email}
             </a>
           </dd>

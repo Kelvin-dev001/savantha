@@ -37,9 +37,8 @@ const index = [
 ];
 
 const all = [...general, ...services.flatMap((s) => s.data.faqs)];
-const jsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'FAQPage',
+// The page node itself is the FAQPage (BaseLayout merges this into it).
+const faqLd = {
   mainEntity: all.map((item) => ({
     '@type': 'Question',
     name: item.q,
@@ -48,8 +47,7 @@ const jsonLd = {
 };
 ---
 
-<BaseLayout title={q.seoTitle} description={q.seoDescription}>
-  <script type="application/ld+json" slot="head" set:html={JSON.stringify(jsonLd)} />
+<BaseLayout title={q.seoTitle} description={q.seoDescription} pageType="FAQPage" pageProps={faqLd}>
   <PageHero eyebrow={q.eyebrow} headline={q.headline} lead={q.lead} size="page">
     <Fragment slot="aside">
       <nav class="fidx" aria-labelledby="fidx-label">

@@ -1,6 +1,8 @@
 // @ts-check
 import { defineConfig, envField } from 'astro/config';
+import { readdirSync, readFileSync } from 'node:fs';
 import mdx from '@astrojs/mdx';
+import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
 
 /**
@@ -13,13 +15,39 @@ const adapter = process.env.VERCEL
   ? (await import('@astrojs/vercel')).default()
   : (await import('@astrojs/node')).default({ mode: 'standalone' });
 
+const SITE = 'https://savantho.net';
+
+/**
+ * Pages kept out of the sitemap. They are the pages that carry `noindex`: utility pages,
+ * the form's result pages, and insights still marked `draft: true` (read from their
+ * frontmatter, since content collections are not available here). tests/seo.spec.ts checks
+ * that the sitemap and the noindex tags agree.
+ */
+const insightsDir = new URL('./src/content/insights/', import.meta.url);
+const draftInsights = readdirSync(insightsDir)
+  .filter((f) => /^[^_].*\.mdx?$/.test(f))
+  .filter((f) => /^draft:\s*true\s*$/m.test(readFileSync(new URL(f, insightsDir), 'utf8')))
+  .map((f) => `/insights/${f.replace(/\.mdx?$/, '')}/`);
+const unlisted = [
+  '/styleguide/',
+  '/404/',
+  '/contact/thank-you/',
+  '/contact/not-sent/',
+  ...draftInsights,
+];
+
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://savantho.net',
+  site: SITE,
   trailingSlash: 'ignore',
   output: 'static',
   adapter,
-  integrations: [mdx()],
+  integrations: [
+    mdx(),
+    sitemap({
+      filter: (page) => !unlisted.includes(new URL(page).pathname),
+    }),
+  ],
   // Hosts the on-demand route may trust. Without this list Astro ignores the Host header,
   // reads every request as "http://localhost", and its origin check then rejects plain
   // (no-JavaScript) form posts to /api/contact as cross-site.

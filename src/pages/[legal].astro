@@ -18,13 +18,13 @@ import Ph from '@/components/ui/Ph.astro';
 import { site, isPlaceholder } from '@/config/site';
 import { ui } from '@/config/navigation';
 import { whatsappLink, mailLink } from '@/lib/contact';
+import { legalRoutes } from '@/lib/legal';
 
-/** Route → entry in src/content/legal/. */
-export const getStaticPaths = (() => [
-  { params: { legal: 'privacy' }, props: { entry: 'privacy' } },
-  { params: { legal: 'terms' }, props: { entry: 'terms' } },
-  { params: { legal: 'disclaimer' }, props: { entry: 'disclaimer-details' } },
-]) satisfies GetStaticPaths;
+export const getStaticPaths = (() =>
+  legalRoutes.map((l) => ({
+    params: { legal: l.route },
+    props: { entry: l.entry },
+  }))) satisfies GetStaticPaths;
 
 interface Props {
   entry: string;

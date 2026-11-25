@@ -21,6 +21,8 @@ import ServiceRelated from '@/components/sections/ServiceRelated.astro';
 import CtaBand from '@/components/sections/CtaBand.astro';
 import DisclaimerNote from '@/components/ui/DisclaimerNote.astro';
 import { getHub, getPillars, getServiceIndex, getServices, type Service } from '@/lib/services';
+import { site } from '@/config/site';
+import { ids } from '@/lib/seo';
 
 export const getStaticPaths = (async () => {
   const services = await getServices();
@@ -36,12 +38,29 @@ const pillar = pillars.find((p) => p.key === s.pillar)!;
 const related = s.related.map((slug) => index.get(slug)!);
 const { sections } = page;
 
+const url = new URL(Astro.url.pathname, site.url).href;
+const serviceLd = {
+  '@type': 'Service',
+  '@id': ids.service(url),
+  name: s.title,
+  serviceType: s.title,
+  category: pillar.title,
+  description: s.summary,
+  url,
+  provider: { '@id': ids.organization },
+  areaServed: { '@type': 'Country', name: 'Kenya' },
+  audience: s.audience.map((audienceType) => ({ '@type': 'Audience', audienceType })),
+  mainEntityOfPage: { '@id': ids.webpage(url) },
+};
+
 // Clause numbers follow the sections actually present.
 let n = 0;
 const num = () => String(++n).padStart(2, '0');
 ---
 
-<BaseLayout title={s.seoTitle} description={s.seoDescription}>
+<BaseLayout title={s.seoTitle} description={s.seoDescription} schema={[serviceLd]}>
+  <!-- service_view (analytics, only after consent): see src/scripts/analytics/run.ts -->
+  <meta slot="head" name="savantho:service-view" content={s.slug} />
   <ServiceHero
     service={s}
     pillar={pillar}

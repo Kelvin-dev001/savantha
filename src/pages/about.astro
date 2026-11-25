@@ -24,7 +24,7 @@ const a = entry.data;
 const home = (await getEntry('home', 'home'))!.data;
 ---
 
-<BaseLayout title={a.seoTitle} description={a.seoDescription}>
+<BaseLayout title={a.seoTitle} description={a.seoDescription} pageType="AboutPage">
   <div class="about-head">
     <Lattice density="sparse" opacity={0.2} fade="right" class="about-head__lattice" />
     <PageHero

@@ -12,6 +12,7 @@ const disclaimer = await getEntry('legal', 'disclaimer');
 if (!disclaimer) throw new Error('src/content/legal/disclaimer.md is required (compliance).');
 const { Content: Disclaimer } = await render(disclaimer);
 const pillars = await getPillars();
+const consent = (await getEntry('pages', 'pages'))!.data.consent;
 
 const socialLabels: Record<SocialKey, string> = {
   linkedin: 'LinkedIn',
@@ -108,12 +109,22 @@ const ph = (v: string) => /\[\[.+?\]\]/.test(v);
               </a>
             </li>
             <li>
-              <a href={telLink()} class="footer-link numerals" data-track="call_click">
+              <a
+                href={telLink()}
+                class="footer-link numerals"
+                data-track="call_click"
+                data-track-location="footer"
+              >
                 {site.phone.display}
               </a>
             </li>
             <li>
-              <a href={mailLink()} class="footer-link" data-track="email_click">
+              <a
+                href={mailLink()}
+                class="footer-link"
+                data-track="email_click"
+                data-track-location="footer"
+              >
                 {site.email}
               </a>
             </li>
@@ -155,10 +166,16 @@ const ph = (v: string) => /\[\[.+?\]\]/.test(v);
         <p class="numerals">
           © {year} {site.legalName}. {ui.rights}
         </p>
-        <p class="numerals">
-          {ui.registration}:{' '}
-          {ph(site.registration) ? <Ph>{site.registration}</Ph> : site.registration}
-        </p>
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-8">
+          <p class="numerals">
+            {ui.registration}:{' '}
+            {ph(site.registration) ? <Ph>{site.registration}</Ph> : site.registration}
+          </p>
+          <!-- Shown by the analytics script, only when a provider is configured. -->
+          <button type="button" class="footer-link footer-prefs" data-consent-open hidden>
+            {consent.footerLink}
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -198,6 +215,13 @@ const ph = (v: string) => /\[\[.+?\]\]/.test(v);
       .footer-link {
         min-height: 32px;
       }
+    }
+    .footer-prefs {
+      cursor: pointer;
+      text-align: start;
+    }
+    .footer-prefs[hidden] {
+      display: none;
     }
     .footer-link--pillar {
       font-family: var(--font-display);

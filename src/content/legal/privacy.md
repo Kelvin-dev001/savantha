@@ -21,7 +21,9 @@ We collect only what you choose to give us, and only what we need to reply.
 
 **When you call or email us:** your number or email address, and what you tell us.
 
-**When you visit the website:** our hosting provider keeps short-lived technical logs (such as your IP address, browser type and the pages requested) to run and protect the site. We use your IP address, briefly, to limit repeated form submissions. We do not set advertising cookies. If we add website analytics, it will only run after you agree to it, and this notice will say which provider we use.
+**When you visit the website:** our hosting provider keeps short-lived technical logs (such as your IP address, browser type and the pages requested) to run and protect the site. We use your IP address, briefly, to limit repeated form submissions. We do not set advertising cookies.
+
+**Website analytics, only if you agree:** when you first visit, we ask whether we may count your visit. Nothing is measured unless you choose "Allow". If you do, our analytics provider, [[ANALYTICS PROVIDER: Plausible Analytics or Google Analytics]], records the pages you view, the website that sent you, your device type and approximate country, and which contact buttons you use (WhatsApp, call, email, the enquiry form). We use this only to see which pages help people. Plausible sets no cookies and does not identify you; Google Analytics sets cookies to count visits, with its advertising features switched off. Your choice is stored in your own browser for 12 months. You can change it at any time with "Analytics preferences" at the foot of every page; if your browser sends a Global Privacy Control signal, we treat it as "No, thanks".
 
 Please do not send us identity documents, bank statements or account passwords through the form or by WhatsApp before we have agreed how to handle them.
 
@@ -31,6 +33,7 @@ Please do not send us identity documents, bank statements or account passwords t
 - **To deliver an engagement you have agreed.** Our basis is the contract between us, set out in your engagement letter.
 - **To keep records the law requires,** such as tax and accounting records. Our basis is our legal obligations.
 - **To keep the website secure and working.** Our basis is our legitimate interest in protecting the service.
+- **To understand which pages help people (website analytics).** Our basis is your consent, which you can withdraw at any time.
 
 We do not use your data for marketing unless you separately ask us to, and we never sell it.
 
@@ -40,6 +43,7 @@ We share personal data only with providers who help us run Savantho, and only wh
 
 - **Website hosting:** [[HOSTING PROVIDER, e.g. Vercel Inc.]], which hosts this website and processes the form submission.
 - **Email delivery:** [[EMAIL PROVIDER, e.g. Resend]], which delivers form submissions to our inbox.
+- **Website analytics:** [[ANALYTICS PROVIDER]], only if you have agreed to analytics, which counts visits as described above.
 - **Email and messaging:** [[EMAIL HOST]] for our mailbox, and WhatsApp (Meta), whose own privacy policy applies to messages you send through it.
 - **Other professionals,** such as a CMA-licensed adviser or an advocate, only when you have asked us to refer you and agreed to what we share.
 - **Authorities,** only where the law requires it.
@@ -53,6 +57,7 @@ Some of these providers store or process data outside Kenya. Where they do, we r
 - **Enquiries that do not become engagements:** [[12 months]] from our last contact, then deleted.
 - **Client records:** for the duration of the engagement and then [[7 years]], to meet tax and accounting obligations.
 - **Website technical logs:** as kept by the hosting provider, usually no more than [[30 days]].
+- **Website analytics:** [[ANALYTICS RETENTION, e.g. 24 months for Google Analytics; Plausible keeps no personal data]]. Your consent choice stays in your browser for 12 months.
 
 ## How we protect it
 

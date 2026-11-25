@@ -1,16 +1,27 @@
 ---
 /**
  * Breadcrumb trail: tracked uppercase, gold slashes, the current page last (aria-current).
- * Phase 7 adds the matching BreadcrumbList JSON-LD.
+ * Emits the matching BreadcrumbList JSON-LD (Home first; anchors such as /services#grow are
+ * left out of the structured trail, since each item there must be a page).
  */
+import { getEntry } from 'astro:content';
+import { site } from '@/config/site';
+import { breadcrumbNode, jsonLdString } from '@/lib/seo';
+
 interface Props {
   label: string;
   items: { label: string; href?: string }[];
   class?: string;
 }
 const { label, items, class: className = '' } = Astro.props;
+const homeLabel = (await getEntry('pages', 'pages'))!.data.seo.homeLabel;
+const url = new URL(Astro.url.pathname, site.url).href;
 ---
 
+<script
+  type="application/ld+json"
+  set:html={jsonLdString([breadcrumbNode(url, items, homeLabel)])}
+/>
 <nav aria-label={label} class:list={['crumbs', className]}>
   <ol class="crumbs__list">
     {items.map((item, i) => (

@@ -1,5 +1,11 @@
 # Homepage copy. Compliance-sensitive: reviewed with every other content file.
 
+# Rendered as "<seoTitle> | Savantho Consultancy" (≤ 60 characters in all).
+seoTitle: Ethical Financial Consultancy, Kenya
+seoDescription: >-
+  Ethical financial consultancy for Kenyan families and businesses: wealth planning, Shariah
+  finance, trade finance and training. Every fee in writing.
+
 hero:
   # The tagline above the headline comes from src/config/site.ts.
   headline:

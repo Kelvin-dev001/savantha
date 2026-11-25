@@ -2,13 +2,13 @@
 
 Every placeholder on the site is listed here. Text placeholders use `[[SQUARE BRACKETS]]`; elements carry `data-placeholder="true"` and show a dashed outline while `PUBLIC_SHOW_PLACEHOLDERS=true`.
 
-Last updated: 2026-11-25 (Phase 6)
+Last updated: 2026-11-25 (Phase 7)
 
 ## Identity and registration
 
 | Placeholder | Where | What we need |
 |---|---|---|
-| Monogram (star + italic "S") | `src/components/ui/Monogram.astro`, `public/brand/monogram.svg`, `public/favicon.svg`; also inside the homepage hero seal (`src/components/ui/Seal.astro`) | Final monogram as vector SVG (single colour and full colour). It must read at 200 px with a fine (≈ 1 px) stroke as well as at 30 px |
+| Monogram (star + italic "S") | `src/components/ui/Monogram.astro`, `public/brand/monogram.svg`, `public/favicon.svg`; also inside the homepage hero seal (`src/components/ui/Seal.astro`). The favicon set (`favicon.ico`, `apple-touch-icon.png`, `icon-192/512/maskable.png`) and every OG card are rasterised from `public/brand/monogram.svg` at build time, so replacing that file updates them all. Keep letterforms outlined (paths, not `<text>`) so it renders without fonts | Final monogram as vector SVG (single colour and full colour). It must read at 200 px with a fine (≈ 1 px) stroke as well as at 30 px |
 | Full logo lockup | `public/brand/logo-full.svg` | Final full logo as vector SVG |
 | `[[COMPANY REG. NO.]]` | `src/config/site.ts` → `registration` (footer, styleguide, About register, privacy notice, terms) | Registrar of Companies registration number |
 | `[[OFFICE ADDRESS]]`, `[[CITY]]` | `src/config/site.ts` → `address` (footer, Contact, About register); privacy notice and terms; Contact map alt text (`contact.yaml` → `ways.mapAlt`) | Office street address, building and city |
@@ -120,3 +120,17 @@ About copy: `src/content/about/about.yaml`. Contact page and enquiry form: `src/
 |---|---|---|
 | Resend account and verified domain | Vercel env: `RESEND_API_KEY`, `CONTACT_FROM_EMAIL` (see `.env.example`) | A Resend API key, and savantho.net verified in Resend so mail can come from `website@savantho.net` (or another sender Savantho chooses) |
 | Inbox | Vercel env: `CONTACT_TO_EMAIL` | The address enquiries should go to (default info@savantho.net) |
+
+## Search, sharing and analytics (Phase 7)
+
+| Item | Where | What we need |
+|---|---|---|
+| Homepage search title | `home.yaml` → `seoTitle` ("Ethical Financial Consultancy, Kenya | Savantho Consultancy"), `seoDescription` | Approve. It leads with what people search for rather than the tagline; the tagline stays on the OG card and in the hero |
+| About and Contact titles | `about.yaml`, `contact.yaml` → `seoTitle` ("About us", "Contact us") | Approve (they used to repeat "Savantho Consultancy" twice) |
+| `/llms.txt` text | `pages.yaml` → `seo.llms` (summary, intro, "What Savantho does not do") | Approve: this is how AI assistants will describe Savantho. Compliance-sensitive, include it in the advocate's review |
+| OG card eyebrows | `pages.yaml` → `seo.og` | Approve "Ethical financial consultancy · Kenya" for the home and default cards |
+| Analytics provider | Vercel env `PUBLIC_ANALYTICS_PROVIDER` (+ `PUBLIC_GA4_ID` for GA4), see `.env.example`; `privacy.md` → `[[ANALYTICS PROVIDER]]` (three places) and `[[ANALYTICS RETENTION]]` | Choose Plausible (cookieless, paid subscription) or GA4 (free, sets cookies). Until one is set, no banner shows and nothing is measured. Then fill in the privacy notice before switching it on |
+| Analytics goals | Plausible: Goals → add custom events; GA4: mark as key events | Register `whatsapp_click`, `call_click`, `email_click`, `form_step_1`, `form_submit`, `service_view` (props: `service`, `page`, `location`; `form_submit` also `channel`) |
+| Consent banner copy | `pages.yaml` → `consent` | Advocate to confirm the wording, and that analytics consent kept in the browser for 12 months is acceptable under the DPA |
+| Social profiles | `site.ts` → `socials` | Also feeds `sameAs` in the Organization JSON-LD; add any profile URLs (LinkedIn first) |
+| Street address and hours | `site.ts` | Left out of the JSON-LD while they are placeholders; once set, add them so the business can show in local results (and set up a Google Business Profile) |

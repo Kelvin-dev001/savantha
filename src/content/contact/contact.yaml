@@ -1,7 +1,7 @@
 # /contact copy: the page, the three-question enquiry form, and every message its endpoint
 # (src/pages/api/contact.ts) returns. Contact details themselves come from src/config/site.ts.
 
-seoTitle: Contact Savantho Consultancy
+seoTitle: Contact us
 seoDescription: >-
   Message Savantho on WhatsApp, call, email, or answer three short questions. We reply within
   one business day, and the first 20-minute call is free.

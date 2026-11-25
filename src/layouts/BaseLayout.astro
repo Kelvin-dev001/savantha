@@ -11,6 +11,20 @@ import { ui } from '@/config/navigation';
 import Header from '@/components/layout/Header.astro';
 import Footer from '@/components/layout/Footer.astro';
 import Motion from '@/components/layout/Motion.astro';
+import Consent from '@/components/layout/Consent.astro';
+import { getServices } from '@/lib/services';
+import { cardKey, cardPath, getOgCards } from '@/lib/og';
+import {
+  DESCRIPTION_MAX,
+  OG_SIZE,
+  TITLE_MAX,
+  absolute,
+  jsonLdString,
+  organizationGraph,
+  pageTitle,
+  webPageNode,
+  type JsonLdNode,
+} from '@/lib/seo';
 
 interface Props {
   title: string;
@@ -19,6 +33,15 @@ interface Props {
   overlayHeader?: boolean;
   headerTone?: 'light' | 'dark';
   noindex?: boolean;
+  /** Open Graph type. Articles also pass their dates and subject. */
+  ogType?: 'website' | 'article';
+  article?: { publishedAt?: Date; updatedAt?: Date; section?: string };
+  /** schema.org type of the page node (WebPage, AboutPage, ContactPage, CollectionPage, FAQPage…). */
+  pageType?: string;
+  /** Extra properties on the page node itself (e.g. FAQPage → mainEntity). */
+  pageProps?: JsonLdNode;
+  /** Extra JSON-LD nodes for this page (Service, Article, FAQPage…), merged into one @graph. */
+  schema?: JsonLdNode[];
 }
 
 const {
@@ -27,10 +50,49 @@ const {
   overlayHeader = false,
   headerTone = 'light',
   noindex = false,
+  ogType = 'website',
+  article,
+  pageType,
+  pageProps = {},
+  schema = [],
 } = Astro.props;
-const fullTitle = title === site.name ? title : `${title} | ${site.name}`;
+const fullTitle = pageTitle(title);
 const canonical = new URL(Astro.url.pathname, site.url).href;
 const showPlaceholders = import.meta.env.PUBLIC_SHOW_PLACEHOLDERS === 'true';
+
+// Budgets (brief §5): fail the build rather than ship a truncated title or description.
+if (fullTitle.length > TITLE_MAX)
+  throw new Error(`${Astro.url.pathname}: title "${fullTitle}" is over ${TITLE_MAX} characters.`);
+if (description.length > DESCRIPTION_MAX)
+  throw new Error(
+    `${Astro.url.pathname}: description is ${description.length} characters (max ${DESCRIPTION_MAX}).`,
+  );
+
+// The page's own OG card if it has one (src/lib/og.ts), otherwise the default card.
+const key = cardKey(Astro.url.pathname);
+const ogImage = absolute(
+  cardPath((await getOgCards()).some((c) => c.key === key) ? key : 'default'),
+);
+const ogTitle = title === site.name ? `${site.name}: ${site.tagline}` : title;
+
+const services = (await getServices()).map((s) => ({
+  title: s.data.title,
+  href: `/services/${s.data.slug}`,
+}));
+const graph = [
+  ...organizationGraph(services),
+  {
+    ...webPageNode({
+      url: canonical,
+      name: fullTitle,
+      description,
+      image: ogImage,
+      type: pageType,
+    }),
+    ...pageProps,
+  },
+  ...schema,
+];
 ---
 
 <!doctype html>
@@ -42,11 +104,41 @@ const showPlaceholders = import.meta.env.PUBLIC_SHOW_PLACEHOLDERS === 'true';
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
     {noindex && <meta name="robots" content="noindex, nofollow" />}
+
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:locale" content={site.locale.replace('-', '_')} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:title" content={ogTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content={String(OG_SIZE.width)} />
+    <meta property="og:image:height" content={String(OG_SIZE.height)} />
+    <meta property="og:image:alt" content={ogTitle} />
+    {article?.publishedAt && (
+      <meta property="article:published_time" content={article.publishedAt.toISOString()} />
+    )}
+    {article?.updatedAt && (
+      <meta property="article:modified_time" content={article.updatedAt.toISOString()} />
+    )}
+    {article?.section && <meta property="article:section" content={article.section} />}
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={ogTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+    <meta name="twitter:image:alt" content={ogTitle} />
+
     <meta name="theme-color" content={site.themeColor} />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="sitemap" type="application/xml" href="/sitemap-index.xml" />
     <link rel="preload" href={frauncesLatin} as="font" type="font/woff2" crossorigin />
     <link rel="preload" href={manropeLatin} as="font" type="font/woff2" crossorigin />
     <meta name="generator" content={Astro.generator} />
+    <script type="application/ld+json" set:html={jsonLdString(graph)} />
     <slot name="head" />
   </head>
   <body>
@@ -58,6 +150,7 @@ const showPlaceholders = import.meta.env.PUBLIC_SHOW_PLACEHOLDERS === 'true';
       <slot />
     </main>
     <Footer />
+    <Consent />
     <Motion />
   </body>
 </html>

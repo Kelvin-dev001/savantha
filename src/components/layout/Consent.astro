@@ -1,0 +1,174 @@
+---
+/**
+ * Analytics consent. Rendered on every page, but it does nothing unless an analytics provider
+ * is configured (PUBLIC_ANALYTICS_PROVIDER = plausible | ga4, see .env.example). Then a small
+ * loader fetches src/scripts/analytics/run.ts, which shows this banner until the visitor
+ * chooses, loads the provider only after "Allow", and wires up the events.
+ *
+ * Not a modal: the page stays usable and nothing is measured while the banner is open.
+ * Without JavaScript nothing is measured, so the banner never appears.
+ * The footer's "Analytics preferences" button reopens it.
+ */
+import { getEntry } from 'astro:content';
+import { site } from '@/config/site';
+import Button from '@/components/ui/Button.astro';
+import { inlineJson } from '@/lib/seo';
+
+const c = (await getEntry('pages', 'pages'))!.data.consent;
+
+const env = import.meta.env;
+const provider = env.PUBLIC_ANALYTICS_PROVIDER?.trim().toLowerCase();
+const config =
+  provider === 'plausible'
+    ? {
+        provider,
+        domain: env.PUBLIC_PLAUSIBLE_DOMAIN?.trim() || new URL(site.url).host,
+        src: env.PUBLIC_PLAUSIBLE_SRC?.trim() || 'https://plausible.io/js/script.js',
+      }
+    : provider === 'ga4' && env.PUBLIC_GA4_ID?.trim()
+      ? { provider, id: env.PUBLIC_GA4_ID.trim() }
+      : null;
+if (provider && !config) {
+  throw new Error(
+    `PUBLIC_ANALYTICS_PROVIDER="${provider}" needs "plausible", or "ga4" with PUBLIC_GA4_ID set.`,
+  );
+}
+---
+
+<script type="application/json" id="analytics-config" set:html={inlineJson(config)} />
+<section class="consent" data-consent hidden aria-labelledby="consent-title">
+  <p class="eyebrow consent__label">{c.label}</p>
+  <h2 id="consent-title" class="consent__title" tabindex="-1" data-consent-title>
+    {c.heading}
+  </h2>
+  <p class="consent__body" data-consent-body="plausible">
+    {c.body.plausible}
+  </p>
+  <p class="consent__body" data-consent-body="ga4" hidden>
+    {c.body.ga4}
+  </p>
+  <div class="consent__actions">
+    <Button
+      size="sm"
+      class="consent__btn"
+      data-consent-choice="granted"
+      data-consent-saved={c.saved.granted}
+    >
+      {c.allow}
+    </Button>
+    <Button
+      size="sm"
+      variant="secondary"
+      class="consent__btn"
+      data-consent-choice="denied"
+      data-consent-saved={c.saved.denied}
+    >
+      {c.decline}
+    </Button>
+  </div>
+  <a href={c.privacy.href} class="consent__link">
+    {c.privacy.label}
+  </a>
+</section>
+<p class="sr-only" role="status" data-consent-status></p>
+
+<script>
+  // < 300 bytes on every page; the consent and analytics code is fetched only if configured.
+  const el = document.getElementById('analytics-config');
+  const config = el ? JSON.parse(el.textContent || 'null') : null;
+  if (config?.provider) {
+    import('@/scripts/analytics/run').then((m) => m.start(config));
+  }
+</script>
+
+<style>
+  /* Layered so Tailwind utilities on the same element still win. */
+  @layer components {
+    .consent {
+      position: fixed;
+      z-index: 40; /* under the header (50), so the mobile menu covers it */
+      inset: auto 12px 12px 12px;
+      max-width: 26rem;
+      padding: 1.25rem 1.25rem 1rem;
+      background: var(--color-paper);
+      color: var(--color-ink);
+      border: 1px solid var(--color-line);
+      border-top: 2px solid var(--color-gold);
+      border-radius: var(--radius-sm);
+      box-shadow: 0 24px 48px -32px color-mix(in srgb, var(--color-ink) 55%, transparent);
+    }
+    .consent[hidden] {
+      display: none;
+    }
+    .consent[data-state='open'] {
+      animation: consent-in 320ms var(--ease-quiet) both;
+    }
+    @keyframes consent-in {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .consent[data-state='open'] {
+        animation: none;
+      }
+    }
+    @media (min-width: 768px) {
+      .consent {
+        inset: auto auto 24px 24px;
+        padding: 1.5rem 1.5rem 1.25rem;
+      }
+    }
+    .consent__label {
+      color: var(--color-stone);
+    }
+    .consent__title {
+      margin-top: 0.5rem;
+      font-family: var(--font-display);
+      font-weight: 400;
+      font-variation-settings: 'opsz' 36;
+      font-size: 1.375rem;
+      line-height: 1.2;
+      letter-spacing: -0.01em;
+    }
+    .consent__title:focus {
+      outline: none;
+    }
+    .consent__title:focus-visible {
+      outline: 2px solid var(--color-royal);
+      outline-offset: 4px;
+    }
+    .consent__body {
+      margin-top: 0.625rem;
+      font-size: 0.9375rem;
+      line-height: 1.55;
+    }
+    .consent__actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.625rem;
+      margin-top: 1.125rem;
+    }
+    .consent__btn {
+      min-height: 44px;
+    }
+    .consent__link {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      margin-top: 0.25rem;
+      font-size: 0.875rem;
+      color: var(--color-royal);
+      text-decoration: underline;
+      text-underline-offset: 4px;
+      text-decoration-thickness: 1px;
+    }
+    @media (min-width: 768px) {
+      .consent__link {
+        min-height: 32px;
+        margin-top: 0.5rem;
+      }
+    }
+  }
+</style>

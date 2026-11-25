@@ -14,10 +14,12 @@ import HomeStories from '@/components/sections/HomeStories.astro';
 import HomeInsights from '@/components/sections/HomeInsights.astro';
 import HomeFaq from '@/components/sections/HomeFaq.astro';
 import CtaBand from '@/components/sections/CtaBand.astro';
-import { site } from '@/config/site';
+import { getEntry } from 'astro:content';
+
+const home = (await getEntry('home', 'home'))!.data;
 ---
 
-<BaseLayout title={site.name} description={site.positioning} overlayHeader headerTone="dark">
+<BaseLayout title={home.seoTitle} description={home.seoDescription} overlayHeader headerTone="dark">
   <HomeHero />
   <HomeAudiences />
   <HomePillars />

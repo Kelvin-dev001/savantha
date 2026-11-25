@@ -25,7 +25,9 @@ import Ph from '@/components/ui/Ph.astro';
 import NextSteps from '@/components/sections/NextSteps.astro';
 import InsightRegister from '@/components/sections/InsightRegister.astro';
 import Note from '@/components/insights/Note.astro';
-import { isPlaceholder } from '@/config/site';
+import { isPlaceholder, site } from '@/config/site';
+import { absolute, clean, ids } from '@/lib/seo';
+import { cardKey, cardPath } from '@/lib/og';
 import { whatsappLink } from '@/lib/contact';
 import { getServiceIndex } from '@/lib/services';
 import { formatDate, getInsights, getInsightsCopy, isoDate, type Insight } from '@/lib/insights';
@@ -59,9 +61,36 @@ const next = [
 ].slice(0, 2);
 
 const reviewer = d.reviewedBy ?? '';
+
+const url = new URL(Astro.url.pathname, site.url).href;
+const articleLd = clean({
+  '@type': 'Article',
+  '@id': ids.article(url),
+  headline: a.title,
+  description: a.summary,
+  image: absolute(cardPath(cardKey(Astro.url.pathname))),
+  datePublished: a.publishedAt?.toISOString(),
+  dateModified: (a.updatedAt ?? a.publishedAt)?.toISOString(),
+  articleSection: a.category.title,
+  keywords: [a.category.title, ...related.map((s) => s.title)].join(', '),
+  timeRequired: `PT${a.minutes}M`,
+  inLanguage: site.locale,
+  isAccessibleForFree: true,
+  author: { '@id': ids.organization },
+  publisher: { '@id': ids.organization },
+  mainEntityOfPage: { '@id': ids.webpage(url) },
+  creativeWorkStatus: a.draft ? 'Draft' : 'Published',
+});
 ---
 
-<BaseLayout title={d.seoTitle} description={d.seoDescription} noindex={a.draft}>
+<BaseLayout
+  title={d.seoTitle}
+  description={d.seoDescription}
+  noindex={a.draft}
+  ogType="article"
+  article={{ publishedAt: a.publishedAt, updatedAt: a.updatedAt, section: a.category.title }}
+  schema={[articleLd]}
+>
   <article class="art" aria-labelledby="art-title">
     <header class="ahead shell">
       <Breadcrumb

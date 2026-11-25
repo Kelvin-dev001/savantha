@@ -22,7 +22,7 @@ if (!entry) throw new Error('src/content/contact/contact.yaml is required.');
 const c = entry.data;
 ---
 
-<BaseLayout title={c.seoTitle} description={c.seoDescription}>
+<BaseLayout title={c.seoTitle} description={c.seoDescription} pageType="ContactPage">
   <PageHero
     eyebrow={c.hero.eyebrow}
     headline={c.hero.headline}
@@ -78,7 +78,12 @@ const c = entry.data;
           <div class="ways__row">
             <dt class="eyebrow">{c.ways.call}</dt>
             <dd>
-              <a href={telLink()} class="ways__link numerals" data-track="call_click">
+              <a
+                href={telLink()}
+                class="ways__link numerals"
+                data-track="call_click"
+                data-track-location="contact-ways"
+              >
                 {site.phone.display}
               </a>
             </dd>
@@ -86,7 +91,12 @@ const c = entry.data;
           <div class="ways__row">
             <dt class="eyebrow">{c.ways.email}</dt>
             <dd>
-              <a href={mailLink()} class="ways__link" data-track="email_click">
+              <a
+                href={mailLink()}
+                class="ways__link"
+                data-track="email_click"
+                data-track-location="contact-ways"
+              >
                 {site.email}
               </a>
             </dd>

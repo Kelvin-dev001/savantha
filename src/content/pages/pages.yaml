@@ -143,3 +143,74 @@ notFound:
     - { label: Questions, href: /faq, line: 'Plain answers, grouped by service.' }
     - { label: Contact, href: /contact, line: 'Three questions, one business day.' }
   cta: Ask us on WhatsApp
+
+# Search, sharing and AI search (Phase 7). Page titles and descriptions live with each page's
+# own copy; this holds the shared pieces: the OG card eyebrows and the text of /llms.txt.
+seo:
+  homeLabel: Home
+  og:
+    home: Ethical financial consultancy · Kenya
+    legal: Legal
+    default: Ethical financial consultancy · Kenya
+  llms:
+    summary: >-
+      Savantho Consultancy Limited is a Kenyan ethical financial consultancy. It helps families,
+      professionals, SMEs and organisations plan their finances, understand Shariah-compliant
+      and trade-finance structures, and learn to manage money well, from first budget to
+      lasting legacy.
+    intro:
+      - >-
+        Savantho works in plain language and puts everything in writing: every fee, product and
+        risk is explained before a client commits. The first call is free, takes about 20
+        minutes and comes with no obligation. Savantho replies to enquiries within one business
+        day and follows the call with a written proposal.
+      - >-
+        The work is arranged in three pillars. Grow: wealth planning, Shariah-compliant finance
+        guidance, and real estate due diligence and structuring. Trade: trade finance
+        consultancy for importers and exporters. Build: financial literacy training and project
+        monitoring and evaluation for organisations.
+    servicesHeading: Services
+    guidesHeading: Guides
+    guidesNote: >-
+      Plain-language guides are being reviewed before publication. Until then, the guides index
+      lists what is in preparation.
+    companyHeading: Company
+    contactHeading: Contact
+    contactLabels:
+      whatsapp: WhatsApp (preferred)
+      phone: Phone
+      email: Email
+      hours: Office hours
+      form: Enquiry form
+    boundariesHeading: What Savantho does not do
+    boundaries:
+      - >-
+        Savantho is not licensed by the Capital Markets Authority (CMA). It provides financial
+        consultancy and education, not regulated investment advice.
+      - Savantho does not manage client funds or hold client money.
+      - Savantho does not recommend specific securities.
+      - >-
+        Real estate work is due diligence, structuring and buyer guidance. Savantho is not an
+        estate agent and does not sell property.
+      - Where regulated investment advice is needed, Savantho refers clients to CMA-licensed advisers.
+    optionalHeading: Optional
+
+# Analytics consent (Phase 7). The banner appears only when an analytics provider is set
+# (PUBLIC_ANALYTICS_PROVIDER). Nothing is measured until the visitor chooses "Allow".
+consent:
+  label: Analytics
+  heading: May we count your visit?
+  body:
+    plausible: >-
+      We would like to see which pages help people, using Plausible Analytics. It sets no
+      cookies, collects no personal details and never shows you advertising.
+    ga4: >-
+      We would like to see which pages help people, using Google Analytics. It sets cookies to
+      count visits. We switch off advertising features and never sell what we learn.
+  allow: Allow
+  decline: No, thanks
+  privacy: { label: How we use data, href: /privacy }
+  saved:
+    granted: Thank you. Analytics is on; you can switch it off from the footer at any time.
+    denied: Understood. Nothing is measured; you can change this from the footer at any time.
+  footerLink: Analytics preferences

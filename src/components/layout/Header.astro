@@ -9,7 +9,7 @@
 import { site } from '@/config/site';
 import { primaryNav, ui } from '@/config/navigation';
 import { getPillars } from '@/lib/services';
-import { whatsappLink } from '@/lib/contact';
+import { mailLink, telLink, whatsappLink } from '@/lib/contact';
 import Monogram from '@/components/ui/Monogram.astro';
 import Button from '@/components/ui/Button.astro';
 import Icon from '@/components/ui/Icon.astro';
@@ -180,11 +180,21 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
           {ui.talkToUs}
         </Button>
         <p class="text-small text-muted mt-4 text-center">
-          <a href={`tel:${site.phone.e164}`} class="underline decoration-gold underline-offset-4">
+          <a
+            href={telLink()}
+            class="underline decoration-gold underline-offset-4"
+            data-track="call_click"
+            data-track-location="menu"
+          >
             {site.phone.display}
           </a>
           <span aria-hidden="true"> · </span>
-          <a href={`mailto:${site.email}`} class="underline decoration-gold underline-offset-4">
+          <a
+            href={mailLink()}
+            class="underline decoration-gold underline-offset-4"
+            data-track="email_click"
+            data-track-location="menu"
+          >
             {site.email}
           </a>
         </p>
