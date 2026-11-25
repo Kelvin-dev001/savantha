@@ -90,3 +90,12 @@ export const ui = {
   emailLabel: 'Email',
   rights: 'All rights reserved.',
 };
+
+/** Look up a service (title + route) by its slug, e.g. 'trade-finance'. */
+export function serviceBySlug(slug: string): NavService & { pillar: NavPillar['key'] } {
+  for (const p of pillars) {
+    const s = p.services.find((x) => x.href === `/services/${slug}`);
+    if (s) return { ...s, pillar: p.key };
+  }
+  throw new Error(`Unknown service slug: ${slug}`);
+}

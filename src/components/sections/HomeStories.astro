@@ -1,0 +1,185 @@
+---
+/**
+ * 05 — Client stories.
+ *
+ * Reads src/content/stories (consented stories only; see the schema). Until the first one
+ * exists, the section says plainly why it is empty and shows the register waiting for its
+ * first entries, rather than inventing anything. Stories describe the process, never returns.
+ */
+import { getCollection, getEntry } from 'astro:content';
+import { serviceBySlug } from '@/config/navigation';
+import SectionLabel from '@/components/ui/SectionLabel.astro';
+
+const home = await getEntry('home', 'home');
+if (!home) throw new Error('src/content/home/home.yaml is required.');
+const { stories: copy } = home.data;
+const stories = (await getCollection('stories', (s) => s.data.consent === true))
+  .sort((a, b) => a.data.order - b.data.order)
+  .slice(0, 3);
+const empty = stories.length === 0;
+---
+
+<section class="sto shell section-y" aria-labelledby="sto-title">
+  <SectionLabel number="05">{copy.label}</SectionLabel>
+
+  <div class="sto__grid">
+    <div class="sto__intro">
+      <h2 id="sto-title" class="sto__title" data-reveal="mask">
+        {copy.heading}
+      </h2>
+      {empty && (
+        <p class="sto__lead" data-reveal="fade">
+          {copy.emptyLead}
+        </p>
+      )}
+    </div>
+
+    {empty ? (
+      <div class="sto__register" aria-hidden="true" data-reveal="fade">
+        <div class="sto__row sto__row--head eyebrow">
+          <span>No.</span>
+          {copy.emptyColumns.map((c) => (
+            <span>{c}</span>
+          ))}
+        </div>
+        {[1, 2, 3].map((n) => (
+          <div class="sto__row">
+            <span class="numerals sto__no">{String(n).padStart(3, '0')}</span>
+            {n === 2 ? (
+              <span class="sto__note">{copy.emptyNote}</span>
+            ) : (
+              <>
+                <span class="sto__blank" style="--w:62%" />
+                <span class="sto__blank" style="--w:48%" />
+                <span class="sto__blank" style="--w:86%" />
+              </>
+            )}
+          </div>
+        ))}
+      </div>
+    ) : (
+      <ol class="sto__list" data-reveal="stagger">
+        {stories.map((s) => (
+          <li>
+            <figure class="sto__story">
+              <blockquote class="sto__quote">
+                <p>{s.data.quote}</p>
+              </blockquote>
+              <figcaption class="sto__by">
+                <span>{s.data.client}</span>
+                <span class="text-muted">{serviceBySlug(s.data.service).title}</span>
+              </figcaption>
+            </figure>
+          </li>
+        ))}
+      </ol>
+    )}
+  </div>
+</section>
+
+<style>
+  /* Layered so Tailwind utilities on the same element still win. */
+  @layer components {
+    .sto__grid {
+      display: grid;
+      gap: 3rem var(--gap-x);
+      margin-top: clamp(3rem, 2rem + 4vw, 6rem);
+    }
+    @media (min-width: 1024px) {
+      .sto__grid {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        align-items: start;
+      }
+      .sto__intro {
+        grid-column: 1 / span 5;
+      }
+      .sto__register,
+      .sto__list {
+        grid-column: 7 / span 6;
+      }
+    }
+    .sto__title {
+      font-size: var(--text-d2);
+      line-height: var(--text-d2--line-height);
+      letter-spacing: var(--text-d2--letter-spacing);
+      font-weight: 340;
+      font-variation-settings: 'opsz' 144;
+      max-width: 16ch;
+    }
+    .sto__lead {
+      margin-top: 1.5rem;
+      color: var(--color-stone);
+      max-width: 42ch;
+    }
+
+    /* ---------- The empty register ---------- */
+    .sto__register {
+      border-top: 1px solid var(--color-ink);
+    }
+    .sto__row {
+      display: grid;
+      grid-template-columns: 3.25rem minmax(0, 3fr) minmax(0, 3fr) minmax(0, 5fr);
+      gap: var(--gap-x);
+      align-items: center;
+      min-height: clamp(4rem, 3rem + 2.5vw, 5.5rem);
+      border-bottom: 1px solid var(--color-line);
+    }
+    .sto__row--head {
+      min-height: 3rem;
+      color: var(--color-stone);
+    }
+    .sto__no {
+      font-size: var(--text-small);
+      color: var(--color-stone);
+    }
+    .sto__blank {
+      display: block;
+      width: var(--w);
+      height: 1px;
+      background-image: linear-gradient(to right, var(--color-stone) 0 2px, transparent 2px 6px);
+      background-size: 6px 1px;
+      opacity: 0.45;
+    }
+    .sto__note {
+      grid-column: 2 / -1;
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: var(--text-d4);
+      font-variation-settings: 'opsz' 36;
+      color: var(--color-stone);
+    }
+    @media (max-width: 639.98px) {
+      .sto__row {
+        grid-template-columns: 2.75rem minmax(0, 1fr) minmax(0, 1fr);
+      }
+      .sto__row > :nth-child(3) {
+        display: none;
+      }
+    }
+
+    /* ---------- Published stories ---------- */
+    .sto__list {
+      border-top: 1px solid var(--color-ink);
+    }
+    .sto__story {
+      padding-block: 2rem;
+      border-bottom: 1px solid var(--color-line);
+    }
+    .sto__quote {
+      font-family: var(--font-display);
+      font-size: var(--text-d3);
+      line-height: var(--text-d3--line-height);
+      font-weight: 340;
+      font-style: italic;
+      font-variation-settings: 'opsz' 72;
+    }
+    .sto__by {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem 1rem;
+      margin-top: 1rem;
+      font-size: var(--text-small);
+      font-weight: 600;
+    }
+  }
+</style>

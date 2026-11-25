@@ -1,5 +1,4 @@
 # Homepage copy. Compliance-sensitive: reviewed with every other content file.
-# Phase 3 adds the remaining sections below `hero`.
 
 hero:
   # The tagline above the headline comes from src/config/site.ts.
@@ -24,3 +23,167 @@ hero:
         detail: We listen before we suggest anything.
       - title: A written proposal
         detail: Scope, fees and risks, set out plainly.
+
+# 01 — Who we help. The heading is one sentence; each audience phrase carries a footnote
+# number, and the footnotes below expand on it.
+audiences:
+  label: Who we help
+  sentence:
+    - text: 'We work with '
+    - text: families and professionals
+      note: 1
+    - text: ' building something to pass on, '
+    - text: businesses
+      note: 2
+    - text: ' moving goods across borders, and '
+    - text: organisations
+      note: 3
+    - text: ' investing in people.'
+  askingLabel: Often the first question
+  items:
+    - title: Families and professionals
+      question: Where does our money actually go, and what should come first?
+      body: >-
+        Salaried professionals, business owners and families who want a plan that holds: a
+        budget that survives a bad month, savings with a purpose, property bought with open
+        eyes, and wealth arranged on ethical or Shariah-conscious terms.
+      services: [wealth-planning, shariah-compliant-finance, real-estate]
+    - title: SMEs and importers
+      question: How do we pay a new supplier without tying up all our cash?
+      body: >-
+        Traders, importers and growing companies who need the finance behind a shipment or a
+        contract to be clear before they sign: what it costs, who carries the risk, and what
+        the bank will ask for.
+      services: [trade-finance]
+    - title: Organisations and programmes
+      question: How do we build real financial capability, and show that it worked?
+      body: >-
+        Employers, SACCOs, NGOs and donor-funded programmes that want financial literacy
+        training people actually use, and monitoring and evaluation that tells them what a
+        programme achieved.
+      services: [financial-literacy, project-me]
+
+# 02 — Three pillars. Pillar names, lines and services come from src/config/navigation.ts.
+pillars:
+  label: What we do
+  heading: Three pillars. Six services.
+  lead: >-
+    Every engagement sits under one of three pillars. Each starts the same way: a free
+    conversation, then a written proposal with the scope, the fees and the risks set out plainly.
+  link: { label: All services, href: /services }
+  countLabel: { one: service, many: services }
+  open: Explore
+
+# 03 — How we work. Pinned on desktop; stacked below 1024 px and under reduced motion.
+process:
+  label: How we work
+  heading: Four steps. The same for every client.
+  lead: >-
+    Whether the question is a household budget or a letter of credit, the method does not
+    change. You always know which step we are on, and what you will have at the end of it.
+  outcomeLabel: You leave with
+  stepLabel: Step
+  steps:
+    - title: Listen
+      body: >-
+        We start with your situation, not with a product. Income, obligations, family,
+        business and faith: what matters to you, in your own words. We ask before we suggest.
+      outcome: A short written summary of where you stand, checked with you.
+    - title: Analyse
+      body: >-
+        We work through the numbers and the options together: cash flow, debt, cover and
+        assets, and the risks attached to each choice, so you understand them before you commit.
+      outcome: A clear view of your options, and what each one costs and risks.
+    - title: Structure
+      body: >-
+        We set out a written plan: what to do, in what order, at what cost and with whom.
+        Where regulated investment advice is needed, we refer you to a CMA-licensed adviser.
+      outcome: A written plan, with every fee, product and risk explained.
+    - title: Review
+      body: >-
+        Lives and businesses change, so plans should too. We meet at agreed intervals, check
+        progress against the plan and adjust it when your circumstances move.
+      outcome: Scheduled reviews, and a plan that stays current.
+
+# 04 — Why Savantho. The four values as ledger rows, one line of proof each.
+values:
+  label: Why Savantho
+  heading: What you can hold us to.
+  lead: >-
+    Values are easy to print. These are the ones we expect to be judged on, each with the
+    practice that proves it.
+  rows:
+    - value: Integrity
+      proof: We explain every fee, product and risk in writing, before you commit to anything.
+    - value: Resilience
+      proof: We plan for a hard year, not only a good one. A reserve comes before anything else.
+    - value: Innovation
+      proof: Modern tools, explained plainly, so you can see your own finances and stay in control.
+    - value: Legacy
+      proof: We plan past the next decade, to who inherits what and how, alongside your advocate.
+  total:
+    label: In short
+    text: No surprises. Everything in writing.
+
+# 05 — Client stories. Entries come from src/content/stories/. While there are none, the
+# section explains why, instead of filling the space with invented quotes.
+stories:
+  label: Client stories
+  heading: In our clients’ words, when they are ready.
+  emptyLead: >-
+    We will publish client stories only with written consent. They will describe the work and
+    how it felt to go through it. They will never quote returns or performance.
+  emptyColumns: [Client, Engagement, In their words]
+  emptyNote: Reserved for client stories
+
+# 06 — Insights teaser (the three latest from src/content/insights/).
+insights:
+  label: Insights
+  heading: Read before you decide.
+  lead: Plain-language guides to the decisions our clients face most often.
+  link: { label: All insights, href: /insights }
+  pending: In preparation
+  minutes: min read
+
+# 07 — FAQ teaser. Answer first, 40–60 words each.
+faq:
+  label: Questions
+  heading: Asked plainly, answered plainly.
+  link: { label: All questions, href: /faq }
+  items:
+    - q: What does the first conversation cost?
+      a: >-
+        Nothing. The discovery call is free and takes about 20 minutes. We listen, ask a few
+        questions and tell you honestly whether we can help. If we can, we send a written
+        proposal with the scope, the fees and the risks. There is no obligation to go ahead.
+    - q: Do you manage or invest my money?
+      a: >-
+        No. Savantho is a consultancy, not licensed by the Capital Markets Authority. We do not
+        hold or manage client funds and we do not recommend specific securities. We help you
+        understand your options and their risks; where regulated advice is needed, we refer
+        you to a CMA-licensed adviser.
+    - q: Can you help us find Shariah-compliant options?
+      a: >-
+        Yes. We explain how Shariah-compliant structures work and how they are screened: no
+        interest (riba), no excessive uncertainty (gharar), no speculation (maysir), backed by
+        real assets and limited to ethical sectors. We help you weigh the options and their
+        risks; the decision stays yours.
+    - q: Can you help my business finance its imports?
+      a: >-
+        Yes. We help importers and SMEs understand and structure trade finance, including
+        letters of credit, documentary collections and supplier credit. We prepare you for the
+        conversation with your bank, so the terms, costs and risks are clear before you sign
+        anything.
+
+# Closing call to action on ink.
+cta:
+  heading:
+    - text: Start with a
+    - text: conversation.
+      emphasis: conversation.
+  lead: >-
+    Tell us what you are trying to do. We reply within one business day, and the first call is
+    free.
+  primary: Book a free discovery call
+  callLabel: Call
+  emailLabel: Email

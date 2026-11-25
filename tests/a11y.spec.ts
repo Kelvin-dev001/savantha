@@ -59,9 +59,20 @@ test.describe('without JavaScript', () => {
     await expect(page.locator('h1')).toBeVisible();
     await page.waitForTimeout(2200); // CSS entry sequence ≤ 2 s
     await expect(page.locator('.hero__actions')).toHaveCSS('opacity', '1');
-    await page.goto('/styleguide');
-    for (const el of await page.locator('[data-reveal]').all()) {
-      await expect(el).toHaveCSS('opacity', '1');
+    for (const route of ['/', '/styleguide']) {
+      await page.goto(route);
+      for (const el of await page.locator('[data-reveal]').all()) {
+        await expect(el).toHaveCSS('opacity', '1');
+      }
+    }
+  });
+
+  test('how we work falls back to four stacked, visible steps', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+    await expect(page.locator('.hww__sticky')).toHaveCSS('position', 'static');
+    for (const step of await page.locator('.hww__step').all()) {
+      await expect(step).toHaveCSS('opacity', '1');
     }
   });
 });
@@ -72,4 +83,34 @@ test('skip link moves focus to main', async ({ page }) => {
   await expect(page.locator('.skip-link')).toBeFocused();
   await page.keyboard.press('Enter');
   await expect(page).toHaveURL(/#main$/);
+});
+
+test.describe('how we work (pinned)', () => {
+  test.use({ viewport: { width: 1440, height: 900 } });
+
+  test('pins on desktop and advances one step per quarter', async ({ page }) => {
+    await page.goto('/');
+    const section = page.locator('.hww');
+    await expect(page.locator('.hww__sticky')).toHaveCSS('position', 'sticky');
+    const { top, height } = await section.evaluate((el) => {
+      const r = el.getBoundingClientRect();
+      return { top: r.top + window.scrollY, height: r.height };
+    });
+    for (const [p, step] of [
+      [0.1, '0'],
+      [0.4, '1'],
+      [0.6, '2'],
+      [0.95, '3'],
+    ] as const) {
+      await page.evaluate((y) => window.scrollTo(0, y), top + p * (height - 900));
+      await expect(section).toHaveAttribute('data-step', step);
+    }
+    await expect(page.locator('.hww__step[data-active]')).toHaveCount(1);
+  });
+
+  test('stacks under reduced motion', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/');
+    await expect(page.locator('.hww__sticky')).toHaveCSS('position', 'static');
+  });
 });

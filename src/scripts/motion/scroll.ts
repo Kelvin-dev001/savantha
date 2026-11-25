@@ -5,6 +5,7 @@
  *   data-reveal="fade"     Body copy. Opacity only, once (no "fade up from below" cliché).
  *   data-reveal="rule"     Hairlines. Draw left to right like a ledger rule, once.
  *   data-reveal="stagger"  Children fade in sequence (60 ms), once.
+ *   data-reveal="draw"     <Lattice animate="view">: line-draws once when it scrolls in.
  *   data-parallax="16"     Drift up to N px (capped at 24) while in view. Scrubbed, never loops.
  *   data-reveal-delay="0.1" Optional extra delay in seconds.
  *
@@ -77,6 +78,7 @@ function reveal(el: HTMLElement) {
     case 'stagger':
       gsap.from(el.children, {
         opacity: 0,
+        clearProps: 'opacity', // hand opacity back to CSS (e.g. the pinned step cross-fade)
         duration: 0.9,
         ease: ease.quiet,
         stagger: 0.06,
@@ -84,10 +86,20 @@ function reveal(el: HTMLElement) {
         scrollTrigger: trigger,
       });
       break;
+    case 'draw':
+      el.dataset.armed = 'true';
+      ScrollTrigger.create({
+        trigger: el,
+        start: 'top 72%',
+        once: true,
+        onEnter: () => (el.dataset.armed = 'play'),
+      });
+      break;
     case 'fade':
     default:
       gsap.from(el, {
         opacity: 0,
+        clearProps: 'opacity',
         duration: 1,
         ease: ease.quiet,
         delay,

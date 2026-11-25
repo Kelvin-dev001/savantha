@@ -1,0 +1,200 @@
+---
+/**
+ * 04 — Why Savantho: the four values set as the lines of a statement.
+ *
+ * Column heads, one ruled line per value with its proof, and a double-ruled total line
+ * at the foot, the way a statement ends. Rules draw in left to right; rows arrive in
+ * sequence. Not interactive, so no hover affordance.
+ */
+import { getEntry } from 'astro:content';
+import SectionLabel from '@/components/ui/SectionLabel.astro';
+
+const home = await getEntry('home', 'home');
+if (!home) throw new Error('src/content/home/home.yaml is required.');
+const { values } = home.data;
+const roman = ['i', 'ii', 'iii', 'iv'];
+---
+
+<section class="vals shell section-y" aria-labelledby="vals-title">
+  <SectionLabel number="04">{values.label}</SectionLabel>
+
+  <div class="vals__head">
+    <h2 id="vals-title" class="vals__title" data-reveal="mask">
+      {values.heading}
+    </h2>
+    <p class="vals__lead" data-reveal="fade">
+      {values.lead}
+    </p>
+  </div>
+
+  <div class="vals__ledger">
+    <span class="vals__rule vals__rule--ink" data-reveal="rule" aria-hidden="true"></span>
+    <dl class="vals__rows" data-reveal="stagger">
+      {values.rows.map((row, i) => (
+        <div class="vals__row">
+          <dt class="vals__value">
+            <span class="vals__num" aria-hidden="true">
+              {roman[i]}.
+            </span>
+            {row.value}
+          </dt>
+          <dd class="vals__proof">{row.proof}</dd>
+        </div>
+      ))}
+    </dl>
+
+    <div class="vals__total">
+      <span class="vals__double" data-reveal="rule" aria-hidden="true"></span>
+      <p class="vals__total-row">
+        <span class="eyebrow vals__total-label">{values.total.label}</span>
+        <span class="vals__total-text">{values.total.text}</span>
+      </p>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Layered so Tailwind utilities on the same element still win. */
+  @layer components {
+    .vals__head {
+      display: grid;
+      gap: 1.75rem var(--gap-x);
+      margin-top: clamp(3rem, 2rem + 4vw, 6rem);
+    }
+    @media (min-width: 1024px) {
+      .vals__head {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        align-items: end;
+      }
+      .vals__title {
+        grid-column: 1 / span 6;
+      }
+      .vals__lead {
+        grid-column: 8 / span 5;
+      }
+    }
+    .vals__title {
+      font-size: var(--text-d1);
+      line-height: var(--text-d1--line-height);
+      letter-spacing: var(--text-d1--letter-spacing);
+      font-weight: 340;
+      font-variation-settings: 'opsz' 144;
+      max-width: 12ch;
+    }
+    .vals__lead {
+      color: var(--color-stone);
+      max-width: 42ch;
+    }
+
+    .vals__ledger {
+      margin-top: clamp(3.5rem, 2.5rem + 4vw, 6.5rem);
+    }
+    .vals__rule {
+      display: block;
+      height: 1px;
+      background: var(--color-ink);
+    }
+
+    .vals__row {
+      display: grid;
+      gap: 0.75rem var(--gap-x);
+      padding-block: clamp(1.5rem, 1rem + 1.6vw, 2.5rem);
+      border-bottom: 1px solid var(--color-line);
+      align-items: baseline;
+    }
+    @media (min-width: 768px) {
+      .vals__row {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+      }
+      .vals__value {
+        grid-column: 1 / span 5;
+      }
+      .vals__proof {
+        grid-column: 6 / span 7;
+      }
+    }
+    @media (min-width: 1024px) {
+      .vals__proof {
+        grid-column: 7 / span 5;
+      }
+    }
+
+    .vals__value {
+      display: flex;
+      align-items: baseline;
+      gap: clamp(1rem, 0.5rem + 2vw, 2.5rem);
+      font-family: var(--font-display);
+      font-size: var(--text-d2);
+      line-height: var(--text-d2--line-height);
+      letter-spacing: var(--text-d2--letter-spacing);
+      font-weight: 340;
+      font-variation-settings: 'opsz' 144;
+    }
+    .vals__num {
+      flex: none;
+      width: 2.25rem;
+      font-size: 1.125rem;
+      font-style: italic;
+      font-weight: 360;
+      letter-spacing: 0;
+      color: var(--color-stone);
+      font-variation-settings: 'opsz' 24;
+    }
+    .vals__proof {
+      font-size: var(--text-lead);
+      line-height: 1.45;
+      max-width: 40ch;
+      padding-inline-start: calc(2.25rem + clamp(1rem, 0.5rem + 2vw, 2.5rem));
+    }
+    @media (min-width: 768px) {
+      .vals__proof {
+        padding-inline-start: 0;
+      }
+    }
+
+    /* The total line: a double rule, then the sum of it all */
+    .vals__total {
+      margin-top: 0.5rem;
+    }
+    .vals__double {
+      display: block;
+      height: 4px;
+      border-top: 1px solid var(--color-ink);
+      border-bottom: 1px solid var(--color-ink);
+    }
+    .vals__total-row {
+      display: grid;
+      gap: 0.75rem var(--gap-x);
+      padding-top: 1.5rem;
+      align-items: baseline;
+    }
+    @media (min-width: 768px) {
+      .vals__total-row {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+      }
+      .vals__total-label {
+        grid-column: 1 / span 5;
+        padding-inline-start: calc(2.25rem + clamp(1rem, 0.5rem + 2vw, 2.5rem));
+      }
+      .vals__total-text {
+        grid-column: 6 / span 7;
+      }
+    }
+    @media (min-width: 1024px) {
+      .vals__total-text {
+        grid-column: 7 / span 6;
+      }
+    }
+    .vals__total-label {
+      color: var(--color-stone);
+    }
+    .vals__total-text {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: var(--text-d3);
+      line-height: var(--text-d3--line-height);
+      font-weight: 340;
+      font-variation-settings: 'opsz' 72;
+    }
+  }
+</style>

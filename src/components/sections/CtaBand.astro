@@ -1,0 +1,191 @@
+---
+/**
+ * Closing call to action on ink. It runs straight into the (ink) footer, so the page ends
+ * as one dark chapter: the lattice draws in once as it scrolls into view, the headline
+ * rises, and the three ways to reach us are set as ledger lines.
+ */
+import { getEntry } from 'astro:content';
+import { site } from '@/config/site';
+import { whatsappLink, telLink, mailLink } from '@/lib/contact';
+import Lattice from '@/components/ui/Lattice.astro';
+import Button from '@/components/ui/Button.astro';
+
+interface Props {
+  /** Service name for the prefilled WhatsApp message (service pages). */
+  service?: string;
+  location?: string;
+}
+const { service, location = 'cta-band' } = Astro.props;
+
+const home = await getEntry('home', 'home');
+if (!home) throw new Error('src/content/home/home.yaml is required.');
+const { cta } = home.data;
+---
+
+<section class="cta surface-ink" aria-labelledby="cta-title">
+  <Lattice
+    animate="view"
+    density="regular"
+    opacity={0.3}
+    origin={[18, 62]}
+    spread={900}
+    align="left"
+    class="cta__lattice"
+  />
+
+  <div class="shell cta__inner">
+    <h2 id="cta-title" class="cta__title" data-reveal="mask">
+      {cta.heading.map((line) => (
+        <span class="cta__line">{line.emphasis ? <em>{line.text}</em> : line.text} </span>
+      ))}
+    </h2>
+
+    <div class="cta__side">
+      <p class="cta__lead" data-reveal="fade">
+        {cta.lead}
+      </p>
+      <span class="magnetic cta__primary" data-magnetic>
+        <Button
+          href={whatsappLink(service)}
+          tone="dark"
+          size="lg"
+          icon="whatsapp"
+          data-track="whatsapp_click"
+          data-track-service={service ?? 'general'}
+          data-track-location={location}
+        >
+          {cta.primary}
+        </Button>
+      </span>
+
+      <dl class="cta__ways">
+        <div class="cta__way">
+          <dt class="eyebrow">{cta.callLabel}</dt>
+          <dd>
+            <a href={telLink()} class="cta__link numerals" data-track="call_click">
+              {site.phone.display}
+            </a>
+          </dd>
+        </div>
+        <div class="cta__way">
+          <dt class="eyebrow">{cta.emailLabel}</dt>
+          <dd>
+            <a href={mailLink()} class="cta__link" data-track="email_click">
+              {site.email}
+            </a>
+          </dd>
+        </div>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Layered so Tailwind utilities on the same element still win. */
+  @layer components {
+    .cta {
+      position: relative;
+      isolation: isolate;
+      overflow: hidden;
+      background:
+        radial-gradient(ellipse 60% 70% at 18% 62%, var(--color-ink-800) 0%, transparent 70%),
+        var(--color-ink);
+    }
+    .cta :global(.cta__lattice) {
+      z-index: -1;
+      mask-image: radial-gradient(ellipse 62% 62% at 18% 62%, #000 10%, transparent 78%);
+    }
+
+    .cta__inner {
+      display: grid;
+      gap: 3rem var(--gap-x);
+      padding-top: var(--section-y);
+      padding-bottom: clamp(4rem, 3rem + 4vw, 7rem);
+    }
+    /* Hairline hand-off to the footer below */
+    .cta__inner::after {
+      content: '';
+      grid-column: 1 / -1;
+      height: 1px;
+      margin-top: clamp(1rem, 2vw, 3rem);
+      background: var(--color-line);
+    }
+    @media (min-width: 1024px) {
+      .cta__inner {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        align-items: end;
+      }
+      .cta__title {
+        grid-column: 1 / span 7;
+      }
+      .cta__side {
+        grid-column: 9 / span 4;
+      }
+    }
+
+    .cta__title {
+      font-size: clamp(2.75rem, 1.4rem + 5.2vw, 6.5rem);
+      line-height: 1.02;
+      letter-spacing: -0.03em;
+      font-weight: 320;
+      font-variation-settings: 'opsz' 144;
+      color: var(--color-ivory);
+    }
+    .cta__line {
+      display: block;
+    }
+    @media (min-width: 1024px) {
+      .cta__line + .cta__line {
+        padding-inline-start: 1.2em;
+      }
+    }
+    .cta__title em {
+      font-style: italic;
+      font-weight: 300;
+      color: var(--color-gold-soft);
+    }
+
+    .cta__lead {
+      color: var(--surface-muted);
+      max-width: 34ch;
+    }
+    .cta__primary {
+      margin-top: 2rem;
+    }
+    @media (max-width: 639.98px) {
+      .cta__primary,
+      .cta__primary :global(.btn) {
+        width: 100%;
+      }
+    }
+
+    .cta__ways {
+      margin-top: 2.5rem;
+      border-top: 1px solid var(--color-line);
+    }
+    .cta__way {
+      display: grid;
+      grid-template-columns: 4.5rem minmax(0, 1fr);
+      align-items: center;
+      border-bottom: 1px solid var(--color-line);
+    }
+    .cta__way dt {
+      color: var(--color-gold-soft);
+    }
+    .cta__link {
+      display: inline-flex;
+      align-items: center;
+      min-height: 48px;
+      color: var(--color-ivory);
+      text-decoration: underline;
+      text-decoration-color: transparent;
+      text-underline-offset: 5px;
+      text-decoration-thickness: 1px;
+      transition: text-decoration-color 280ms var(--ease-quiet);
+      overflow-wrap: anywhere;
+    }
+    .cta__link:hover {
+      text-decoration-color: var(--color-gold);
+    }
+  }
+</style>

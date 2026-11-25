@@ -7,11 +7,14 @@
  * Static:   an SVG <pattern> (a few hundred bytes, any size, true 1 px lines).
  * Animated: explicit <use> tiles in a 1440×900 slice viewBox that line-draw from `origin`
  *           via stroke-dashoffset (CSS only — no JS, final state shown under reduced motion).
+ *           animate="view" waits until the lattice scrolls into view (src/scripts/motion/scroll.ts);
+ *           without JS, or under reduced motion, it is simply shown drawn.
  */
 interface Props {
   density?: 'sparse' | 'regular' | 'dense';
   opacity?: number;
-  animate?: boolean;
+  /** true: draw on load. "view": draw once when scrolled into view. */
+  animate?: boolean | 'view';
   tone?: 'gold' | 'gold-soft' | 'ink' | 'ivory';
   /** Mask: the named side is where the lattice stays strongest (it fades away from it). */
   fade?: 'none' | 'radial' | 'edges' | 'top' | 'bottom' | 'left' | 'right';
@@ -108,7 +111,8 @@ if (animate) {
 <div
   class:list={['lattice', className]}
   data-fade={fade}
-  data-animate={animate ? 'true' : 'false'}
+  data-animate={animate === 'view' ? 'view' : animate ? 'true' : 'false'}
+  data-reveal={animate === 'view' ? 'draw' : undefined}
   aria-hidden="true"
 >
   {animate ? (

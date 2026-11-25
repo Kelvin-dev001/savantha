@@ -1,12 +1,30 @@
 ---
 /**
- * Homepage. Phase 2: hero + motion system. Phase 3 adds the remaining sections.
+ * Homepage. Read top to bottom like a statement: the hero, seven numbered sections on
+ * ivory and paper, and a closing call to action on ink that runs into the footer.
+ * Ink sections: the hero and the closing band (the brief allows two).
  */
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import HomeHero from '@/components/sections/HomeHero.astro';
+import HomeAudiences from '@/components/sections/HomeAudiences.astro';
+import HomePillars from '@/components/sections/HomePillars.astro';
+import HomeProcess from '@/components/sections/HomeProcess.astro';
+import HomeValues from '@/components/sections/HomeValues.astro';
+import HomeStories from '@/components/sections/HomeStories.astro';
+import HomeInsights from '@/components/sections/HomeInsights.astro';
+import HomeFaq from '@/components/sections/HomeFaq.astro';
+import CtaBand from '@/components/sections/CtaBand.astro';
 import { site } from '@/config/site';
 ---
 
 <BaseLayout title={site.name} description={site.positioning} overlayHeader headerTone="dark">
   <HomeHero />
+  <HomeAudiences />
+  <HomePillars />
+  <HomeProcess />
+  <HomeValues />
+  <HomeStories />
+  <HomeInsights />
+  <HomeFaq />
+  <CtaBand location="home-cta" />
 </BaseLayout>

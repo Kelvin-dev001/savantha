@@ -1,0 +1,328 @@
+---
+/**
+ * 02 — Three pillars: an asymmetric register of three panels.
+ *
+ * Grow (three services) runs the full width; Trade and Build share the row below, 7/5. Each
+ * pillar's name is set large and drifts a few pixels with the scroll (≤ 24 px). Hover *or*
+ * keyboard focus lifts the panel and brings its service list forward (stone → ink, arrows
+ * in). The list is always readable; on touch screens it is simply shown in its forward state. The whole panel is one link (stretched), with the services above it.
+ */
+import { getEntry } from 'astro:content';
+import { pillars, ui } from '@/config/navigation';
+import SectionLabel from '@/components/ui/SectionLabel.astro';
+import Lattice from '@/components/ui/Lattice.astro';
+import Button from '@/components/ui/Button.astro';
+import Icon from '@/components/ui/Icon.astro';
+
+const home = await getEntry('home', 'home');
+if (!home) throw new Error('src/content/home/home.yaml is required.');
+const { pillars: copy } = home.data;
+const drift = [24, 16, 12];
+---
+
+<section class="pils shell section-y" aria-labelledby="pils-title">
+  <SectionLabel number="02">{copy.label}</SectionLabel>
+
+  <div class="pils__head">
+    <h2 id="pils-title" class="pils__title" data-reveal="mask">
+      {copy.heading}
+    </h2>
+    <div class="pils__aside">
+      <p class="pils__lead" data-reveal="fade">
+        {copy.lead}
+      </p>
+      <Button href={copy.link.href} variant="text">
+        {copy.link.label}
+      </Button>
+    </div>
+  </div>
+
+  <div class="pils__grid">
+    {pillars.map((p, i) => (
+      <article class:list={['pil', `pil--${p.key}`]} aria-labelledby={`pil-${p.key}`}>
+        <Lattice density="sparse" opacity={0.5} class="pil__lattice" />
+        <div class="pil__top">
+          <span class="eyebrow numerals">
+            {ui.pillar} {p.numeral}
+          </span>
+          <span class="eyebrow numerals pil__count">
+            {String(p.services.length).padStart(2, '0')}{' '}
+            {p.services.length === 1 ? copy.countLabel.one : copy.countLabel.many}
+          </span>
+        </div>
+
+        <h3 id={`pil-${p.key}`} class="pil__name">
+          <a href={`/services#${p.key}`} class="pil__link">
+            <span class="pil__word" data-parallax={drift[i]}>
+              {p.title}
+            </span>
+            <span class="sr-only">
+              {' '}
+              ({copy.open} {p.title})
+            </span>
+          </a>
+        </h3>
+
+        <div class="pil__foot">
+          <p class="pil__line">{p.line}</p>
+          <ul class="pil__services">
+            {p.services.map((s, n) => (
+              <li>
+                <a href={s.href} class="pil__service" style={`--n:${n}`}>
+                  <span>{s.title}</span>
+                  <Icon name="arrow-right" size={14} class="pil__arrow" />
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </article>
+    ))}
+  </div>
+</section>
+
+<style>
+  /* Layered so Tailwind utilities on the same element still win. */
+  @layer components {
+    .pils {
+      padding-top: 0;
+    }
+    .pils__head {
+      display: grid;
+      gap: 2rem var(--gap-x);
+      margin-top: clamp(3rem, 2rem + 4vw, 6rem);
+    }
+    @media (min-width: 1024px) {
+      .pils__head {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        align-items: end;
+      }
+      .pils__title {
+        grid-column: 1 / span 7;
+      }
+      .pils__aside {
+        grid-column: 9 / span 4;
+      }
+    }
+    .pils__title {
+      font-size: var(--text-d1);
+      line-height: var(--text-d1--line-height);
+      letter-spacing: var(--text-d1--letter-spacing);
+      font-weight: 340;
+      font-variation-settings: 'opsz' 144;
+      max-width: 14ch;
+    }
+    .pils__lead {
+      color: var(--color-stone);
+      max-width: 44ch;
+      margin-bottom: 1rem;
+    }
+
+    /* ---------- The register ---------- */
+    .pils__grid {
+      --pil-h: clamp(280px, 12vw + 140px, 312px);
+      display: grid;
+      gap: var(--gap-x);
+      margin-top: clamp(3rem, 2rem + 3vw, 5rem);
+    }
+    @media (min-width: 768px) {
+      .pils__grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .pil--grow {
+        grid-column: 1 / -1;
+      }
+    }
+    @media (min-width: 1024px) {
+      .pils__grid {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+      }
+      /* .pils__grid prefix: these must beat the base .pil rules further down */
+      .pils__grid .pil--grow {
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+        grid-template-rows: auto 1fr;
+        column-gap: var(--gap-x);
+        min-height: calc(var(--pil-h) * 1.25);
+      }
+      .pils__grid .pil--grow .pil__top {
+        grid-column: 1 / -1;
+      }
+      .pils__grid .pil--grow .pil__name {
+        grid-column: 1;
+        grid-row: 2;
+        align-self: end;
+        justify-self: start;
+      }
+      .pils__grid .pil--grow .pil__foot {
+        grid-column: 2;
+        grid-row: 2;
+        align-self: end;
+        margin-top: 0;
+      }
+      .pil--trade {
+        grid-column: 1 / span 7;
+      }
+      .pil--build {
+        grid-column: 8 / span 5;
+      }
+    }
+
+    .pil {
+      position: relative;
+      isolation: isolate;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: var(--pil-h);
+      padding: clamp(1.5rem, 1rem + 1.5vw, 2.5rem);
+      background: var(--color-paper);
+      border: 1px solid var(--color-line);
+      border-radius: var(--radius-xs);
+      transition:
+        transform 700ms var(--ease-settle),
+        border-color 500ms var(--ease-quiet),
+        background-color 500ms var(--ease-quiet);
+    }
+    .pil:is(:hover, :focus-within) {
+      transform: translateY(-6px);
+      border-color: var(--color-gold);
+    }
+    .pil:has(.pil__link:focus-visible) {
+      outline: 2px solid var(--focus-ring);
+      outline-offset: 4px;
+    }
+    .pil__link:focus-visible {
+      outline: none;
+    }
+
+    .pil :global(.pil__lattice) {
+      z-index: -1;
+      inset: 0 0 auto auto;
+      width: 70%;
+      height: 80%;
+      mask-image: radial-gradient(circle at 100% 0%, #000 0%, transparent 70%);
+      opacity: 0.7;
+      transition: opacity 700ms var(--ease-quiet);
+    }
+    .pil:is(:hover, :focus-within) :global(.pil__lattice) {
+      opacity: 1;
+    }
+
+    .pil__top {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      color: var(--color-stone);
+    }
+    .pil__count {
+      color: var(--color-ink);
+    }
+
+    .pil__name {
+      margin-top: clamp(2.5rem, 1.5rem + 3vw, 4rem);
+      font-size: clamp(3.25rem, 1.75rem + 4.4vw, 6.25rem);
+      line-height: 0.95;
+      letter-spacing: -0.035em;
+      font-weight: 320;
+      font-variation-settings: 'opsz' 144;
+    }
+    .pil--grow .pil__name {
+      font-size: clamp(4rem, 1.5rem + 8.2vw, 10.5rem);
+    }
+    .pil__word {
+      display: inline-block;
+      transition: font-weight 700ms var(--ease-quiet);
+    }
+    .pil:is(:hover, :focus-within) .pil__word {
+      font-weight: 400;
+    }
+    /* The whole panel is the link to its pillar */
+    .pil__link::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+    }
+
+    .pil__foot {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      gap: 1.5rem var(--gap-x);
+      margin-top: auto;
+      padding-top: 2rem;
+      pointer-events: none;
+    }
+    .pil__line {
+      color: var(--color-stone);
+      font-size: var(--text-small);
+      max-width: 34ch;
+      pointer-events: none;
+    }
+
+    .pil__service {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      min-height: 44px;
+      border-top: 1px solid var(--color-line);
+      font-size: var(--text-small);
+      font-weight: 600;
+      pointer-events: auto;
+      transition: color 280ms var(--ease-quiet);
+    }
+    .pil__service:hover {
+      color: var(--color-royal);
+    }
+    .pil__service :global(.pil__arrow) {
+      color: var(--color-gold);
+      transition: transform 420ms var(--ease-settle);
+    }
+    .pil__service:hover :global(.pil__arrow) {
+      transform: translateX(3px);
+    }
+
+    /* Hover-capable screens: the services sit back in stone until the panel is hovered or
+       focused, then come forward one by one: ink, with their arrows. Always readable, never
+       hidden, so nothing depends on hover (touch screens get the forward state). */
+    @media (hover: hover) and (pointer: fine) {
+      .pil__service {
+        color: var(--color-stone);
+        transition: color 420ms var(--ease-quiet);
+        transition-delay: calc(var(--n) * 60ms);
+      }
+      .pil__service :global(.pil__arrow) {
+        opacity: 0;
+        transform: translateX(-8px);
+        transition:
+          opacity 420ms var(--ease-quiet),
+          transform 600ms var(--ease-settle);
+        transition-delay: calc(var(--n) * 60ms);
+      }
+      .pil:is(:hover, :focus-within) .pil__service {
+        color: var(--color-ink);
+      }
+      .pil:is(:hover, :focus-within) .pil__service:hover {
+        color: var(--color-royal);
+        transition-delay: 0ms;
+      }
+      .pil:is(:hover, :focus-within) .pil__service :global(.pil__arrow) {
+        opacity: 1;
+        transform: none;
+      }
+      .pil:is(:hover, :focus-within) .pil__service:hover :global(.pil__arrow) {
+        transform: translateX(3px);
+        transition-delay: 0ms;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .pil:is(:hover, :focus-within) {
+        transform: none;
+      }
+    }
+  }
+</style>

@@ -1,0 +1,419 @@
+---
+/**
+ * 03 — How we work. The page's single pinned section.
+ *
+ * Desktop (≥ 1024 px wide, ≥ 700 px tall, scripting on, no reduced-motion preference):
+ * the section is ~300vh of scroll pinned to one screen. A vertical gold rule fills as you
+ * scroll, the step copy cross-fades, and Savantho's eight-point star is constructed one
+ * layer per step: the first square (Listen), the second square that completes the star
+ * (Analyse), the octagon that holds it together (Structure), the ring that closes it
+ * (Review). Progress comes from src/scripts/motion/pinned.ts (vanilla, no GSAP).
+ *
+ * Everywhere else, and without JS, the four steps are stacked cards with a single reveal.
+ * The pinned layout is CSS-only (`@media (scripting: enabled)`), so it never flashes in
+ * and out, and screen readers get all four steps in order either way.
+ */
+import { getEntry } from 'astro:content';
+import SectionLabel from '@/components/ui/SectionLabel.astro';
+
+const home = await getEntry('home', 'home');
+if (!home) throw new Error('src/content/home/home.yaml is required.');
+const { process } = home.data;
+const total = process.steps.length;
+const pad = (n: number) => String(n).padStart(2, '0');
+
+// Star construction (viewBox 600 × 600). Two interlaced squares make the khatam.
+const C = 300;
+const R = 282;
+const k = (R * Math.SQRT1_2).toFixed(2);
+const diamond = `M${C} ${C - R}L${C + R} ${C}L${C} ${C + R}L${C - R} ${C}Z`;
+const square = `M${C - +k} ${C - +k}H${C + +k}V${C + +k}H${C - +k}Z`;
+const octR = R * 0.54;
+const oct = Array.from({ length: 8 }, (_, i) => {
+  const a = (i * Math.PI) / 4 + Math.PI / 8;
+  return `${(C + octR * Math.cos(a)).toFixed(2)} ${(C + octR * Math.sin(a)).toFixed(2)}`;
+});
+const octagon = `M${oct.join('L')}Z`;
+const ring = `M${C} ${C - R}A${R} ${R} 0 1 1 ${C - 0.01} ${C - R}Z`;
+const layers = [diamond, square, octagon, ring];
+---
+
+<section class="hww surface-paper" data-pin data-pin-steps={total} aria-labelledby="hww-title">
+  <div class="hww__sticky">
+    <div class="shell hww__inner">
+      <SectionLabel number="03">{process.label}</SectionLabel>
+
+      <div class="hww__grid">
+        <div class="hww__intro">
+          <h2 id="hww-title" class="hww__title" data-reveal="mask">
+            {process.heading}
+          </h2>
+          <p class="hww__lead" data-reveal="fade">
+            {process.lead}
+          </p>
+
+          <ol class="hww__index" aria-hidden="true">
+            {process.steps.map((s, i) => (
+              <li class="hww__index-item" data-step-i={i}>
+                <span class="numerals">{pad(i + 1)}</span>
+                <span>{s.title}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
+
+        <div class="hww__spine" aria-hidden="true">
+          <span class="hww__fill"></span>
+          <span class="hww__head"></span>
+          {process.steps.map((_, i) => (
+            <span class="hww__tick" style={`--t:${i / total}`} />
+          ))}
+        </div>
+
+        <div class="hww__stage">
+          <svg
+            class="hww__star"
+            viewBox="0 0 600 600"
+            fill="none"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <g class="hww__ghost">
+              {layers.map((d) => (
+                <path d={d} />
+              ))}
+            </g>
+            <g class="hww__draw">
+              {layers.map((d, i) => (
+                <path d={d} pathLength="1" style={`--i:${i}`} />
+              ))}
+            </g>
+          </svg>
+
+          <ol class="hww__steps" data-reveal="stagger">
+            {process.steps.map((s, i) => (
+              <li class="hww__step" data-step-i={i}>
+                <p class="hww__count eyebrow numerals">
+                  {process.stepLabel} {pad(i + 1)}
+                  <span class="hww__of" aria-hidden="true">
+                    {' '}
+                    / {pad(total)}
+                  </span>
+                </p>
+                <h3 class="hww__step-title">{s.title}</h3>
+                <p class="hww__body">{s.body}</p>
+                <div class="hww__outcome">
+                  <p class="eyebrow hww__outcome-label">{process.outcomeLabel}</p>
+                  <p class="hww__outcome-text">{s.outcome}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Layered so Tailwind utilities on the same element still win. */
+  @layer components {
+    /* ================= Stacked (default, mobile, no JS, reduced motion) ================= */
+    .hww {
+      --p: 0;
+      padding-block: var(--section-y);
+    }
+    .hww__grid {
+      display: grid;
+      gap: clamp(2.5rem, 2rem + 2vw, 4rem) var(--gap-x);
+      margin-top: clamp(3rem, 2rem + 4vw, 6rem);
+    }
+    @media (min-width: 1024px) {
+      .hww__grid {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+      }
+      .hww__intro {
+        grid-column: 1 / span 5;
+      }
+      .hww__stage {
+        grid-column: 7 / span 6;
+      }
+    }
+    .hww__title {
+      font-size: var(--text-d1);
+      line-height: var(--text-d1--line-height);
+      letter-spacing: var(--text-d1--letter-spacing);
+      font-weight: 340;
+      font-variation-settings: 'opsz' 144;
+      max-width: 13ch;
+    }
+    .hww__lead {
+      margin-top: 1.75rem;
+      color: var(--color-stone);
+      max-width: 40ch;
+    }
+
+    .hww__index,
+    .hww__spine,
+    .hww__star {
+      display: none;
+    }
+
+    .hww__steps {
+      display: grid;
+      gap: 1rem;
+    }
+    @media (min-width: 768px) and (max-width: 1023.98px) {
+      .hww__steps {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+    .hww__step {
+      display: flex;
+      flex-direction: column;
+      padding: clamp(1.5rem, 1rem + 1.5vw, 2.25rem);
+      background: var(--color-ivory);
+      border: 1px solid var(--color-line);
+      border-radius: var(--radius-xs);
+    }
+    .hww__count {
+      color: var(--color-stone);
+    }
+    .hww__step-title {
+      margin-top: 1.25rem;
+      font-size: var(--text-d2);
+      line-height: var(--text-d2--line-height);
+      letter-spacing: var(--text-d2--letter-spacing);
+      font-weight: 340;
+      font-variation-settings: 'opsz' 144;
+    }
+    .hww__body {
+      margin-top: 1rem;
+      color: var(--color-stone);
+      max-width: 52ch;
+    }
+    .hww__outcome {
+      margin-top: auto;
+      padding-top: 1.5rem;
+    }
+    .hww__outcome > * {
+      max-width: 48ch;
+    }
+    .hww__outcome-label {
+      padding-top: 1rem;
+      border-top: 1px solid var(--color-line);
+      color: var(--color-stone);
+    }
+    .hww__outcome-text {
+      margin-top: 0.5rem;
+      font-weight: 600;
+      font-size: var(--text-small);
+    }
+
+    /* ================= Pinned ================= */
+    @media (min-width: 1024px) and (min-height: 700px) and (prefers-reduced-motion: no-preference) and (scripting: enabled) {
+      .hww {
+        height: calc(100svh + 300vh);
+        padding-block: 0;
+      }
+      .hww__sticky {
+        position: sticky;
+        top: 0;
+        height: 100svh;
+        overflow: clip;
+      }
+      .hww__inner {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        padding-top: calc(var(--header-h) + clamp(1rem, 3vh, 2.5rem));
+        padding-bottom: clamp(2rem, 5vh, 4rem);
+      }
+      .hww__grid {
+        flex: 1;
+        min-height: 0;
+        grid-template-rows: minmax(0, 1fr);
+        margin-top: clamp(2rem, 5vh, 4rem);
+      }
+
+      /* Intro + index */
+      .hww__intro {
+        display: flex;
+        flex-direction: column;
+      }
+      .hww__index {
+        display: block;
+        margin-top: auto;
+        border-top: 1px solid var(--color-line);
+      }
+      .hww__index-item {
+        position: relative;
+        display: flex;
+        align-items: baseline;
+        gap: 1.25rem;
+        padding-block: clamp(0.6rem, 1.6vh, 1rem);
+        border-bottom: 1px solid var(--color-line);
+        font-family: var(--font-display);
+        font-size: var(--text-d4);
+        font-variation-settings: 'opsz' 36;
+        color: var(--color-stone);
+        transition:
+          color 500ms var(--ease-quiet),
+          padding 700ms var(--ease-settle);
+      }
+      .hww__index-item .numerals {
+        font-family: var(--font-sans);
+        font-size: var(--text-micro);
+        letter-spacing: var(--text-micro--letter-spacing);
+        font-weight: 650;
+        width: 1.75rem;
+      }
+      .hww__index-item::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        width: 0.75rem;
+        height: 1px;
+        background: var(--color-gold);
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform 600ms var(--ease-settle);
+      }
+      .hww:not([data-step]) .hww__index-item:first-child,
+      .hww__index-item[data-active] {
+        color: var(--color-ink);
+        padding-inline-start: 1.5rem;
+      }
+      .hww:not([data-step]) .hww__index-item:first-child::before,
+      .hww__index-item[data-active]::before {
+        transform: scaleX(1);
+      }
+
+      /* The spine: a 1 px rule that fills gold */
+      .hww__spine {
+        display: block;
+        grid-column: 6;
+        justify-self: center;
+        position: relative;
+        width: 1px;
+        background: var(--color-line);
+      }
+      .hww__fill {
+        position: absolute;
+        inset: 0;
+        background: var(--color-gold);
+        transform: scaleY(var(--p));
+        transform-origin: top;
+      }
+      .hww__tick {
+        position: absolute;
+        left: -4px;
+        top: calc(var(--t) * 100%);
+        width: 9px;
+        height: 1px;
+        background: var(--color-gold);
+      }
+      .hww__head {
+        position: absolute;
+        left: -3px;
+        top: calc(var(--p) * 100% - 3px);
+        width: 7px;
+        height: 7px;
+        rotate: 45deg;
+        background: var(--color-gold);
+      }
+
+      /* Stage: star behind, copy in front */
+      .hww__stage {
+        position: relative;
+        display: grid;
+        align-items: center;
+      }
+      .hww__star {
+        display: block;
+        position: absolute;
+        z-index: 0;
+        top: 50%;
+        right: calc(var(--gutter-x) * -0.6);
+        width: min(104%, 74vh);
+        /* The drawing recedes under the copy and comes forward on the right */
+        mask-image: linear-gradient(
+          to right,
+          rgb(0 0 0 / 0.16) 0%,
+          rgb(0 0 0 / 0.22) 38%,
+          #000 78%
+        );
+        aspect-ratio: 1;
+        translate: 0 -50%;
+        overflow: visible;
+      }
+      .hww__ghost path {
+        stroke: var(--color-gold);
+        stroke-width: 1;
+        vector-effect: non-scaling-stroke;
+        opacity: 0.18;
+      }
+      .hww__draw path {
+        stroke: var(--color-gold);
+        stroke-width: 1;
+        stroke-dasharray: 1 1;
+        stroke-dashoffset: calc(1 - clamp(0, (var(--p) * 4 - var(--i)) * 1.15, 1));
+        opacity: 0.9;
+      }
+
+      .hww__steps {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        gap: 0;
+      }
+      .hww__step {
+        grid-area: 1 / 1;
+        align-self: center;
+        padding: 0;
+        background: none;
+        border: 0;
+        opacity: 0;
+        transform: translateY(18px);
+        transition:
+          opacity 380ms var(--ease-quiet),
+          transform 700ms var(--ease-settle);
+        pointer-events: none;
+      }
+      .hww:not([data-step]) .hww__step:first-child,
+      .hww__step[data-active] {
+        opacity: 1;
+        transform: none;
+        transition-delay: 160ms;
+        pointer-events: auto;
+      }
+      .hww__step-title {
+        margin-top: 1.25rem;
+        font-size: clamp(3.75rem, 1.5rem + 4.8vw, 7rem);
+        line-height: 0.98;
+        letter-spacing: -0.035em;
+        font-weight: 320;
+      }
+      .hww__body {
+        margin-top: 1.75rem;
+        font-size: var(--text-lead);
+        line-height: var(--text-lead--line-height);
+        max-width: 34ch;
+      }
+      .hww__outcome {
+        margin-top: 2.5rem;
+        padding-top: 0;
+      }
+      .hww__outcome > * {
+        max-width: 36ch;
+      }
+      .hww__outcome-label {
+        border-top-color: var(--color-gold);
+      }
+      .hww__outcome-text {
+        font-size: var(--text-body);
+      }
+    }
+  }
+</style>

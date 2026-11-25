@@ -274,6 +274,15 @@
     animation: lattice-draw 820ms var(--ease-quiet) forwards;
     animation-delay: calc(var(--d, 0) * 1ms);
   }
+  /* animate="view": armed (hidden) by JS only while off-screen, drawn when it scrolls in */
+  .lattice[data-animate='view'][data-armed] use {
+    stroke-dasharray: 1 1;
+    stroke-dashoffset: 1;
+  }
+  .lattice[data-animate='view'][data-armed='play'] use {
+    animation: lattice-draw 820ms var(--ease-quiet) forwards;
+    animation-delay: calc(var(--d, 0) * 1ms);
+  }
   @keyframes lattice-draw {
     to {
       stroke-dashoffset: 0;

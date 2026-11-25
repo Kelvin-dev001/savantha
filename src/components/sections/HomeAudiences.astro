@@ -1,0 +1,224 @@
+---
+/**
+ * 01 — Who we help: "the footnoted sentence".
+ *
+ * One display sentence names the three audiences; each audience phrase carries a footnote
+ * number, and the footnotes below expand on it like the notes to a set of accounts.
+ * Hovering or focusing a note underlines its phrase in the sentence (CSS :has(), no JS).
+ */
+import { getEntry } from 'astro:content';
+import { serviceBySlug } from '@/config/navigation';
+import SectionLabel from '@/components/ui/SectionLabel.astro';
+import Icon from '@/components/ui/Icon.astro';
+
+const home = await getEntry('home', 'home');
+if (!home) throw new Error('src/content/home/home.yaml is required.');
+const { audiences } = home.data;
+---
+
+<section class="aud shell section-y" aria-labelledby="aud-title">
+  <SectionLabel number="01">{audiences.label}</SectionLabel>
+
+  <h2 id="aud-title" class="aud__sentence" data-reveal="fade">
+    {audiences.sentence.map((seg) =>
+      seg.note ? (
+        <span class="aud__phrase" data-note={seg.note}>
+          <em>{seg.text}</em>
+          <sup class="aud__ref numerals" aria-hidden="true">
+            {seg.note}
+          </sup>
+        </span>
+      ) : (
+        <span>{seg.text}</span>
+      ),
+    )}
+  </h2>
+
+  <div class="aud__notes" data-reveal="stagger">
+    {audiences.items.map((item, i) => (
+      <article class="aud__note" data-note={i + 1} aria-labelledby={`aud-note-${i + 1}`}>
+        <span class="aud__rule" aria-hidden="true" />
+        <p class="aud__num numerals" aria-hidden="true">
+          {i + 1}
+        </p>
+        <h3 id={`aud-note-${i + 1}`} class="aud__title">
+          {item.title}
+        </h3>
+        <p class="aud__asking eyebrow">{audiences.askingLabel}</p>
+        <p class="aud__q">{item.question}</p>
+        <p class="aud__body">{item.body}</p>
+        <ul class="aud__links">
+          {item.services.map((slug) => {
+            const s = serviceBySlug(slug);
+            return (
+              <li>
+                <a href={s.href} class="aud__link">
+                  <span>{s.title}</span>
+                  <Icon name="arrow-right" size={14} class="aud__arrow" />
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+      </article>
+    ))}
+  </div>
+</section>
+
+<style>
+  /* Layered so Tailwind utilities on the same element still win. */
+  @layer components {
+    .aud__sentence {
+      margin-top: clamp(3rem, 2rem + 4vw, 6rem);
+      max-width: 23ch;
+      font-size: var(--text-d1);
+      line-height: 1.12;
+      letter-spacing: -0.02em;
+      font-weight: 340;
+      font-variation-settings: 'opsz' 144;
+      text-wrap: pretty;
+    }
+    @media (min-width: 1024px) {
+      .aud__sentence {
+        max-width: 26ch;
+      }
+    }
+    .aud__phrase em {
+      text-decoration-line: underline;
+      text-decoration-thickness: 1px;
+      text-underline-offset: 0.16em;
+      text-decoration-color: var(--color-gold);
+      transition:
+        text-decoration-color 360ms var(--ease-quiet),
+        color 360ms var(--ease-quiet);
+    }
+    .aud__phrase em {
+      font-style: italic;
+      font-weight: 320;
+    }
+    .aud__ref {
+      font-family: var(--font-sans);
+      font-size: 0.32em;
+      font-weight: 650;
+      letter-spacing: 0.04em;
+      color: var(--color-royal);
+      vertical-align: super;
+      margin-inline-start: 0.06em;
+      line-height: 0;
+    }
+
+    /* A note in focus underlines its phrase in ink */
+    .aud:has(.aud__note[data-note='1']:is(:hover, :focus-within)) .aud__phrase[data-note='1'] em,
+    .aud:has(.aud__note[data-note='2']:is(:hover, :focus-within)) .aud__phrase[data-note='2'] em,
+    .aud:has(.aud__note[data-note='3']:is(:hover, :focus-within)) .aud__phrase[data-note='3'] em {
+      text-decoration-color: var(--color-ink);
+      text-decoration-thickness: 2px;
+    }
+
+    /* ---------- Notes ---------- */
+    .aud__notes {
+      display: grid;
+      gap: 3.5rem var(--gap-x);
+      margin-top: clamp(4rem, 2.5rem + 5vw, 8rem);
+    }
+    @media (min-width: 768px) {
+      .aud__notes {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+    @media (min-width: 1280px) {
+      /* Indent the notes by one grid column: the sentence leads, the notes follow. */
+      .aud__notes {
+        padding-inline-start: calc((100% - 11 * var(--gap-x)) / 12 + var(--gap-x));
+        column-gap: calc(var(--gap-x) * 2);
+      }
+    }
+
+    .aud__note {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      padding-top: 1.5rem;
+    }
+    .aud__rule {
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 1px;
+      background: var(--color-line);
+    }
+    .aud__rule::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--color-ink);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 700ms var(--ease-settle);
+    }
+    .aud__note:is(:hover, :focus-within) .aud__rule::after {
+      transform: scaleX(1);
+    }
+
+    .aud__num {
+      font-family: var(--font-display);
+      font-size: 2.5rem;
+      line-height: 1;
+      font-weight: 300;
+      font-style: italic;
+      color: var(--color-royal);
+      font-variation-settings: 'opsz' 144;
+    }
+    .aud__title {
+      margin-top: 1.5rem;
+      font-size: var(--text-d4);
+      line-height: var(--text-d4--line-height);
+      font-weight: 420;
+    }
+    .aud__asking {
+      margin-top: 1.75rem;
+      color: var(--color-stone);
+    }
+    .aud__q {
+      margin-top: 0.5rem;
+      font-family: var(--font-display);
+      font-style: italic;
+      font-weight: 340;
+      font-size: 1.3125rem;
+      line-height: 1.35;
+      font-variation-settings: 'opsz' 36;
+      text-wrap: balance;
+    }
+    .aud__body {
+      margin-top: 1.25rem;
+      color: var(--color-stone);
+      font-size: var(--text-small);
+      line-height: 1.65;
+    }
+    .aud__links {
+      margin-top: auto;
+      padding-top: 1.75rem;
+    }
+    .aud__link {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      min-height: 44px;
+      border-top: 1px solid var(--color-line);
+      font-size: var(--text-small);
+      font-weight: 600;
+      color: var(--color-ink);
+      transition: color 280ms var(--ease-quiet);
+    }
+    .aud__link:hover {
+      color: var(--color-royal);
+    }
+    .aud__link :global(.aud__arrow) {
+      color: var(--color-gold);
+      transition: transform 420ms var(--ease-settle);
+    }
+    .aud__link:hover :global(.aud__arrow) {
+      transform: translateX(3px);
+    }
+  }
+</style>

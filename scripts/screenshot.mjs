@@ -3,6 +3,7 @@
  * Checkpoint screenshots. Serves the production build and captures full-page PNGs.
  *   npm run build && npm run shots -- /styleguide /            (default: /styleguide)
  *   npm run shots -- --phase 2 /
+ *   npm run shots -- --phase 3 --reduced-motion /   (final states; pinned sections stack)
  * Output: screenshots/phase-<n>/<route>-<width>.png  (gitignored)
  */
 import { spawn } from 'node:child_process';
@@ -12,9 +13,11 @@ import { chromium } from '@playwright/test';
 
 const args = process.argv.slice(2);
 let phase = '1';
+let reduced = false;
 const routes = [];
 for (let i = 0; i < args.length; i++) {
   if (args[i] === '--phase') phase = args[++i];
+  else if (args[i] === '--reduced-motion') reduced = true;
   // Git Bash rewrites "/styleguide" to "C:/Program Files/Git/styleguide" — undo that.
   else
     routes.push(
@@ -58,15 +61,27 @@ try {
       const page = await browser.newPage({
         viewport: { width: w, height: h },
         deviceScaleFactor: 1,
+        reducedMotion: reduced ? 'reduce' : 'no-preference',
       });
       await page.goto(base + route, { waitUntil: 'networkidle' });
       await page.evaluate(() => document.fonts.ready);
       await page.waitForTimeout(2200); // let the lattice draw finish
+      // Scroll through once so every scroll reveal has played, then return to the top.
+      await page.evaluate(async () => {
+        for (let y = 0; y < document.body.scrollHeight; y += window.innerHeight / 2) {
+          window.scrollTo(0, y);
+          await new Promise((r) => setTimeout(r, 120));
+        }
+        window.scrollTo(0, 0);
+      });
+      await page.waitForTimeout(1600);
       const overflow = await page.evaluate(
         () => document.documentElement.scrollWidth - window.innerWidth,
       );
       const name =
-        (route === '/' ? 'home' : route.replace(/^\//, '').replaceAll('/', '_')) + `-${w}.png`;
+        (route === '/' ? 'home' : route.replace(/^\//, '').replaceAll('/', '_')) +
+        (reduced ? '-reduced' : '') +
+        `-${w}.png`;
       await page.screenshot({ path: `${outDir}/${name}`, fullPage: true });
       console.log(
         `${outDir}/${name}${overflow > 0 ? `  ⚠ horizontal overflow ${overflow}px` : ''}`,
