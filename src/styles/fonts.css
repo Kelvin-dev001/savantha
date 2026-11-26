@@ -1,38 +1,38 @@
 /*
  * Self-hosted variable fonts, subset by scripts/subset-fonts.mjs (npm run fonts:subset):
- * Latin + typographic punctuation, weight axis narrowed to what the CSS uses, full optical
- * size axis. Family names match the tokens in global.css. unicode-range mirrors
+ * Latin + typographic punctuation, weight axis narrowed to what the CSS uses; Newsreader's
+ * optical size fixed at 48. Family names match the tokens in global.css. unicode-range mirrors
  * src/assets/fonts/charset.json; characters outside it fall back to the next font in the
  * stack (tests/fonts.spec.ts fails the build's tests if any page needs one).
  */
 @font-face {
-  font-family: 'Fraunces Variable';
+  font-family: 'Newsreader Variable';
   font-style: normal;
   font-display: swap;
-  font-weight: 300 500;
-  src: url('../assets/fonts/fraunces-opsz-normal.woff2') format('woff2-variations');
+  font-weight: 250 500;
+  src: url('../assets/fonts/newsreader-normal.woff2') format('woff2-variations');
   unicode-range:
     U+0020-007E, U+00A0-00FF, U+2013-2014, U+2018-201A, U+201C-201D, U+2022, U+2026, U+2039-203A,
     U+20AC, U+2122, U+2190-2193, U+2212, U+2264-2265;
 }
 
 @font-face {
-  font-family: 'Fraunces Variable';
+  font-family: 'Newsreader Variable';
   font-style: italic;
   font-display: swap;
-  font-weight: 300 500;
-  src: url('../assets/fonts/fraunces-opsz-italic.woff2') format('woff2-variations');
+  font-weight: 250 500;
+  src: url('../assets/fonts/newsreader-italic.woff2') format('woff2-variations');
   unicode-range:
     U+0020-007E, U+00A0-00FF, U+2013-2014, U+2018-201A, U+201C-201D, U+2022, U+2026, U+2039-203A,
     U+20AC, U+2122, U+2190-2193, U+2212, U+2264-2265;
 }
 
 @font-face {
-  font-family: 'Manrope Variable';
+  font-family: 'Inter Variable';
   font-style: normal;
   font-display: swap;
   font-weight: 300 700;
-  src: url('../assets/fonts/manrope-wght-normal.woff2') format('woff2-variations');
+  src: url('../assets/fonts/inter-wght-normal.woff2') format('woff2-variations');
   unicode-range:
     U+0020-007E, U+00A0-00FF, U+2013-2014, U+2018-201A, U+201C-201D, U+2022, U+2026, U+2039-203A,
     U+20AC, U+2122, U+2190-2193, U+2212, U+2264-2265;

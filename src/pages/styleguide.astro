@@ -73,42 +73,42 @@ const typeScale = [
   {
     token: 'text-hero',
     cls: 'text-hero display',
-    family: 'Fraunces',
-    spec: '44 → 112 px · 380 · −0.02em · 1.03',
+    family: 'Newsreader',
+    spec: '44 → 100 px · 380 · −0.025em · 1.03',
     sample: 'Clarity for your money.',
   },
   {
     token: 'text-d1',
     cls: 'text-d1 display',
-    family: 'Fraunces',
+    family: 'Newsreader',
     spec: '36 → 72 px · 380 · −0.02em · 1.05',
     sample: site.tagline,
   },
   {
     token: 'text-d2',
     cls: 'text-d2 display',
-    family: 'Fraunces',
+    family: 'Newsreader',
     spec: '30 → 52 px · 380 · −0.015em · 1.08',
     sample: 'We explain every fee, product and risk in writing.',
   },
   {
     token: 'text-d3',
     cls: 'text-d3 display',
-    family: 'Fraunces',
+    family: 'Newsreader',
     spec: '24 → 34 px · 380 · −0.01em · 1.15',
     sample: 'How Shariah-compliant finance works in Kenya',
   },
   {
     token: 'text-d4',
     cls: 'text-d4 display',
-    family: 'Fraunces',
+    family: 'Newsreader',
     spec: '20 → 24 px · 380 · 1.25',
     sample: 'Letters of credit explained for Kenyan importers',
   },
   {
     token: 'text-lead',
     cls: 'text-lead',
-    family: 'Manrope',
+    family: 'Inter',
     spec: '19 → 23 px · 400 · 1.5',
     sample:
       'From a first household budget to the structure your children inherit, we help you understand the risks before you commit.',
@@ -116,7 +116,7 @@ const typeScale = [
   {
     token: 'text-body',
     cls: 'text-body measure',
-    family: 'Manrope',
+    family: 'Inter',
     spec: '17 → 18 px · 400 · 1.6 · 68ch',
     sample:
       'Every engagement starts with a conversation, not a product. We listen first, then analyse where you are, structure a plan you can follow, and review it with you as life changes. You will always know what we charge, and why.',
@@ -124,14 +124,14 @@ const typeScale = [
   {
     token: 'text-small',
     cls: 'text-small text-muted',
-    family: 'Manrope',
+    family: 'Inter',
     spec: '15 px · 400 · 1.55',
     sample: 'We reply within one business day. The first call is free and lasts twenty minutes.',
   },
   {
     token: 'eyebrow',
     cls: 'eyebrow',
-    family: 'Manrope',
+    family: 'Inter',
     spec: '12 px · 650 · +0.14em · uppercase',
     sample: '01 — How we work',
   },
@@ -144,7 +144,7 @@ const sections = [
     title: 'Colour',
     note: 'Ten tokens and their contrast, computed from source.',
   },
-  { n: '02', id: 'type', title: 'Typography', note: 'Fraunces and Manrope on one fluid scale.' },
+  { n: '02', id: 'type', title: 'Typography', note: 'Newsreader and Inter on one fluid scale.' },
   { n: '03', id: 'controls', title: 'Buttons & links', note: 'Three variants on two surfaces.' },
   { n: '04', id: 'lattice', title: 'The lattice', note: 'The signature motif and its settings.' },
   {
@@ -399,7 +399,7 @@ const fmt = (r: number) => r.toFixed(2);
           Two voices. One scale.
         </h2>
         <p class="text-muted col-span-12 lg:col-span-4 lg:col-start-9 lg:self-end">
-          Fraunces speaks for the firm: considered, a little literary. Manrope does the work: clear
+          Newsreader speaks for the firm: considered, editorial, exact. Inter does the work: clear
           at 15 px on a phone in the sun. Sizes are fluid between 360 and 1440 px.
         </p>
       </div>
@@ -410,9 +410,9 @@ const fmt = (r: number) => r.toFixed(2);
             Aa<em>g</em>
           </span>
           <div>
-            <p class="text-d4 display">Fraunces</p>
+            <p class="text-d4 display">Newsreader</p>
             <p class="text-small text-muted">
-              Display · variable, optical size 9–144 · roman & italic
+              Display · variable, weight 250–500, optical size 48 · roman & italic
             </p>
           </div>
         </div>
@@ -421,8 +421,8 @@ const fmt = (r: number) => r.toFixed(2);
             Aa
           </span>
           <div>
-            <p class="text-d4 display">Manrope</p>
-            <p class="text-small text-muted">Body & interface · variable, weight 200–800</p>
+            <p class="text-d4 display">Inter</p>
+            <p class="text-small text-muted">Body & interface · variable, weight 300–700</p>
           </div>
         </div>
         <div class="sg-face">
@@ -858,7 +858,6 @@ const fmt = (r: number) => r.toFixed(2);
   @layer components {
     .sg-em {
       font-style: italic;
-      font-variation-settings: 'opsz' 144;
       font-weight: 340;
     }
     .sg-meta {

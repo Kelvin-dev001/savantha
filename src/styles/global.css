@@ -22,14 +22,14 @@
   --color-current: currentColor;
 
   /* Type families */
-  --font-display: 'Fraunces Variable', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+  --font-display: 'Newsreader Variable', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
   --font-sans:
-    'Manrope Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 
   /* Fluid type scale — one clamp() scale, 360 → 1440 px */
-  --text-hero: clamp(2.75rem, 1.6rem + 5.6vw, 7rem); /* 44 → 112 */
+  --text-hero: clamp(2.75rem, 1.58rem + 5.19vw, 6.25rem); /* 44 → 100 (Newsreader sets wide) */
   --text-hero--line-height: 1.03;
-  --text-hero--letter-spacing: -0.02em;
+  --text-hero--letter-spacing: -0.025em;
   --text-d1: clamp(2.25rem, 1.45rem + 3.4vw, 4.5rem); /* 36 → 72 */
   --text-d1--line-height: 1.05;
   --text-d1--letter-spacing: -0.02em;
@@ -98,7 +98,6 @@
     font-family: var(--font-sans);
     font-size: var(--text-body);
     line-height: var(--text-body--line-height);
-    font-feature-settings: 'ss01', 'cv01';
     overflow-x: clip;
   }
 
@@ -108,7 +107,6 @@
   h4 {
     font-family: var(--font-display);
     font-weight: 380;
-    font-variation-settings: 'opsz' 96;
     text-wrap: balance;
   }
 
@@ -197,7 +195,6 @@
 @utility display {
   font-family: var(--font-display);
   font-weight: 380;
-  font-variation-settings: 'opsz' 144;
 }
 @utility numerals {
   font-variant-numeric: tabular-nums lining-nums;

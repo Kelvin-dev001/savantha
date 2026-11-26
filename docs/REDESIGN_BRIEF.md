@@ -35,7 +35,7 @@ Tokens and type are in CLAUDE.md. In addition:
 - **Layout:** 12-column asymmetric editorial grid, 1280 px max content, margins `clamp(24px, 6vw, 96px)`. Numbered sections (`01 — HOW WE WORK`) with gold hairline rules that echo financial statements. Lots of ivory space; at most 2 ink sections per page, for rhythm.
 - **Headlines:** hero 72–112 px desktop / 44–56 px mobile, `letter-spacing: -0.02em`, leading 1.02–1.1. Eyebrows in tracked uppercase (`0.14em`). Body 17–18 px, 1.6 leading, 68ch max.
 - **Lattice:** one `<Lattice density opacity animate />` component. Used in the hero (line-draws on load), section dividers, the footer, and as a watermark on the Shariah page hero. Tasteful, never busy, never religious clip-art.
-- **Logo:** `/public/brand/logo-full.svg` and `/public/brand/monogram.svg` (placeholder SVGs until vectors arrive). Header = monogram + "SAVANTHO" in Fraunces, tracked. The ornate full lockup only appears on About, at most 200 px wide anywhere else.
+- **Logo:** `/public/brand/logo-full.svg` and `/public/brand/monogram.svg` (placeholder SVGs until vectors arrive). Header = monogram + "SAVANTHO" in the display face (Newsreader since 2026-11-26), tracked. The ornate full lockup only appears on About, at most 200 px wide anywhere else.
 - **Imagery art direction:** Mombasa Old Town doors and arches, the port at dawn, Nairobi skyline at dusk, hands on ledgers. One warm, desaturated grade. Placeholders until real photos exist.
 
 ---

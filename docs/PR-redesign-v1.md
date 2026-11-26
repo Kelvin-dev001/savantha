@@ -11,7 +11,7 @@ or approve is in `PLACEHOLDERS.md`.
   enquiry, WhatsApp first) with thank-you / not-sent; FAQ (37 Q&As); insights list, three
   subject pages and three guides (drafts, `noindex` until reviewed); privacy, terms,
   disclaimer; 404; internal styleguide.
-- **Design system:** ink / gold / ivory tokens, Fraunces + Manrope (self-hosted, subset), the
+- **Design system:** ink / gold / ivory tokens, Newsreader + Inter (self-hosted, subset), the
   lattice motif, ledger rules. One pinned section ("How we work"), motion that respects
   reduced-motion and never hides content without JS.
 - **Compliance:** CMA wording rules enforced by `npm run lint:copy`; site-wide disclaimer in

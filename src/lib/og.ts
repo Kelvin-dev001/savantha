@@ -4,11 +4,11 @@
  * the exception, so reviewers can share them) use the default card.
  *
  * The card is a small piece of letterhead: ink ground, the lattice fading in from the right,
- * the monogram and tracked wordmark, the page's eyebrow, its headline in Fraunces (emphasis
+ * the monogram and tracked wordmark, the page's eyebrow, its headline in Newsreader (emphasis
  * in italic gold-soft, as on the page), and the tagline over a double ledger rule.
  *
  * Text is laid out by satori (glyphs become paths, so no fonts are needed to rasterise) and
- * the SVG is turned into a PNG by sharp. The static Fraunces/Manrope `.woff` files come from
+ * the SVG is turned into a PNG by sharp. The static Newsreader/Inter `.woff` files come from
  * @fontsource (satori cannot read the variable woff2 files the site itself uses).
  */
 import { readFile } from 'node:fs/promises';
@@ -139,11 +139,11 @@ let assets:
 
 function loadAssets() {
   assets ??= (async () => {
-    const [fr, frItalic, mr500, mr600, monogramSvg] = await Promise.all([
-      font('fraunces', 'fraunces-latin-400-normal.woff'),
-      font('fraunces', 'fraunces-latin-400-italic.woff'),
-      font('manrope', 'manrope-latin-500-normal.woff'),
-      font('manrope', 'manrope-latin-600-normal.woff'),
+    const [nr, nrItalic, in500, in600, monogramSvg] = await Promise.all([
+      font('newsreader', 'newsreader-latin-400-normal.woff'),
+      font('newsreader', 'newsreader-latin-400-italic.woff'),
+      font('inter', 'inter-latin-500-normal.woff'),
+      font('inter', 'inter-latin-600-normal.woff'),
       readFile(join(root, 'public', 'brand', 'monogram.svg'), 'utf8'),
     ]);
     // rgba() for every token: satori does not parse the space-separated rgb() syntax.
@@ -152,10 +152,10 @@ function loadAssets() {
     );
     return {
       fonts: [
-        { name: 'Fraunces', data: fr, weight: 400 as const, style: 'normal' as const },
-        { name: 'Fraunces', data: frItalic, weight: 400 as const, style: 'italic' as const },
-        { name: 'Manrope', data: mr500, weight: 500 as const, style: 'normal' as const },
-        { name: 'Manrope', data: mr600, weight: 600 as const, style: 'normal' as const },
+        { name: 'Newsreader', data: nr, weight: 400 as const, style: 'normal' as const },
+        { name: 'Newsreader', data: nrItalic, weight: 400 as const, style: 'italic' as const },
+        { name: 'Inter', data: in500, weight: 500 as const, style: 'normal' as const },
+        { name: 'Inter', data: in600, weight: 600 as const, style: 'normal' as const },
       ],
       monogram: `data:image/svg+xml;base64,${Buffer.from(monogramSvg).toString('base64')}`,
       lattice: latticeDataUri(c.gold!),
@@ -213,7 +213,7 @@ function headline(lines: HeadlineLine[], c: Record<string, string>) {
     {
       display: 'flex',
       flexDirection: 'column',
-      fontFamily: 'Fraunces',
+      fontFamily: 'Newsreader',
       fontSize: size,
       lineHeight: 1.04,
       letterSpacing: '-0.02em',
@@ -256,7 +256,7 @@ export async function renderOgCard(card: OgCard): Promise<Buffer> {
       position: 'relative',
       backgroundColor: c.ink,
       color: c.ivory,
-      fontFamily: 'Manrope',
+      fontFamily: 'Inter',
     },
     [
       h('img', { position: 'absolute', top: 0, left: 0, width, height }, undefined, {
@@ -287,7 +287,7 @@ export async function renderOgCard(card: OgCard): Promise<Buffer> {
                 'div',
                 {
                   marginLeft: 18,
-                  fontFamily: 'Fraunces',
+                  fontFamily: 'Newsreader',
                   fontSize: 22,
                   letterSpacing: '0.28em',
                   textTransform: 'uppercase',
@@ -323,7 +323,7 @@ export async function renderOgCard(card: OgCard): Promise<Buffer> {
                 h(
                   'div',
                   {
-                    fontFamily: 'Fraunces',
+                    fontFamily: 'Newsreader',
                     fontStyle: 'italic',
                     fontSize: 26,
                     color: c['gold-soft'],

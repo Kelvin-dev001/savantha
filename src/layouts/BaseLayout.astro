@@ -3,9 +3,9 @@ import '@/styles/fonts.css';
 import '@/styles/global.css';
 // All three faces are preloaded so they land together: one re-layout when they swap in,
 // not three (each is a full layout of the page on a slow phone).
-import frauncesLatin from '@/assets/fonts/fraunces-opsz-normal.woff2?url';
-import frauncesItalic from '@/assets/fonts/fraunces-opsz-italic.woff2?url';
-import manropeLatin from '@/assets/fonts/manrope-wght-normal.woff2?url';
+import newsreaderLatin from '@/assets/fonts/newsreader-normal.woff2?url';
+import newsreaderItalic from '@/assets/fonts/newsreader-italic.woff2?url';
+import interLatin from '@/assets/fonts/inter-wght-normal.woff2?url';
 
 import { site } from '@/config/site';
 import { ui } from '@/config/navigation';
@@ -142,9 +142,9 @@ const graph = [
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
     <link rel="sitemap" type="application/xml" href="/sitemap-index.xml" />
-    <link rel="preload" href={frauncesLatin} as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href={frauncesItalic} as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href={manropeLatin} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={newsreaderLatin} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={newsreaderItalic} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={interLatin} as="font" type="font/woff2" crossorigin />
     <meta name="generator" content={Astro.generator} />
     <script type="application/ld+json" set:html={jsonLdString(graph)} />
     <slot name="head" />

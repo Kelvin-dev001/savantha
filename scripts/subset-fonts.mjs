@@ -1,16 +1,17 @@
 #!/usr/bin/env node
 /**
  * Subsets the two variable fonts to what the site uses, so a first visit on a slow phone
- * downloads less before the first paint (≈ 173 KB → ≈ 140 KB).
+ * downloads less before the first paint (≈ 320 KB → ≈ 135 KB).
  *   npm run fonts:subset
  * Output (committed): src/assets/fonts/*.woff2 and src/assets/fonts/charset.json.
  * src/styles/fonts.css declares them. Re-run after upgrading @fontsource-variable or when
  * copy needs a character outside CHARSET (tests/fonts.spec.ts fails if a page uses one).
  *
  * Kept: Basic Latin, Latin-1 (accented names), typographic punctuation, arrows and maths
- * signs used in the copy; all layout features of the kept glyphs; the full optical-size
- * axis (automatic optical sizing maps it to the font size). Narrowed: the weight axis, to
- * the range the CSS uses (Fraunces 300–480, Manrope 300–650; checked in Phase 8).
+ * signs used in the copy; all layout features of the kept glyphs. Narrowed: Newsreader's
+ * optical-size axis is fixed at 48 (one display cut for 20-112 px headings; the full axis
+ * would double the file), and the weight axis is cut to the range the CSS uses
+ * (Newsreader 250–500, Inter 300–700).
  */
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import subsetFont from 'subset-font';
@@ -30,18 +31,18 @@ const text = String.fromCodePoint(...codepoints);
 const src = 'node_modules/@fontsource-variable';
 const fonts = [
   {
-    from: `${src}/fraunces/files/fraunces-latin-opsz-normal.woff2`,
-    to: 'fraunces-opsz-normal.woff2',
-    axes: { wght: { min: 300, max: 500 } },
+    from: `${src}/newsreader/files/newsreader-latin-opsz-normal.woff2`,
+    to: 'newsreader-normal.woff2',
+    axes: { wght: { min: 250, max: 500 }, opsz: 48 },
   },
   {
-    from: `${src}/fraunces/files/fraunces-latin-opsz-italic.woff2`,
-    to: 'fraunces-opsz-italic.woff2',
-    axes: { wght: { min: 300, max: 500 } },
+    from: `${src}/newsreader/files/newsreader-latin-opsz-italic.woff2`,
+    to: 'newsreader-italic.woff2',
+    axes: { wght: { min: 250, max: 500 }, opsz: 48 },
   },
   {
-    from: `${src}/manrope/files/manrope-latin-wght-normal.woff2`,
-    to: 'manrope-wght-normal.woff2',
+    from: `${src}/inter/files/inter-latin-wght-normal.woff2`,
+    to: 'inter-wght-normal.woff2',
     axes: { wght: { min: 300, max: 700 } },
   },
 ];
