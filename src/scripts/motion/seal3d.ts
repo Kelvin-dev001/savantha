@@ -10,17 +10,14 @@
  * object. At rest the model lies flat and matches the SVG seal line for line, so the
  * swap from SVG strokes to metal is a cross-fade with no jump.
  *
- * Modes (data-seal3d on .seal, or ?seal= in the URL while we choose):
- *   turn   slow sway, the star turns inside its rims
- *   tilt   the medallion turns to face the cursor; the lattice shifts a little behind it
- *   sweep  nearly still; a band of light passes across the metal, a warm light drifts
- *          through the lattice
+ * Motion: the medallion turns to face the cursor (±16° / ±11°, damped) and the lattice
+ * shifts a few px behind it; on touch screens it drifts slowly instead. Every 9 s a band of
+ * light passes across the metal (chosen 2026-11-26 from the turn / tilt / sweep variants).
  *
  * Never runs under reduced motion (the loader returns first), with Save-Data, or where the
  * browser reports WebGL as slow (software rendering): the SVG seal simply stays.
  */
 
-type Mode = 'turn' | 'tilt' | 'sweep';
 type V3 = [number, number, number];
 
 const VIEW = 320; // the SVG seal's viewBox; geometry is in these units, centred on 0
@@ -168,17 +165,6 @@ const rotY = (t: number): M3 => [
   0,
   Math.cos(t),
 ];
-const rotZ = (t: number): M3 => [
-  Math.cos(t),
-  -Math.sin(t),
-  0,
-  Math.sin(t),
-  Math.cos(t),
-  0,
-  0,
-  0,
-  1,
-];
 /** GLSL mat3 is column-major. */
 const toGL = (m: M3) =>
   new Float32Array([m[0]!, m[3]!, m[6]!, m[1]!, m[4]!, m[7]!, m[2]!, m[5]!, m[8]!]);
@@ -222,14 +208,16 @@ void main() {
   // A studio lit from the upper left: ink below, warm light above, a softbox near the top.
   float up = -R.y - 0.25 * R.x;
   float e = mix(0.1, 0.95, smoothstep(-0.3, 0.5, up)) + 0.45 * exp(-pow((up - 0.62) * 5.0, 2.0));
-  float band = exp(-pow((dot(R, uBandN) - uBandOff) * 6.5, 2.0));
+  float rn = dot(R, uBandN);
+  float band = exp(-pow((rn - uBandOff) * 6.5, 2.0));
+  float box = exp(-pow((rn - 0.35) * 6.5, 2.0));
   vec3 H = normalize(uL + V);
   float spec = pow(max(dot(N, H), 0.0), 70.0);
   float diff = max(dot(N, uL), 0.0);
   float fres = pow(1.0 - max(dot(N, V), 0.0), 3.0);
   // Gold tints what it reflects; the brightest reflections wash towards gold-soft.
   vec3 col = uGold * (e + 0.18 * diff) + uInk * 0.5 * (1.0 - min(e, 1.0));
-  col += uSoft * (max(e - 0.8, 0.0) * 0.9 + spec * 0.9 + band * uBandK + fres * 0.1);
+  col += uSoft * (max(e - 0.8, 0.0) * 0.9 + spec * 0.9 + band * uBandK + box * 0.25 + fres * 0.1);
   gl_FragColor = vec4(min(col, vec3(1.0)) * uAlpha, uAlpha);
 }`;
 
@@ -255,12 +243,6 @@ function compile(gl: WebGLRenderingContext) {
   return gl.getProgramParameter(p, gl.LINK_STATUS) ? p : null;
 }
 
-function pickMode(seal: HTMLElement): Mode {
-  const q = new URLSearchParams(location.search).get('seal');
-  const m = (q || seal.dataset.seal3d || 'tilt') as Mode;
-  return m === 'turn' || m === 'sweep' ? m : 'tilt';
-}
-
 export function initSeal3D() {
   const seal = document.querySelector<HTMLElement>('[data-seal3d]');
   if (!seal) return;
@@ -282,7 +264,6 @@ export function initSeal3D() {
   const prog = compile(gl);
   if (!prog) return;
 
-  const mode = pickMode(seal);
   const hero = seal.closest<HTMLElement>('.hero');
   const lattice = hero?.querySelector<HTMLElement>('.hero__lattice') ?? null;
   const overlays = [...seal.querySelectorAll<HTMLElement>('.seal__ring, .seal__mark')];
@@ -353,11 +334,11 @@ export function initSeal3D() {
   resize();
   new ResizeObserver(resize).observe(seal);
 
-  // Pointer (tilt mode, fine pointers only)
+  // Pointer (fine pointers only)
   let px = 0;
   let py = 0;
   const fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
-  if (mode === 'tilt' && fine) {
+  if (fine) {
     window.addEventListener(
       'pointermove',
       (e) => {
@@ -371,8 +352,6 @@ export function initSeal3D() {
       py = 0;
     });
   }
-
-  if (mode === 'sweep') hero?.setAttribute('data-light', 'on');
 
   // Visibility: render only while the hero is on screen and the tab is visible.
   let onScreen = true;
@@ -399,29 +378,18 @@ export function initSeal3D() {
 
     let tx: number;
     let ty: number;
-    let spin = 0;
-    let bandOff = 0.35;
-    let bandK = 0.25;
-    if (mode === 'turn') {
-      ty = 16 * Math.sin((t * 2 * Math.PI) / 18);
-      tx = 6 * Math.sin((t * 2 * Math.PI) / 13 + 0.8);
-      spin = (t / 120) * 360;
-    } else if (mode === 'tilt') {
-      if (fine) {
-        ty = px * 16;
-        tx = -py * 11;
-      } else {
-        ty = 8 * Math.sin((t * 2 * Math.PI) / 16);
-        tx = 4 * Math.sin((t * 2 * Math.PI) / 11);
-      }
+    if (fine) {
+      ty = px * 16;
+      tx = -py * 11;
     } else {
-      ty = 3 * Math.sin((t * 2 * Math.PI) / 20);
-      tx = 2 * Math.sin((t * 2 * Math.PI) / 15);
-      // A pass of light every 7 s: 2.2 s across, then rest.
-      const c = (t % 7) / 2.2;
-      bandOff = c < 1 ? -1.3 + 2.6 * (c * c * (3 - 2 * c)) : 1.3;
-      bandK = c < 1 ? 1.1 : 0;
+      ty = 8 * Math.sin((t * 2 * Math.PI) / 16);
+      tx = 4 * Math.sin((t * 2 * Math.PI) / 11);
     }
+    // A pass of light every 9 s, 2.4 s across; it fades in and out, so it never pops.
+    const c = (Math.max(t - 1.5, 0) % 9) / 2.4;
+    const pass = c < 1 ? c * c * (3 - 2 * c) : 1;
+    const bandOff = -1.3 + 2.6 * pass;
+    const bandK = c < 1 ? 0.9 * Math.sin(Math.PI * c) : 0;
     // Critically damped follow, so the cursor never yanks the seal.
     const k = 1 - Math.exp(-dt * 4);
     rx += (tx * ramp - rx) * k;
@@ -446,13 +414,13 @@ export function initSeal3D() {
       gl.drawArrays(gl.TRIANGLES, 0, b.count);
     };
     draw(rims, base);
-    draw(star, mul(base, rotZ(spin * DEG)));
+    draw(star, base);
 
     // The SVG inscription and "S" ride on the same transform; the S floats a little forward.
     const tf = `perspective(${persp}px) rotateX(${rx}deg) rotateY(${ry}deg)`;
     overlays[0]!.style.transform = tf;
     overlays[1]!.style.transform = `${tf} translateZ(${(10 * scale).toFixed(1)}px)`;
-    if (lattice && mode === 'tilt') {
+    if (lattice) {
       lattice.style.transform = `translate3d(${(-ry * 0.7).toFixed(2)}px, ${(rx * 0.7).toFixed(2)}px, 0)`;
     }
     schedule();

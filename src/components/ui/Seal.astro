@@ -8,18 +8,18 @@
  * `animate`: rings draw, inscription settles, monogram fades up (CSS only, once).
  * Timings are CSS custom properties so a section can choreograph them.
  * `depth`: after load, src/scripts/motion/seal3d.ts swaps the rings and star for gold
- * metalwork in WebGL (turn / tilt / sweep). Without WebGL, JS or motion, this SVG stays.
+ * metalwork in WebGL that turns to the cursor. Without WebGL, JS or motion, this SVG stays.
  */
 import { site } from '@/config/site';
 import Monogram from './Monogram.astro';
 
 interface Props {
   animate?: boolean;
-  /** 3D mode for the WebGL seal (homepage hero only). */
-  depth?: 'turn' | 'tilt' | 'sweep';
+  /** Become the WebGL gold seal once the page is idle (homepage hero only). */
+  depth?: boolean;
   class?: string;
 }
-const { animate = false, depth, class: className = '' } = Astro.props;
+const { animate = false, depth = false, class: className = '' } = Astro.props;
 
 const inscription = `${site.legalName} · ${site.tagline} ·`.toUpperCase();
 
@@ -33,7 +33,7 @@ const textLength = (2 * Math.PI * BASE - 6).toFixed(1);
 <div
   class:list={['seal', className]}
   data-animate={animate ? 'true' : 'false'}
-  data-seal3d={depth}
+  data-seal3d={depth ? '' : undefined}
   aria-hidden="true"
 >
   <svg class="seal__ring" viewBox="0 0 320 320" focusable="false" fill="none">
