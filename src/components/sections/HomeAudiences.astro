@@ -1,20 +1,88 @@
 ---
 /**
- * 01 — Who we help: "the footnoted sentence".
+ * 01 — Who we help: "the footnoted sentence", with the notes set as cards.
  *
  * One display sentence names the three audiences; each audience phrase carries a footnote
- * number, and the footnotes below expand on it like the notes to a set of accounts.
- * Hovering or focusing a note underlines its phrase in the sentence (CSS :has(), no JS).
+ * number, and the three cards below expand on it like the notes to a set of accounts.
+ *
+ * Each card carries a fine gold line drawing in the lattice's hand (a Lamu doorway for
+ * families, a dhow for importers, a circle of people for organisations) that draws itself
+ * as the card scrolls in (data-reveal="draw", src/scripts/motion/scroll.ts). On a fine
+ * pointer, hover lifts the card, lights it from the cursor, fills its top rule, brings up
+ * a lattice watermark and sets the drawing moving (the dhow rocks, the circle turns, the
+ * doorway's star turns). Hovering a card underlines its phrase in the sentence and
+ * hovering a phrase lifts its card (CSS :has()). The cursor light is the only JS (a few
+ * hundred bytes). Without JS, or under reduced motion, everything is simply shown.
  */
 import { getEntry } from 'astro:content';
 import { getServiceIndex } from '@/lib/services';
 import SectionLabel from '@/components/ui/SectionLabel.astro';
 import Icon from '@/components/ui/Icon.astro';
+import Lattice from '@/components/ui/Lattice.astro';
 
 const home = await getEntry('home', 'home');
 if (!home) throw new Error('src/content/home/home.yaml is required.');
 const { audiences } = home.data;
 const services = await getServiceIndex();
+
+// ---------- Line drawings (viewBox 0 0 80 80, decorative) ----------
+const f = (n: number) => Math.round(n * 100) / 100;
+const pt = (r: number, deg: number, cx = 40, cy = 40): [number, number] => [
+  f(cx + r * Math.cos((deg * Math.PI) / 180)),
+  f(cy + r * Math.sin((deg * Math.PI) / 180)),
+];
+
+/** A pointed Swahili-door arch of width w whose apex is at y = top, standing on y = 72. */
+const arch = (w: number, top: number) => {
+  const l = 40 - w / 2;
+  const r = 40 + w / 2;
+  const s = top + w * 0.55;
+  const c = top + (s - top) * 0.45; // a high control point keeps the apex pointed
+  return `M${l} 72V${f(s)}Q${l} ${f(c)} 40 ${top}Q${r} ${f(c)} ${r} ${f(s)}V72`;
+};
+/** Eight-point star outline, as in the lattice. */
+const star = (R: number, cx: number, cy: number) => {
+  const inner = R * (Math.SQRT1_2 / Math.cos(Math.PI / 8));
+  const pts = Array.from({ length: 16 }, (_, i) => pt(i % 2 ? inner : R, i * 22.5 - 90, cx, cy));
+  return `M${pts.map((p) => p.join(' ')).join('L')}Z`;
+};
+/** {8/3} star polygon: eight people on a ring, each joined to the ones across from them. */
+const octagram = (R: number) => {
+  const pts = Array.from({ length: 8 }, (_, i) => pt(R, ((i * 3) % 8) * 45 - 90));
+  return `M${pts.map((p) => p.join(' ')).join('L')}Z`;
+};
+
+type Part = 'boat' | 'waves' | 'net' | 'star';
+type Line = { d: string; part?: Part };
+const emblems: Record<'doorway' | 'dhow' | 'circle', { lines: Line[]; dots?: [number, number][] }> =
+  {
+    doorway: {
+      lines: [
+        { d: 'M6 72H74' },
+        { d: arch(60, 8) },
+        { d: arch(44, 20) },
+        { d: arch(28, 32) },
+        { d: star(6.5, 40, 54), part: 'star' },
+      ],
+    },
+    dhow: {
+      lines: [
+        { d: 'M8 50L72 45Q66 58 42 59Q20 59 8 50Z', part: 'boat' },
+        { d: 'M40 49V11', part: 'boat' },
+        { d: 'M14 35L62 6Q53 29 40 45Z', part: 'boat' },
+        { d: 'M-8 67q5-4 10 0t10 0t10 0t10 0t10 0t10 0t10 0t10 0t10 0t10 0', part: 'waves' },
+      ],
+    },
+    circle: {
+      lines: [
+        { d: 'M40 12A28 28 0 1 1 39.99 12' },
+        { d: octagram(28), part: 'net' },
+        { d: star(7, 40, 40), part: 'net' },
+      ],
+      dots: Array.from({ length: 8 }, (_, i) => pt(28, i * 45 - 90)),
+    },
+  };
+const groups: (Part | undefined)[] = [undefined, 'boat', 'waves', 'net', 'star'];
 ---
 
 <section class="aud shell section-y" aria-labelledby="aud-title">
@@ -36,35 +104,100 @@ const services = await getServiceIndex();
   </h2>
 
   <div class="aud__notes" data-reveal="stagger">
-    {audiences.items.map((item, i) => (
-      <article class="aud__note" data-note={i + 1} aria-labelledby={`aud-note-${i + 1}`}>
-        <span class="aud__rule" aria-hidden="true" />
-        <p class="aud__num numerals" aria-hidden="true">
-          {i + 1}
-        </p>
-        <h3 id={`aud-note-${i + 1}`} class="aud__title">
-          {item.title}
-        </h3>
-        <p class="aud__asking eyebrow">{audiences.askingLabel}</p>
-        <p class="aud__q">{item.question}</p>
-        <p class="aud__body">{item.body}</p>
-        <ul class="aud__links">
-          {item.services.map((slug) => {
-            const s = services.get(slug)!;
-            return (
-              <li>
-                <a href={s.href} class="aud__link">
-                  <span>{s.title}</span>
-                  <Icon name="arrow-right" size={14} class="aud__arrow" />
-                </a>
-              </li>
-            );
-          })}
-        </ul>
-      </article>
-    ))}
+    {audiences.items.map((item, i) => {
+      const em = emblems[item.emblem];
+      return (
+        <article
+          class="aud__card"
+          data-note={i + 1}
+          aria-labelledby={`aud-note-${i + 1}`}
+          style={`--card:${i}`}
+        >
+          <span class="aud__spot" aria-hidden="true" />
+          <span class="aud__watermark" aria-hidden="true">
+            <Lattice density="dense" opacity={0.22} />
+          </span>
+          <span class="aud__rule" aria-hidden="true" />
+
+          <div class="aud__head">
+            <p class="aud__num numerals" aria-hidden="true">
+              {i + 1}
+            </p>
+            <svg
+              class="aud__emblem"
+              data-emblem={item.emblem}
+              data-reveal="draw"
+              viewBox="0 0 80 80"
+              fill="none"
+              aria-hidden="true"
+              focusable="false"
+            >
+              {groups.map((part) => {
+                const lines = em.lines.filter((l) => l.part === part);
+                if (!lines.length) return null;
+                return (
+                  <g class:list={['em__g', part && `em__${part}`]}>
+                    {lines.map((l) => (
+                      <path
+                        class="em__ink"
+                        d={l.d}
+                        pathLength="1"
+                        style={`--d:${em.lines.indexOf(l)}`}
+                      />
+                    ))}
+                    {part === 'net' &&
+                      em.dots?.map(([cx, cy], di) => (
+                        <circle class="em__dot" cx={cx} cy={cy} r="2.2" style={`--d:${di}`} />
+                      ))}
+                  </g>
+                );
+              })}
+            </svg>
+          </div>
+
+          <h3 id={`aud-note-${i + 1}`} class="aud__title">
+            {item.title}
+          </h3>
+          <p class="aud__asking eyebrow">{audiences.askingLabel}</p>
+          <p class="aud__q">{item.question}</p>
+          <p class="aud__body">{item.body}</p>
+          <ul class="aud__links">
+            {item.services.map((slug) => {
+              const s = services.get(slug)!;
+              return (
+                <li>
+                  <a href={s.href} class="aud__link">
+                    <span>{s.title}</span>
+                    <Icon name="arrow-right" size={14} class="aud__arrow" />
+                  </a>
+                </li>
+              );
+            })}
+          </ul>
+        </article>
+      );
+    })}
   </div>
 </section>
+
+<script>
+  // The cursor light: each card keeps the pointer position in two custom properties.
+  const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (fine && !still) {
+    for (const card of document.querySelectorAll<HTMLElement>('.aud__card')) {
+      card.addEventListener(
+        'pointermove',
+        (e) => {
+          const r = card.getBoundingClientRect();
+          card.style.setProperty('--mx', `${Math.round(e.clientX - r.left)}px`);
+          card.style.setProperty('--my', `${Math.round(e.clientY - r.top)}px`);
+        },
+        { passive: true },
+      );
+    }
+  }
+</script>
 
 <style>
   /* Layered so Tailwind utilities on the same element still win. */
@@ -84,6 +217,8 @@ const services = await getServiceIndex();
       }
     }
     .aud__phrase em {
+      font-style: italic;
+      font-weight: 320;
       text-decoration-line: underline;
       text-decoration-thickness: 1px;
       text-underline-offset: 0.16em;
@@ -91,10 +226,6 @@ const services = await getServiceIndex();
       transition:
         text-decoration-color 360ms var(--ease-quiet),
         color 360ms var(--ease-quiet);
-    }
-    .aud__phrase em {
-      font-style: italic;
-      font-weight: 320;
     }
     .aud__ref {
       font-family: var(--font-sans);
@@ -107,74 +238,114 @@ const services = await getServiceIndex();
       line-height: 0;
     }
 
-    /* A note in focus underlines its phrase in ink */
-    .aud:has(.aud__note[data-note='1']:is(:hover, :focus-within)) .aud__phrase[data-note='1'] em,
-    .aud:has(.aud__note[data-note='2']:is(:hover, :focus-within)) .aud__phrase[data-note='2'] em,
-    .aud:has(.aud__note[data-note='3']:is(:hover, :focus-within)) .aud__phrase[data-note='3'] em {
+    /* A card in focus underlines its phrase in ink */
+    .aud:has(.aud__card[data-note='1']:is(:hover, :focus-within)) .aud__phrase[data-note='1'] em,
+    .aud:has(.aud__card[data-note='2']:is(:hover, :focus-within)) .aud__phrase[data-note='2'] em,
+    .aud:has(.aud__card[data-note='3']:is(:hover, :focus-within)) .aud__phrase[data-note='3'] em {
       text-decoration-color: var(--color-ink);
       text-decoration-thickness: 2px;
     }
 
-    /* ---------- Notes ---------- */
+    /* ---------- Cards ---------- */
     .aud__notes {
       display: grid;
-      gap: 3.5rem var(--gap-x);
-      margin-top: clamp(4rem, 2.5rem + 5vw, 8rem);
+      gap: 1rem var(--gap-x);
+      margin-top: clamp(3.5rem, 2rem + 5vw, 7rem);
     }
     @media (min-width: 768px) {
       .aud__notes {
         grid-template-columns: repeat(3, minmax(0, 1fr));
+        align-items: start;
+      }
+    }
+    @media (min-width: 1024px) {
+      /* A shallow stair, like notes stepping down a page: 0, 3, 6 rem. */
+      .aud__card {
+        margin-top: calc(var(--card) * 3rem);
       }
     }
     @media (min-width: 1280px) {
-      /* Indent the notes by one grid column: the sentence leads, the notes follow. */
+      /* Indent the cards by one grid column: the sentence leads, the notes follow. */
       .aud__notes {
         padding-inline-start: calc((100% - 11 * var(--gap-x)) / 12 + var(--gap-x));
-        column-gap: calc(var(--gap-x) * 2);
       }
     }
 
-    .aud__note {
+    .aud__card {
+      --mx: 50%;
+      --my: 0%;
       position: relative;
+      isolation: isolate;
+      overflow: hidden;
       display: flex;
       flex-direction: column;
-      padding-top: 1.5rem;
+      padding: clamp(1.5rem, 1rem + 1.4vw, 2.25rem);
+      background: var(--color-paper);
+      border: 1px solid var(--color-line);
+      border-radius: 4px;
+      transition:
+        transform 700ms var(--ease-settle),
+        border-color 500ms var(--ease-quiet);
+    }
+    /* Light from the cursor, a lattice watermark, and a gold top rule that fills in. */
+    .aud__spot,
+    .aud__watermark {
+      position: absolute;
+      z-index: -1;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 600ms var(--ease-quiet);
+    }
+    .aud__spot {
+      inset: 0;
+      background: radial-gradient(
+        26rem circle at var(--mx) var(--my),
+        color-mix(in srgb, var(--color-gold-soft) 34%, transparent),
+        transparent 62%
+      );
+    }
+    .aud__watermark {
+      inset: 40% -10% -10% 30%;
+      mask-image: radial-gradient(closest-side at 70% 70%, #000, transparent);
     }
     .aud__rule {
       position: absolute;
       inset: 0 0 auto 0;
-      height: 1px;
-      background: var(--color-line);
-    }
-    .aud__rule::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: var(--color-ink);
+      height: 2px;
+      background: var(--color-gold);
       transform: scaleX(0);
       transform-origin: left;
-      transition: transform 700ms var(--ease-settle);
-    }
-    .aud__note:is(:hover, :focus-within) .aud__rule::after {
-      transform: scaleX(1);
+      transition: transform 800ms var(--ease-settle);
     }
 
+    .aud__head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+    }
     .aud__num {
       font-family: var(--font-display);
-      font-size: 2.5rem;
+      font-size: 3rem;
       line-height: 1;
       font-weight: 300;
       font-style: italic;
       color: var(--color-royal);
     }
+    .aud__emblem {
+      width: clamp(76px, 4.5rem + 1.5vw, 104px);
+      height: auto;
+      aspect-ratio: 1;
+      overflow: hidden; /* the waves run past the frame and loop */
+    }
     .aud__title {
-      margin-top: 1.5rem;
+      margin-top: 1.75rem;
       font-size: var(--text-d4);
       line-height: var(--text-d4--line-height);
       font-weight: 420;
     }
     .aud__asking {
-      margin-top: 1.75rem;
+      margin-top: 1.5rem;
       color: var(--color-stone);
     }
     .aud__q {
@@ -193,8 +364,7 @@ const services = await getServiceIndex();
       line-height: 1.65;
     }
     .aud__links {
-      margin-top: auto;
-      padding-top: 1.75rem;
+      margin-top: 1.75rem;
     }
     .aud__link {
       display: flex;
@@ -217,6 +387,127 @@ const services = await getServiceIndex();
     }
     .aud__link:hover :global(.aud__arrow) {
       transform: translateX(3px);
+    }
+
+    /* ---------- Line drawings ---------- */
+    .em__ink {
+      stroke: var(--color-gold);
+      stroke-width: 1.25;
+      stroke-linejoin: round;
+      stroke-linecap: round;
+      vector-effect: non-scaling-stroke;
+    }
+    .em__dot {
+      fill: var(--color-gold);
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+    .em__g {
+      transform-box: view-box;
+      transition: transform 900ms var(--ease-settle);
+    }
+    .em__boat {
+      transform-origin: 40px 56px;
+    }
+    .em__net {
+      transform-origin: 40px 40px;
+    }
+    .em__star {
+      transform-origin: 40px 54px;
+    }
+
+    /* Draws once as the card scrolls in (armed by scroll.ts; simply drawn without it). */
+    .aud__emblem[data-armed='true'] .em__ink {
+      stroke-dasharray: 1 1;
+      stroke-dashoffset: 1;
+    }
+    .aud__emblem[data-armed='true'] .em__dot {
+      transform: scale(0);
+    }
+    .aud__emblem[data-armed='play'] .em__ink {
+      stroke-dasharray: 1 1;
+      animation: em-draw 1500ms var(--ease-ledger) both;
+      animation-delay: calc(var(--card) * 160ms + var(--d) * 140ms);
+    }
+    .aud__emblem[data-armed='play'] .em__dot {
+      animation: em-pop 600ms var(--ease-settle) both;
+      animation-delay: calc(var(--card) * 160ms + 900ms + var(--d) * 50ms);
+    }
+    @keyframes em-draw {
+      from {
+        stroke-dashoffset: 1;
+      }
+      to {
+        stroke-dashoffset: 0;
+      }
+    }
+    @keyframes em-pop {
+      from {
+        transform: scale(0);
+      }
+    }
+
+    /* ---------- Hover and focus (hover on fine pointers; focus everywhere) ---------- */
+    .aud__card:focus-within {
+      border-color: color-mix(in srgb, var(--color-gold) 70%, transparent);
+    }
+    .aud__card:focus-within .aud__rule {
+      transform: scaleX(1);
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .aud__card:hover,
+      .aud:has(.aud__phrase[data-note='1']:hover) .aud__card[data-note='1'],
+      .aud:has(.aud__phrase[data-note='2']:hover) .aud__card[data-note='2'],
+      .aud:has(.aud__phrase[data-note='3']:hover) .aud__card[data-note='3'] {
+        transform: translateY(-6px);
+        border-color: color-mix(in srgb, var(--color-gold) 70%, transparent);
+      }
+      .aud__card:hover .aud__rule {
+        transform: scaleX(1);
+      }
+      .aud__card:hover .aud__spot,
+      .aud__card:hover .aud__watermark {
+        opacity: 1;
+      }
+      .aud__card:hover .em__net,
+      .aud__card:hover .em__star {
+        transform: rotate(45deg);
+      }
+      .aud__card:hover .em__boat {
+        animation: em-rock 1.6s var(--ease-quiet) infinite alternate;
+      }
+      .aud__card:hover .em__waves {
+        animation: em-swell 2.4s linear infinite;
+      }
+    }
+    @keyframes em-rock {
+      from {
+        transform: rotate(-3deg);
+      }
+      to {
+        transform: rotate(3deg) translateY(-1.5px);
+      }
+    }
+    @keyframes em-swell {
+      to {
+        transform: translateX(-10px);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .aud__card,
+      .aud__rule,
+      .em__g {
+        transition: none;
+      }
+      .aud__card:hover,
+      .aud:has(.aud__phrase:hover) .aud__card {
+        transform: none;
+      }
+      .aud__card:hover .em__g {
+        transform: none;
+        animation: none;
+      }
     }
   }
 </style>

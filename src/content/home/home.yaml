@@ -54,6 +54,7 @@ audiences:
         budget that survives a bad month, savings with a purpose, property bought with open
         eyes, and wealth arranged on ethical or Shariah-conscious terms.
       services: [wealth-planning, shariah-compliant-finance, real-estate]
+      emblem: doorway
     - title: SMEs and importers
       question: How do we pay a new supplier without tying up all our cash?
       body: >-
@@ -61,6 +62,7 @@ audiences:
         contract to be clear before they sign: what it costs, who carries the risk, and what
         the bank will ask for.
       services: [trade-finance]
+      emblem: dhow
     - title: Organisations and programmes
       question: How do we build real financial capability, and show that it worked?
       body: >-
@@ -68,6 +70,7 @@ audiences:
         training people actually use, and monitoring and evaluation that tells them what a
         programme achieved.
       services: [financial-literacy, project-me]
+      emblem: circle
 
 # 02 — Three pillars. Pillar names and lines come from src/content/services-hub/hub.yaml;
 # the services under each come from src/content/services/.

@@ -61,6 +61,8 @@ const home = defineCollection({
             question: z.string(),
             body: z.string(),
             services: z.array(serviceSlug).min(1),
+            /** The card's line drawing (decorative): a Lamu doorway, a dhow, a circle of people. */
+            emblem: z.enum(['doorway', 'dhow', 'circle']),
           }),
         )
         .length(3),
