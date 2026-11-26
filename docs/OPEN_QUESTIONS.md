@@ -16,8 +16,9 @@ Last updated: 2026-11-26
 
 ## Accounts and keys
 
-4. **Vercel:** the Claude connector needs access to the personal Vercel team before the project
-   can be created.
+4. **Vercel access:** production (savantha.vercel.app) is behind Vercel Authentication, so only you
+   can open it and PageSpeed cannot test it. Make production public (it stays `noindex` on
+   `vercel.app`) or keep it private until the domain moves?
 5. **GA4:** measurement ID (`PUBLIC_GA4_ID`), retention period (`[[14 months]]` in
    `privacy.md`), register the six goals.
 6. **Resend:** API key and a verified sender on savantho.net. Until then the form returns 503 and
