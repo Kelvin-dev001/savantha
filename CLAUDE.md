@@ -3,6 +3,8 @@
 Claude Code reads this file at the start of every session. It holds the rules that always apply.
 The full build spec is in `docs/REDESIGN_BRIEF.md` — read it before starting any phase.
 
+**Open questions, every session:** in your first reply of every session, whatever the request, read `docs/OPEN_QUESTIONS.md` and list every open question briefly (grouped as in the file) before or after answering. Repeat the full list at the end of every phase. Keep the file current: add new questions, delete answered ones, update its date.
+
 ## Project
 
 New marketing website for **Savantho Consultancy Limited**, a Kenyan ethical financial consultancy. It replaces https://savantho.net, a one-page Canva export with no navigation, SEO, accessibility or conversion path.
