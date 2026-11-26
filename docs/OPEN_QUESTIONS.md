@@ -13,6 +13,8 @@ Last updated: 2026-11-26
    73 at raw 4× CPU on this laptop; 100 at 2×.)
 2. **`/styleguide` in production:** keep it (noindex, unlisted) or remove it before launch?
 3. **HSTS preload:** turn on once the domain is final on Cloudflare.
+13. **3D hero seal:** pick a variant on the `feat/hero-3d-seal` preview (`?seal=turn`, `?seal=tilt`,
+    `?seal=sweep`) or a mix; then it merges to `main` and the other modes are removed.
 
 ## Accounts and keys
 

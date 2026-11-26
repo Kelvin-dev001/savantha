@@ -11,7 +11,9 @@
  *   280 ms   seal rings draw, monogram rises
  *   520 ms   headline rises word by word, 60 ms apart
  *   1050 ms  lead, then CTAs, then the ledger foot
- * No JS is involved, so the text is readable even if scripts never run. Under
+ * Later, once idle, the seal becomes WebGL gold (Seal depth, src/scripts/motion/seal3d.ts);
+ * in "tilt" the lattice shifts a few px behind it, in "sweep" a warm light drifts across it.
+ * No JS is involved in the entry, so the text is readable even if scripts never run. Under
  * prefers-reduced-motion every element is simply shown in its final state.
  */
 import { getEntry } from 'astro:content';
@@ -46,6 +48,7 @@ const lines = hero.headline.map((line) =>
     spread={780}
     class="hero__lattice"
   />
+  <span class="hero__light" aria-hidden="true"></span>
 
   <div class="shell hero__inner">
     <div class="hero__top">
@@ -78,7 +81,7 @@ const lines = hero.headline.map((line) =>
         ))}
       </h1>
 
-      <Seal animate class="hero__seal" />
+      <Seal animate depth="tilt" class="hero__seal" />
     </div>
 
     <div class="hero__mid">
@@ -160,7 +163,44 @@ const lines = hero.headline.map((line) =>
 
     .hero :global(.hero__lattice) {
       z-index: -1;
+      inset: -12px; /* room for the tilt parallax */
       mask-image: linear-gradient(to left, #000 8%, rgb(0 0 0 / 0.5) 45%, transparent 80%);
+    }
+
+    /* Light through a carved screen: colour-dodge lifts the gold lines far more than the ink. */
+    .hero__light {
+      position: absolute;
+      z-index: -1;
+      top: -30vmax;
+      left: -30vmax;
+      width: 60vmax;
+      height: 60vmax;
+      border-radius: 50%;
+      background: radial-gradient(
+        closest-side,
+        color-mix(in srgb, var(--color-gold) 55%, transparent),
+        transparent
+      );
+      mix-blend-mode: color-dodge;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .hero[data-light='on'] .hero__light {
+      animation: hero-light 16s var(--ease-quiet) infinite;
+    }
+    @keyframes hero-light {
+      0% {
+        opacity: 0;
+        transform: translate(55vw, 5vh);
+      }
+      25%,
+      75% {
+        opacity: 0.4;
+      }
+      100% {
+        opacity: 0;
+        transform: translate(100vw, 75vh);
+      }
     }
 
     .hero__inner {

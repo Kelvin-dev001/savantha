@@ -6,6 +6,7 @@
  *   - GSAP + ScrollTrigger       → when a [data-reveal] / [data-parallax] element nears the viewport
  *   - pinned progress (./pinned)  → as soon as the page has a [data-pin] section (< 1 KB)
  *   - magnetic CTA               → inline below, fine pointers only
+ *   - 3D seal (./seal3d)         → after load, once idle and the hero entry has played (≈ 4 KB)
  *
  * Reduced motion: nothing loads, nothing is hidden. Content never depends on this file
  * running — reveals only set a "from" state on elements that are still off-screen.
@@ -19,6 +20,14 @@ function boot() {
   if (finePointer()) {
     onIdle(() => void import('./smooth').then((m) => m.initSmoothScroll()));
     initMagnetic();
+  }
+
+  if (document.querySelector('[data-seal3d]')) {
+    // Never competes with the first paint: after load, after the hero entry, when idle.
+    const go = () => onIdle(() => void import('./seal3d').then((m) => m.initSeal3D()), 2000);
+    const wait = () => setTimeout(go, Math.max(0, 2200 - performance.now()));
+    if (document.readyState === 'complete') wait();
+    else window.addEventListener('load', wait, { once: true });
   }
 
   if (document.querySelector('[data-pin]')) void import('./pinned').then((m) => m.initPinned());

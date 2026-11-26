@@ -7,15 +7,19 @@
  * Sizing comes from the parent via `width` (CSS). Strokes stay 1 px at any size.
  * `animate`: rings draw, inscription settles, monogram fades up (CSS only, once).
  * Timings are CSS custom properties so a section can choreograph them.
+ * `depth`: after load, src/scripts/motion/seal3d.ts swaps the rings and star for gold
+ * metalwork in WebGL (turn / tilt / sweep). Without WebGL, JS or motion, this SVG stays.
  */
 import { site } from '@/config/site';
 import Monogram from './Monogram.astro';
 
 interface Props {
   animate?: boolean;
+  /** 3D mode for the WebGL seal (homepage hero only). */
+  depth?: 'turn' | 'tilt' | 'sweep';
   class?: string;
 }
-const { animate = false, class: className = '' } = Astro.props;
+const { animate = false, depth, class: className = '' } = Astro.props;
 
 const inscription = `${site.legalName} · ${site.tagline} ·`.toUpperCase();
 
@@ -26,7 +30,12 @@ const uid = `seal${Math.random().toString(36).slice(2, 8)}`;
 const textLength = (2 * Math.PI * BASE - 6).toFixed(1);
 ---
 
-<div class:list={['seal', className]} data-animate={animate ? 'true' : 'false'} aria-hidden="true">
+<div
+  class:list={['seal', className]}
+  data-animate={animate ? 'true' : 'false'}
+  data-seal3d={depth}
+  aria-hidden="true"
+>
   <svg class="seal__ring" viewBox="0 0 320 320" focusable="false" fill="none">
     <defs>
       <path id={`${uid}-p`} d={circle(BASE)}></path>
@@ -159,6 +168,32 @@ const textLength = (2 * Math.PI * BASE - 6).toFixed(1);
         opacity: 0;
         transform: translateY(10px) scale(0.98);
       }
+    }
+
+    /* WebGL seal (see header): the canvas overhangs by 16% so a tilted rim is never cut. */
+    .seal :global(.seal__gl) {
+      position: absolute;
+      inset: -16%;
+      width: 132%;
+      height: 132%;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 1100ms var(--ease-quiet);
+    }
+    .seal__ring,
+    .seal__mark {
+      will-change: transform;
+    }
+    .seal__stroke,
+    .seal__mark :global(path) {
+      transition: opacity 1100ms var(--ease-quiet);
+    }
+    .seal[data-3d='on'] :global(.seal__gl) {
+      opacity: 1;
+    }
+    .seal[data-3d='on'] .seal__stroke,
+    .seal[data-3d='on'] .seal__mark :global(path) {
+      opacity: 0;
     }
 
     @media (prefers-reduced-motion: reduce) {
